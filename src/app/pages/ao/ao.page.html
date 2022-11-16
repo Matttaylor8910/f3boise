@@ -1,9 +1,127 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>ao</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ name || 'Loading...' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
+  <div *ngIf="aoStats; else loading">
+    <ng-container *ngIf="aoStats.totalBeatdowns > 0; else empty">
+      <!-- ao stats -->
+      <div class="stats-container">
+        <div class="card-container">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>{{ name }} stats</ion-card-title>
+              <ion-card-subtitle>
+                {{ aoStats.totalBeatdowns }} {{ aoStats.totalBeatdowns === 1 ? 'beatdown' : 'total beatdowns' }},
+                {{ aoStats.totalUniquePax }} total unique pax,
+                {{ aoStats.averageAttendance | number:'0.1-1' }} pax post per beatdown
+              </ion-card-subtitle>
+            </ion-card-header>
+          </ion-card>
+        </div>
+      </div>
 
+      <div class="stats-container">
+        <!-- top qs -->
+        <div class="card-container">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Top Qs</ion-card-title>
+              <ion-card-subtitle>Highest % of Q at {{ name }}</ion-card-subtitle>
+            </ion-card-header>
+            <ion-list>
+              <ng-container *ngFor="let q of topQs; let i = index">
+                <ion-item *ngIf="i < limit || showMoreTop">
+                  <ion-label class="ion-text-wrap">
+                    <h2>
+                      <app-pax-name [name]="q.name"></app-pax-name>
+                    </h2>
+                    <p>Lead {{ q.qs }} / {{ q.bds }} {{ q.bds === 1 ? 'beatdown' : 'beatdowns' }}</p>
+                  </ion-label>
+                  <strong slot="end">{{ q.qRate | percent }}</strong>
+                </ion-item>
+              </ng-container>
+
+              <ion-button fill="clear" expand="block" (click)="showMoreTop = !showMoreTop" *ngIf="topQs.length > limit">
+                {{ showMoreTop ? 'Show less' : 'Show more' }}
+              </ion-button>
+            </ion-list>
+          </ion-card>
+        </div>
+
+        <!-- bottom qs -->
+        <div class="card-container">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Bottom Qs</ion-card-title>
+              <ion-card-subtitle>Lowest % of Q at {{ name }}</ion-card-subtitle>
+            </ion-card-header>
+            <ion-list>
+              <ng-container *ngFor="let q of bottomQs; let i = index">
+                <ion-item *ngIf="i < limit || showMoreBottom">
+                  <ion-label class="ion-text-wrap">
+                    <h2>
+                      <app-pax-name [name]="q.name"></app-pax-name>
+                    </h2>
+                    <p>Lead {{ q.qs }} / {{ q.bds }} {{ q.bds === 1 ? 'beatdown' : 'beatdowns' }}</p>
+                  </ion-label>
+                  <strong slot="end">{{ q.qRate | percent }}</strong>
+                </ion-item>
+              </ng-container>
+
+              <ion-button fill="clear" expand="block" (click)="showMoreBottom = !showMoreBottom" *ngIf="bottomQs.length > limit">
+                {{ showMoreBottom ? 'Show less' : 'Show more' }}
+              </ion-button>
+            </ion-list>
+          </ion-card>
+        </div>
+
+        <!-- no qs -->
+        <div class="card-container">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Never been the Q</ion-card-title>
+              <ion-card-subtitle>Lead 0 beatdowns at {{ name }}</ion-card-subtitle>
+            </ion-card-header>
+            <ion-list>
+              <ng-container *ngFor="let q of noQs; let i = index">
+                <ion-item *ngIf="i < limit || showMoreNoQs">
+                  <ion-label class="ion-text-wrap">
+                    <h2>
+                      <app-pax-name [name]="q.name"></app-pax-name>
+                    </h2>
+                    <p>Last BD was {{ q.lastBdDate }}</p>
+                  </ion-label>
+                  <strong slot="end">{{ q.bds }} {{ q.bds === 1 ? 'beatdown' : 'beatdowns' }} </strong>
+                </ion-item>
+              </ng-container>
+
+              <ion-button fill="clear" expand="block" (click)="showMoreNoQs = !showMoreNoQs" *ngIf="noQs.length > limit">
+                {{ showMoreNoQs ? 'Show less' : 'Show more' }}
+              </ion-button>
+            </ion-list>
+          </ion-card>
+        </div>
+      </div>
+    </ng-container>
+  </div>
 </ion-content>
+
+<!-- loading spinner -->
+<ng-template #loading>
+  <div class="spinner-container">
+    <ion-spinner></ion-spinner>
+  </div>
+</ng-template>
+
+<!-- empty state -->
+<ng-template #empty>
+  <div class="empty-container">
+    No data for AO "{{ name }}"
+  </div>
+</ng-template>

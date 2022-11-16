@@ -1,20 +1,21 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {CommonModule} from '@angular/common';
+import {NgModule} from '@angular/core';
+import {FormsModule} from '@angular/forms';
+import {IonicModule} from '@ionic/angular';
+import {ComponentsModule} from 'src/app/components/components.module';
 
-import { IonicModule } from '@ionic/angular';
-
-import { AoPageRoutingModule } from './ao-routing.module';
-
-import { AoPage } from './ao.page';
+import {AoPageRoutingModule} from './ao-routing.module';
+import {AoPage} from './ao.page';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    AoPageRoutingModule
+    AoPageRoutingModule,
+    ComponentsModule,
   ],
   declarations: [AoPage]
 })
-export class AoPageModule {}
+export class AoPageModule {
+}

@@ -4,6 +4,7 @@ import {IBackblast} from 'types';
 import {HttpService} from './http.service';
 
 const URL = 'https://f3boiseapi-cycjv.ondigitalocean.app/back_blasts/all';
+// const URL = 'assets/all.json';
 
 @Injectable({providedIn: 'root'})
 export class BackblastService {

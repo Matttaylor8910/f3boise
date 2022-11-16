@@ -1,0 +1,8 @@
+a {
+  color: var(--ion-color-primary);
+
+  &:hover {
+    cursor: pointer;
+    opacity: .8;
+  }
+}

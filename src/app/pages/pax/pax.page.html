@@ -1,9 +1,38 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>pax</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ name || 'Loading...' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
+  <div class="stats-container">
+    <!-- top qs -->
+    <div class="card-container">
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>Favorite AOs</ion-card-title>
+          <ion-card-subtitle>The AOs you frequent the most</ion-card-subtitle>
+        </ion-card-header>
+        <ion-list>
+          <ng-container *ngFor="let ao of favoriteAos; let i = index">
+            <ion-item>
+              <ion-label class="ion-text-wrap">
+                <h2>
+                  {{ ao.name }}
+                </h2>
+              </ion-label>
+              <strong slot="end">{{ ao.total }} {{ ao.total === 1 ? 'beatdown' : 'beatdowns' }}</strong>
+            </ion-item>
+          </ng-container>
 
+          <!-- <ion-button fill="clear" expand="block" (click)="showMoreFavorites = !showMoreFavorites" *ngIf="favoriteAos.length > limit">
+            {{ showMoreFavorites ? 'Show less' : 'Show more' }}
+          </ion-button> -->
+        </ion-list>
+      </ion-card>
+    </div>
+  </div>
 </ion-content>
