@@ -1,0 +1,17 @@
+{
+  "editor.formatOnSave": true,
+  "clang-format.fallbackStyle": "Google",
+  "clang-format.executable": "${workspaceRoot}/node_modules/clang-format/bin/darwin_x64/clang-format",
+  "editor.tabSize": 2,
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "mobile/platforms": true,
+    "**README**": true,
+  },
+  "editor.defaultFormatter": "xaver.clang-format",
+  "files.trimTrailingWhitespace": true
+}
