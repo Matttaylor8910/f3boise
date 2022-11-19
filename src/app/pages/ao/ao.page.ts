@@ -1,5 +1,6 @@
-import {Component, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
+import * as moment from 'moment';
 import {BackblastService} from 'src/app/services/backblast.service';
 import {IBackblast} from 'types';
 
@@ -8,6 +9,7 @@ interface AoPaxStats {
   bds: number;
   qs: number;
   qRate: number;
+  bdsPerWeek: number;
   firstBdDate: string;
   lastBdDate: string;
   firstQDate?: string;
@@ -36,10 +38,12 @@ export class AoPage {
   aoStats?: AoStats;
   paxStats?: AoPaxStats[];
 
+  leaderboard: AoPaxStats[] = [];
   topQs: AoPaxStats[] = [];
   bottomQs: AoPaxStats[] = [];
   noQs: AoPaxStats[] = [];
 
+  showMoreLeaderboard = false;
   showMoreTop = false;
   showMoreBottom = false;
   showMoreNoQs = false;
@@ -103,7 +107,17 @@ export class AoPage {
     // spin off some other stats
     this.aoStats = aoStats;
     this.paxStats = Array.from(statsMap.values());
+    this.calculatePaxBdsPerWeek();
     this.calculateQsCards();
+  }
+
+  calculatePaxBdsPerWeek() {
+    this.paxStats?.forEach(stats => {
+      // calculate bds per week
+      const comparisonMoment = moment(stats.firstBdDate);
+      const days = moment(stats.lastBdDate).diff(comparisonMoment, 'weeks');
+      stats.bdsPerWeek = stats.bds / days;
+    });
   }
 
   calculateQsCards() {
@@ -122,6 +136,7 @@ export class AoPage {
     this.noQs = noQs.sort((a, b) => b.bds - a.bds);
     this.bottomQs = [...hasQd];
     this.topQs = [...hasQd].reverse();
+    this.leaderboard = [...noQs, ...hasQd].sort((a, b) => b.bds - a.bds);
   }
 
   private newAoStats(): AoStats {
@@ -140,6 +155,7 @@ export class AoPage {
       bds: 0,
       qs: 0,
       qRate: 0,
+      bdsPerWeek: 0,
       firstBdDate: backblast.date,
       lastBdDate: backblast.date,
     };

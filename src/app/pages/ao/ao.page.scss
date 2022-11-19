@@ -7,7 +7,7 @@
   }
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1450px) {
   .stats-container .card-container {
     min-width: 50%;
   }
@@ -16,5 +16,9 @@
 @media (max-width: 700px) {
   .stats-container .card-container {
     min-width: 100%;
+
+    .hide-sm {
+      display: none;
+    }
   }
 }

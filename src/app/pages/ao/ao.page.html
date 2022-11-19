@@ -27,6 +27,40 @@
       </div>
 
       <div class="stats-container">
+        <!-- leaderboard -->
+        <div class="card-container">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Leaderboard</ion-card-title>
+              <ion-card-subtitle>Attended the most BDs</ion-card-subtitle>
+            </ion-card-header>
+            <ion-list>
+              <ng-container *ngFor="let pax of leaderboard; let i = index">
+                <ion-item
+                  [class.hide-sm]="i >= 3 && !showMoreLeaderboard"
+                  *ngIf="i < limit || showMoreLeaderboard"
+                >
+                  <ion-label class="ion-text-wrap">
+                    <h2>
+                      <app-pax-name [name]="pax.name"></app-pax-name>
+                    </h2>
+                    <p>
+                      {{ pax.bdsPerWeek | number:'0.1-2' }} beatdowns per week
+                    </p>
+                  </ion-label>
+                  <strong slot="end">{{ pax.bds }} {{ pax.bds === 1 ? 'beatdown' : 'beatdowns' }} </strong>
+                </ion-item>
+              </ng-container>
+
+              <ion-button fill="clear" expand="block" (click)="showMoreLeaderboard = !showMoreLeaderboard" *ngIf="leaderboard.length > limit">
+                <ng-container *ngIf="!showMoreLeaderboard; else showLess">
+                  Show all {{ leaderboard.length }}
+                </ng-container>
+              </ion-button>
+            </ion-list>
+          </ion-card>
+        </div>
+
         <!-- top qs -->
         <div class="card-container">
           <ion-card>
@@ -36,7 +70,10 @@
             </ion-card-header>
             <ion-list>
               <ng-container *ngFor="let q of topQs; let i = index">
-                <ion-item *ngIf="i < limit || showMoreTop">
+                <ion-item
+                  [class.hide-sm]="i >= 3 && !showMoreTop"
+                  *ngIf="i < limit || showMoreTop"
+                >
                   <ion-label class="ion-text-wrap">
                     <h2>
                       <app-pax-name [name]="q.name"></app-pax-name>
@@ -65,7 +102,10 @@
             </ion-card-header>
             <ion-list>
               <ng-container *ngFor="let q of bottomQs; let i = index">
-                <ion-item *ngIf="i < limit || showMoreBottom">
+                <ion-item
+                  [class.hide-sm]="i >= 3 && !showMoreBottom"
+                  *ngIf="i < limit || showMoreBottom"
+                >
                   <ion-label class="ion-text-wrap">
                     <h2>
                       <app-pax-name [name]="q.name"></app-pax-name>
@@ -94,7 +134,10 @@
             </ion-card-header>
             <ion-list>
               <ng-container *ngFor="let q of noQs; let i = index">
-                <ion-item *ngIf="i < limit || showMoreNoQs">
+                <ion-item
+                  [class.hide-sm]="i >= 3 && !showMoreNoQs"
+                  *ngIf="i < limit || showMoreNoQs"
+                >
                   <ion-label class="ion-text-wrap">
                     <h2>
                       <app-pax-name [name]="q.name"></app-pax-name>
