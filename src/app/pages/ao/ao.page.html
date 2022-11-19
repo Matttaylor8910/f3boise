@@ -51,7 +51,7 @@
                       <app-pax-name [name]="pax.name"></app-pax-name>
                     </h2>
                     <p>
-                      {{ pax.bdsPerWeek | number:'0.1-2' }} beatdowns per week
+                      {{ pax.bdsPerWeek | number:'0.0-2' }} beatdowns per week
                     </p>
                   </ion-label>
                   <strong slot="end">{{ pax.bds }} {{ pax.bds === 1 ? 'beatdown' : 'beatdowns' }} </strong>
