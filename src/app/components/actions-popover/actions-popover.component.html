@@ -1,0 +1,8 @@
+<div #ref (click)="showOptions($event)">
+  <ng-content></ng-content>
+</div>
+<ng-container *ngIf="!ref.hasChildNodes()">
+  <ion-button class="skinnier" fill="clear" (click)="showOptions($event)" [disabled]="disabled">
+    <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
+  </ion-button>
+</ng-container>

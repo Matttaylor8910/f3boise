@@ -11,7 +11,7 @@ import {AppComponent} from './app.component';
   declarations: [AppComponent],
   imports: [
     BrowserModule,
-    IonicModule.forRoot(),
+    IonicModule.forRoot({mode: 'md'}),
     AppRoutingModule,
     HttpClientModule,
   ],

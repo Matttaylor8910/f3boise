@@ -6,22 +6,32 @@
   right: 0;
   top: 50%;
   transform: translateY(-50%);
+
+  strong {
+    font-size: 20px;
+    line-height: 26px;
+  }
+
+  p {
+    font-size: 16px;
+    line-height: 22px;
+    color: #8c8c8c;
+    margin: 0;
+  }
 }
 
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
+.hide-sm {
+  display: initial;
+}
+.show-sm {
+  display: none;
 }
 
-#container p {
-  font-size: 16px;
-  line-height: 22px;
-
-  color: #8c8c8c;
-
-  margin: 0;
-}
-
-#container a {
-  text-decoration: none;
+@media (max-width: 1150px) {
+  .hide-sm {
+    display: none;
+  }
+  .show-sm {
+    display: initial;
+  }
 }

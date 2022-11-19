@@ -48,7 +48,9 @@
               </ng-container>
 
               <ion-button fill="clear" expand="block" (click)="showMoreTop = !showMoreTop" *ngIf="topQs.length > limit">
-                {{ showMoreTop ? 'Show less' : 'Show more' }}
+                <ng-container *ngIf="!showMoreTop; else showLess">
+                  Show all {{ topQs.length }}
+                </ng-container>
               </ion-button>
             </ion-list>
           </ion-card>
@@ -75,7 +77,9 @@
               </ng-container>
 
               <ion-button fill="clear" expand="block" (click)="showMoreBottom = !showMoreBottom" *ngIf="bottomQs.length > limit">
-                {{ showMoreBottom ? 'Show less' : 'Show more' }}
+                <ng-container *ngIf="!showMoreBottom; else showLess">
+                  Show all {{ bottomQs.length }}
+                </ng-container>
               </ion-button>
             </ion-list>
           </ion-card>
@@ -102,7 +106,9 @@
               </ng-container>
 
               <ion-button fill="clear" expand="block" (click)="showMoreNoQs = !showMoreNoQs" *ngIf="noQs.length > limit">
-                {{ showMoreNoQs ? 'Show less' : 'Show more' }}
+                <ng-container *ngIf="!showMoreNoQs; else showLess">
+                  Show all {{ noQs.length }}
+                </ng-container>
               </ion-button>
             </ion-list>
           </ion-card>
@@ -124,4 +130,9 @@
   <div class="empty-container">
     No data for AO "{{ name }}"
   </div>
+</ng-template>
+
+<!-- show less button text -->
+<ng-template #showLess>
+  Show less
 </ng-template>

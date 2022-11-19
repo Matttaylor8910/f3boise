@@ -3,6 +3,16 @@
     <ion-title>
       F3 Boise
     </ion-title>
+    <ion-buttons slot="end">
+      <ion-button class="hide-sm" routerLink="/ao/{{ao}}" *ngFor="let ao of aos">
+        {{ ao }}
+      </ion-button>
+      <app-actions-popover class="show-sm" [actions]="aoActions">
+        <ion-button>
+          AO Stats
+        </ion-button>
+      </app-actions-popover>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 

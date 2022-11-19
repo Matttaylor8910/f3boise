@@ -56,7 +56,9 @@ export class AoPage {
   }
 
   async calculateAoStats() {
-    const data = await this.backblastService.getBackblastsForAo(this.name);
+    const data = this.name === 'all' ?
+        await this.backblastService.loadAllData() :
+        await this.backblastService.getBackblastsForAo(this.name);
 
     // sort the data by date ascending
     data.sort((a, b) => a.date.localeCompare(b.date));
