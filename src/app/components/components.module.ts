@@ -6,12 +6,14 @@ import {IonicModule} from '@ionic/angular';
 import {ActionsPopoverPageComponent} from './actions-popover/actions-popover-page.component';
 import {ActionsPopoverComponent} from './actions-popover/actions-popover.component';
 import {PAXNameComponent} from './pax-name/pax-name.component';
+import {TimeFilterComponent} from './time-filter/time-filter.component';
 
 @NgModule({
   declarations: [
     ActionsPopoverComponent,
     ActionsPopoverPageComponent,
     PAXNameComponent,
+    TimeFilterComponent,
   ],
   imports: [
     IonicModule,
@@ -22,6 +24,7 @@ import {PAXNameComponent} from './pax-name/pax-name.component';
     ActionsPopoverComponent,
     ActionsPopoverPageComponent,
     PAXNameComponent,
+    TimeFilterComponent,
   ],
   providers: [
     CurrencyPipe,

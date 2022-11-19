@@ -8,6 +8,12 @@
 </ion-header>
 
 <ion-content>
+  <app-time-filter
+    [tabs]="timeRanges"
+    [selectedTab]="selectedRange"
+    (tabChange)="calculateStats($event)">
+  </app-time-filter>
+
   <div *ngIf="aoStats; else loading">
     <ng-container *ngIf="aoStats.totalBeatdowns > 0; else empty">
       <!-- ao stats -->
@@ -66,7 +72,7 @@
           <ion-card>
             <ion-card-header>
               <ion-card-title>Top Qs</ion-card-title>
-              <ion-card-subtitle>Highest % of Q at {{ name }}</ion-card-subtitle>
+              <ion-card-subtitle>Highest % of Q</ion-card-subtitle>
             </ion-card-header>
             <ion-list>
               <ng-container *ngFor="let q of topQs; let i = index">
@@ -98,7 +104,7 @@
           <ion-card>
             <ion-card-header>
               <ion-card-title>Bottom Qs</ion-card-title>
-              <ion-card-subtitle>Lowest % of Q at {{ name }}</ion-card-subtitle>
+              <ion-card-subtitle>Lowest % of Q</ion-card-subtitle>
             </ion-card-header>
             <ion-list>
               <ng-container *ngFor="let q of bottomQs; let i = index">
@@ -129,8 +135,8 @@
         <div class="card-container">
           <ion-card>
             <ion-card-header>
-              <ion-card-title>Never been the Q</ion-card-title>
-              <ion-card-subtitle>Lead 0 beatdowns at {{ name }}</ion-card-subtitle>
+              <ion-card-title>Has not been the Q</ion-card-title>
+              <ion-card-subtitle>Lead 0 beatdowns</ion-card-subtitle>
             </ion-card-header>
             <ion-list>
               <ng-container *ngFor="let q of noQs; let i = index">
@@ -164,6 +170,7 @@
 <!-- loading spinner -->
 <ng-template #loading>
   <div class="spinner-container">
+    <h2>Loading...</h2>
     <ion-spinner></ion-spinner>
   </div>
 </ng-template>

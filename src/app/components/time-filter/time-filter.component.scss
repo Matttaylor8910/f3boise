@@ -1,0 +1,36 @@
+.segment-container {
+  ion-segment {
+    margin: 20px 0;
+
+    ion-segment-button {
+      --color: #aaa;
+      --color-checked: var(--ion-color-primary);
+
+      &.segment-button-checked {
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+.select-container {
+  opacity: 0;
+  height: 0;
+
+  ion-select {
+    font-size: 18px;
+    width: 100%;
+  }
+}
+
+@media(max-width: 350px) {
+  .segment-container {
+    opacity: 0;
+    height: 0;
+  }
+  .select-container {
+    opacity: 1;
+    height: initial;
+    padding: 0 16px 16px;
+  }
+}
