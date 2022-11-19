@@ -31,12 +31,11 @@ export class HomePage {
 
     // set up an actions button for smaller screens as well
     this.aoActions = this.aos.map(ao => {
-      return {
-        label: ao,
-        onClick: () => {
-          this.router.navigateByUrl(`/ao/${ao.includes('All') ? 'all' : ao}`);
-        }
-      };
+      return {label: ao, onClick: () => this.navToAo(ao)};
     });
+  }
+
+  navToAo(ao: string) {
+    this.router.navigateByUrl(`/ao/${ao.includes('All') ? 'all' : ao}`);
   }
 }

@@ -4,7 +4,7 @@
       F3 Boise
     </ion-title>
     <ion-buttons slot="end">
-      <ion-button class="hide-sm" routerLink="/ao/{{ao}}" *ngFor="let ao of aos">
+      <ion-button class="hide-sm" *ngFor="let ao of aos" (click)="navToAo(ao)">
         {{ ao }}
       </ion-button>
       <app-actions-popover class="show-sm" [actions]="aoActions">
