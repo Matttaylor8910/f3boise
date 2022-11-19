@@ -162,7 +162,16 @@ export class AoPage {
     this.noQs = noQs.sort((a, b) => b.bds - a.bds);
     this.bottomQs = [...hasQd];
     this.topQs = [...hasQd].reverse();
-    this.leaderboard = [...noQs, ...hasQd].sort((a, b) => b.bds - a.bds);
+
+    // leaderboard is sorted by highest # of bds attended, with tie breaks on
+    // the highest bds per week
+    this.leaderboard = [...noQs, ...hasQd].sort((a, b) => {
+      if (b.bds === a.bds) {
+        return b.bdsPerWeek - a.bdsPerWeek;
+      } else {
+        return b.bds - a.bds
+      }
+    });
   }
 
   private reset() {
