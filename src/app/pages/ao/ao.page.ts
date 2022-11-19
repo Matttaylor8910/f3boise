@@ -76,7 +76,7 @@ export class AoPage {
     this.selectedRange = range as TimeRange;
 
     const allData = this.name === 'all' ?
-        await this.backblastService.loadAllData() :
+        await this.backblastService.getAllData() :
         await this.backblastService.getBackblastsForAo(this.name);
 
     // sort the data by date ascending

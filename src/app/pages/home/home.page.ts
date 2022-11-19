@@ -23,7 +23,7 @@ export class HomePage {
 
   async setAos() {
     const aos = new Set<string>();
-    const data = await this.backblastService.loadAllData();
+    const data = await this.backblastService.getAllData();
     data.forEach(bb => aos.add(bb.ao));
 
     // sort the aos alphabetically

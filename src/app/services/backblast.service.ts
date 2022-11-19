@@ -21,6 +21,10 @@ export class BackblastService {
     return this.allData;
   }
 
+  async getAllData(): Promise<IBackblast[]> {
+    return this.allData ?? await this.loadAllData();
+  }
+
   async getBackblastsForAo(name: string): Promise<IBackblast[]> {
     const data = this.allData ?? await this.loadAllData();
     return data.filter(backblast => {
