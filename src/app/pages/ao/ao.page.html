@@ -58,7 +58,14 @@
                 </ion-item>
               </ng-container>
 
-              <ion-button fill="clear" expand="block" (click)="showMoreLeaderboard = !showMoreLeaderboard" *ngIf="leaderboard.length > limit">
+              <ion-button
+                class="show-more"
+                [class.has-4]="leaderboard.length > 3"
+                [class.has-more]="leaderboard.length > limit"
+                fill="clear"
+                expand="block"
+                (click)="showMoreLeaderboard = !showMoreLeaderboard"
+              >
                 <ng-container *ngIf="!showMoreLeaderboard; else showLess">
                   Show all {{ leaderboard.length }}
                 </ng-container>
@@ -90,7 +97,14 @@
                 </ion-item>
               </ng-container>
 
-              <ion-button fill="clear" expand="block" (click)="showMoreTop = !showMoreTop" *ngIf="topQs.length > limit">
+              <ion-button
+                class="show-more"
+                [class.has-4]="topQs.length > 3"
+                [class.has-more]="topQs.length > limit"
+                fill="clear"
+                expand="block"
+                (click)="showMoreTop = !showMoreTop"
+              >
                 <ng-container *ngIf="!showMoreTop; else showLess">
                   Show all {{ topQs.length }}
                 </ng-container>
@@ -122,7 +136,14 @@
                 </ion-item>
               </ng-container>
 
-              <ion-button fill="clear" expand="block" (click)="showMoreBottom = !showMoreBottom" *ngIf="bottomQs.length > limit">
+              <ion-button
+                class="show-more"
+                [class.has-4]="bottomQs.length > 3"
+                [class.has-more]="bottomQs.length > limit"
+                fill="clear"
+                expand="block"
+                (click)="showMoreBottom = !showMoreBottom"
+              >
                 <ng-container *ngIf="!showMoreBottom; else showLess">
                   Show all {{ bottomQs.length }}
                 </ng-container>
@@ -154,7 +175,14 @@
                 </ion-item>
               </ng-container>
 
-              <ion-button fill="clear" expand="block" (click)="showMoreNoQs = !showMoreNoQs" *ngIf="noQs.length > limit">
+              <ion-button
+                class="show-more"
+                [class.has-4]="noQs.length > 3"
+                [class.has-more]="noQs.length > limit"
+                fill="clear"
+                expand="block"
+                (click)="showMoreNoQs = !showMoreNoQs"
+              >
                 <ng-container *ngIf="!showMoreNoQs; else showLess">
                   Show all {{ noQs.length }}
                 </ng-container>

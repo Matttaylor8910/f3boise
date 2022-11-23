@@ -4,6 +4,15 @@
 
   .card-container {
     flex: 1;
+
+    // by default, hide the show more button, unless...
+    .show-more.has-4 {
+      display: none;
+    }
+    // ... the list has more items than the limit
+    .show-more.has-more {
+      display: block;
+    }
   }
 }
 
@@ -17,8 +26,13 @@
   .stats-container .card-container {
     min-width: 100%;
 
+    // on smaller screens, we hide all but the top 3 items...
     .hide-sm {
       display: none;
+    }
+    // ... so make sure to show the show more button as long as there are 4 items
+    .show-more.has-4 {
+      display: block;
     }
   }
 }
