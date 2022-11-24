@@ -31,7 +31,6 @@ export class PaxListItemComponent {
 
   async loadAvatarUrl() {
     const pax = await this.paxService.getPax(this.pax.name);
-    console.log(pax);
     if (pax?.img_url) {
       this.avatarUrl = pax.img_url;
     }
