@@ -2,6 +2,7 @@ import {Component} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import * as moment from 'moment';
 import {BackblastService} from 'src/app/services/backblast.service';
+import {UtilService} from 'src/app/services/util.service';
 import {AoPaxStats, Backblast} from 'types';
 
 interface AoStats {
@@ -46,6 +47,7 @@ export class AoPage {
   showMoreNoQs = false;
 
   constructor(
+      public readonly utilService: UtilService,
       private readonly route: ActivatedRoute,
       private readonly backblastService: BackblastService,
   ) {

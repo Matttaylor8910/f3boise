@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {Backblast, PAX} from 'types';
+import {Pax} from 'types';
 
 import {HttpService} from './http.service';
 
@@ -7,11 +7,11 @@ const URL = 'https://f3boiseapi-cycjv.ondigitalocean.app/pax/all';
 
 @Injectable({providedIn: 'root'})
 export class PaxService {
-  allData?: PAX[];
-  paxMap: Map<string, PAX> = new Map<string, PAX>();
+  allData?: Pax[];
+  paxMap: Map<string, Pax> = new Map<string, Pax>();
 
   // if multiple callers want all the pax data, respond with this promise
-  currentPromise?: Promise<PAX[]>;
+  currentPromise?: Promise<Pax[]>;
 
   constructor(
       private readonly http: HttpService,
@@ -19,15 +19,15 @@ export class PaxService {
     this.loadAllData();
   }
 
-  async loadAllData(): Promise<PAX[]> {
-    this.allData = await this.http.get(URL) as PAX[];
+  async loadAllData(): Promise<Pax[]> {
+    this.allData = await this.http.get(URL) as Pax[];
     this.allData.forEach(pax => {
       this.paxMap.set(pax.name.toLowerCase(), pax);
     });
     return this.allData;
   }
 
-  getAllData(): Promise<PAX[]> {
+  getAllData(): Promise<Pax[]> {
     if (this.currentPromise) {
       return this.currentPromise;
     } else {
@@ -36,8 +36,8 @@ export class PaxService {
     }
   }
 
-  async getPax(name: string): Promise<PAX|undefined> {
+  async getPax(name: string): Promise<Pax|undefined> {
     if (!this.allData) await this.getAllData();
-    return this.paxMap.get(name);
+    return this.paxMap.get(name.toLowerCase());
   }
 }

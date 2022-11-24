@@ -145,7 +145,7 @@
                 [pax]="q"
                 [index]="i"
                 [showMore]="showMoreNoQs"
-                subtext="Last BD was {{ q.lastBdDate }}"
+                subtext="Last BD was {{ utilService.getRelativeDate(q.lastBdDate) }}"
                 metric="{{ q.bds }} {{ q.bds === 1 ? 'beatdown' : 'beatdowns' }}">
               </app-pax-list-item>
 

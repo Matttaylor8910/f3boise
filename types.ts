@@ -11,7 +11,7 @@ export interface Backblast {
   event_times: null;
 }
 
-export interface PAX {
+export interface Pax {
   id: string;
   name: string;
   email: string;

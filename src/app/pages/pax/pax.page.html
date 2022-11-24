@@ -3,40 +3,108 @@
     <ion-buttons slot="start">
       <ion-back-button></ion-back-button>
     </ion-buttons>
-    <ion-title>{{ name || 'Loading...' }}</ion-title>
+    <ion-title>
+      <div class="title-container">
+        <ion-avatar>
+          <img [src]="avatarUrl" />
+        </ion-avatar>
+        {{ name || 'Loading...' }}
+      </div>
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
   <div class="center-container">
-    <h2>More stats to come, stay tuned...</h2>
+    <h2>Some cool charts to come, stay tuned...</h2>
   </div>
 
-  <div class="stats-container">
+  <div class="stats-container" *ngIf="stats; else loading">
+    <!-- general stats -->
+    <div class="card-container">
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>{{ name }}'s stats</ion-card-title>
+        </ion-card-header>
+        <ion-list>
+          <ion-item>
+            <ion-label class="ion-text-wrap">
+              <h2>Total Posts</h2>
+            </ion-label>
+            <span slot="end">{{ stats.posts }}</span>
+          </ion-item>
+          <ion-item>
+            <ion-label class="ion-text-wrap">
+              <h2>Total Qs</h2>
+            </ion-label>
+            <span slot="end" *ngIf="stats.qs > 0">
+              {{ stats.qs }} <strong>({{ stats.qRate | percent }})</strong>
+            </span>
+            <span  *ngIf="stats.qs === 0">
+              Has not been the Q yet
+            </span>
+          </ion-item>
+          <ion-item>
+            <ion-label class="ion-text-wrap">
+              <h2>Last Seen</h2>
+            </ion-label>
+            <span slot="end">{{ stats.lastBdDate }} at <a routerLink="/ao/{{stats.lastAo}}">{{ stats.lastAo }}</a></span>
+          </ion-item>
+          <ion-item>
+            <ion-label class="ion-text-wrap">
+              <h2>First BD</h2>
+            </ion-label>
+            <span slot="end">{{ stats.firstBdDate }} at <a routerLink="/ao/{{stats.lastAo}}">{{ stats.firstAo }}</a></span>
+          </ion-item>
+          <ng-container *ngIf="stats.firstQDate">
+            <ion-item>
+              <ion-label class="ion-text-wrap">
+                <h2>First Q</h2>
+              </ion-label>
+              <span slot="end">
+                <span slot="end">{{ stats.firstQDate }} at <a routerLink="/ao/{{stats.firstQAo}}">{{ stats.firstQAo }}</a></span>
+              </span>
+            </ion-item>
+            <ion-item>
+              <ion-label class="ion-text-wrap">
+                <h2>Most Recent Q</h2>
+              </ion-label>
+              <span slot="end">
+                <span slot="end">{{ stats.lastQDate }} at <a routerLink="/ao/{{stats.lastQAo}}">{{ stats.lastQAo }}</a></span>
+              </span>
+            </ion-item>
+          </ng-container>
+        </ion-list>
+      </ion-card>
+    </div>
+
     <!-- favorite aos -->
     <div class="card-container">
       <ion-card>
         <ion-card-header>
           <ion-card-title>Favorite AOs</ion-card-title>
-          <ion-card-subtitle>The AOs you frequent the most</ion-card-subtitle>
         </ion-card-header>
         <ion-list>
           <ng-container *ngFor="let ao of favoriteAos; let i = index">
             <ion-item>
               <ion-label class="ion-text-wrap">
                 <h2>
-                  {{ ao.name }}
+                  <a routerLink="/ao/{{ ao.name }}">{{ ao.name }}</a>
                 </h2>
               </ion-label>
               <strong slot="end">{{ ao.total }} {{ ao.total === 1 ? 'beatdown' : 'beatdowns' }}</strong>
             </ion-item>
           </ng-container>
-
-          <!-- <ion-button fill="clear" expand="block" (click)="showMoreFavorites = !showMoreFavorites" *ngIf="favoriteAos.length > limit">
-            {{ showMoreFavorites ? 'Show less' : 'Show more' }}
-          </ion-button> -->
         </ion-list>
       </ion-card>
     </div>
   </div>
 </ion-content>
+
+<!-- loading spinner -->
+<ng-template #loading>
+  <div class="spinner-container">
+    <h2>Loading...</h2>
+    <ion-spinner></ion-spinner>
+  </div>
+</ng-template>

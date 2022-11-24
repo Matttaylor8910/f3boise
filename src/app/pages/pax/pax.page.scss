@@ -1,6 +1,20 @@
+.title-container {
+  display: flex;
+  align-items: center;
+
+  ion-avatar {
+    display: inline-block;
+    height: 40px;
+    width: 40px;
+    margin-right: 12px;
+  }
+}
+
 .stats-container {
   display: flex;
   flex-wrap: wrap;
+  max-width: 1500px;
+  margin: auto;
 
   .card-container {
     flex: 1;
@@ -13,7 +27,7 @@
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 930px) {
   .stats-container .card-container {
     min-width: 100%;
   }
