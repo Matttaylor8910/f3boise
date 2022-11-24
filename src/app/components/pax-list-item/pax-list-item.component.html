@@ -1,0 +1,20 @@
+<ion-item
+  *ngIf="index < limit || showMore"
+  [class.hide-sm]="index >= smallLimit && !showMore"
+  (click)="goToPaxPage()"
+>
+  <ion-avatar slot="start">
+    <img [src]="avatarUrl" />
+  </ion-avatar>
+  <ion-label class="ion-text-wrap">
+    <h2>
+      <ion-text color="primary">{{ pax.name }}</ion-text>
+    </h2>
+    <p>
+      {{ subtext }}
+    </p>
+  </ion-label>
+  <strong slot="end">
+    {{ metric }}
+  </strong>
+</ion-item>

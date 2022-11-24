@@ -26,11 +26,8 @@
   .stats-container .card-container {
     min-width: 100%;
 
-    // on smaller screens, we hide all but the top 3 items...
-    .hide-sm {
-      display: none;
-    }
-    // ... so make sure to show the show more button as long as there are 4 items
+    // on smaller screens, we hide all but the top 3 items so make sure
+    // to show the show more button as long as there are 4 items
     .show-more.has-4 {
       display: block;
     }

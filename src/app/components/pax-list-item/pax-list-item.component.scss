@@ -1,0 +1,12 @@
+ion-item {
+  &:hover {
+    cursor: pointer;
+    opacity: .8;
+  }
+}
+
+@media (max-width: 700px) {
+  .hide-sm {
+    display: none;
+  }
+}

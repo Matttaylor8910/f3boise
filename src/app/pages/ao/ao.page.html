@@ -41,22 +41,14 @@
               <ion-card-subtitle>Posted at the most BDs</ion-card-subtitle>
             </ion-card-header>
             <ion-list>
-              <ng-container *ngFor="let pax of leaderboard; let i = index">
-                <ion-item
-                  [class.hide-sm]="i >= 3 && !showMoreLeaderboard"
-                  *ngIf="i < limit || showMoreLeaderboard"
-                >
-                  <ion-label class="ion-text-wrap">
-                    <h2>
-                      <app-pax-name [name]="pax.name"></app-pax-name>
-                    </h2>
-                    <p>
-                      {{ pax.bdsPerWeek | number:'0.0-2' }} {{ pax.bdsPerWeek === 1 ? 'beatdown' : 'beatdowns' }} per week
-                    </p>
-                  </ion-label>
-                  <strong slot="end">{{ pax.bds }} {{ pax.bds === 1 ? 'beatdown' : 'beatdowns' }}</strong>
-                </ion-item>
-              </ng-container>
+              <app-pax-list-item
+                *ngFor="let pax of leaderboard; let i = index"
+                [pax]="pax"
+                [index]="i"
+                [showMore]="showMoreLeaderboard"
+                subtext="{{ pax.bdsPerWeek | number:'0.0-2' }} {{ pax.bdsPerWeek === 1 ? 'beatdown' : 'beatdowns' }} per week"
+                metric="{{ pax.bds }} {{ pax.bds === 1 ? 'beatdown' : 'beatdowns' }}">
+              </app-pax-list-item>
 
               <ion-button
                 class="show-more"
@@ -82,20 +74,14 @@
               <ion-card-subtitle>Highest % of Q</ion-card-subtitle>
             </ion-card-header>
             <ion-list>
-              <ng-container *ngFor="let q of topQs; let i = index">
-                <ion-item
-                  [class.hide-sm]="i >= 3 && !showMoreTop"
-                  *ngIf="i < limit || showMoreTop"
-                >
-                  <ion-label class="ion-text-wrap">
-                    <h2>
-                      <app-pax-name [name]="q.name"></app-pax-name>
-                    </h2>
-                    <p>Lead {{ q.qs }} / {{ q.bds }} {{ q.bds === 1 ? 'beatdown' : 'beatdowns' }}</p>
-                  </ion-label>
-                  <strong slot="end">{{ q.qRate | percent }}</strong>
-                </ion-item>
-              </ng-container>
+              <app-pax-list-item
+                *ngFor="let q of topQs; let i = index"
+                [pax]="q"
+                [index]="i"
+                [showMore]="showMoreTop"
+                subtext="Lead {{ q.qs }} / {{ q.bds }} {{ q.bds === 1 ? 'beatdown' : 'beatdowns' }}"
+                metric="{{ q.qRate | percent }}">
+              </app-pax-list-item>
 
               <ion-button
                 class="show-more"
@@ -121,20 +107,14 @@
               <ion-card-subtitle>Lowest % of Q</ion-card-subtitle>
             </ion-card-header>
             <ion-list>
-              <ng-container *ngFor="let q of bottomQs; let i = index">
-                <ion-item
-                  [class.hide-sm]="i >= 3 && !showMoreBottom"
-                  *ngIf="i < limit || showMoreBottom"
-                >
-                  <ion-label class="ion-text-wrap">
-                    <h2>
-                      <app-pax-name [name]="q.name"></app-pax-name>
-                    </h2>
-                    <p>Lead {{ q.qs }} / {{ q.bds }} {{ q.bds === 1 ? 'beatdown' : 'beatdowns' }}</p>
-                  </ion-label>
-                  <strong slot="end">{{ q.qRate | percent }}</strong>
-                </ion-item>
-              </ng-container>
+              <app-pax-list-item
+                *ngFor="let q of bottomQs; let i = index"
+                [pax]="q"
+                [index]="i"
+                [showMore]="showMoreBottom"
+                subtext="Lead {{ q.qs }} / {{ q.bds }} {{ q.bds === 1 ? 'beatdown' : 'beatdowns' }}"
+                metric="{{ q.qRate | percent }}">
+              </app-pax-list-item>
 
               <ion-button
                 class="show-more"
@@ -160,20 +140,14 @@
               <ion-card-subtitle>Lead 0 beatdowns</ion-card-subtitle>
             </ion-card-header>
             <ion-list>
-              <ng-container *ngFor="let q of noQs; let i = index">
-                <ion-item
-                  [class.hide-sm]="i >= 3 && !showMoreNoQs"
-                  *ngIf="i < limit || showMoreNoQs"
-                >
-                  <ion-label class="ion-text-wrap">
-                    <h2>
-                      <app-pax-name [name]="q.name"></app-pax-name>
-                    </h2>
-                    <p>Last BD was {{ q.lastBdDate }}</p>
-                  </ion-label>
-                  <strong slot="end">{{ q.bds }} {{ q.bds === 1 ? 'beatdown' : 'beatdowns' }} </strong>
-                </ion-item>
-              </ng-container>
+              <app-pax-list-item
+                *ngFor="let q of noQs; let i = index"
+                [pax]="q"
+                [index]="i"
+                [showMore]="showMoreNoQs"
+                subtext="Last BD was {{ q.lastBdDate }}"
+                metric="{{ q.bds }} {{ q.bds === 1 ? 'beatdown' : 'beatdowns' }}">
+              </app-pax-list-item>
 
               <ion-button
                 class="show-more"

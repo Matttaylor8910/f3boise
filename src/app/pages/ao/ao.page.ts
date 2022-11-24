@@ -2,19 +2,7 @@ import {Component} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import * as moment from 'moment';
 import {BackblastService} from 'src/app/services/backblast.service';
-import {IBackblast} from 'types';
-
-interface AoPaxStats {
-  name: string;
-  bds: number;
-  qs: number;
-  qRate: number;
-  bdsPerWeek: number;
-  firstBdDate: string;
-  lastBdDate: string;
-  firstQDate?: string;
-  lastQDate?: string;
-}
+import {AoPaxStats, Backblast} from 'types';
 
 interface AoStats {
   totalUniqueQs: number;      // count of unique qs
@@ -81,7 +69,7 @@ export class AoPage {
 
     // sort the data by date ascending
     // const data = allData.sort((a, b) => a.date.localeCompare(b.date));
-    const data: IBackblast[] = [];
+    const data: Backblast[] = [];
     const now = moment();
     for (const backblast of allData) {
       // handle filtering down the days
@@ -199,7 +187,7 @@ export class AoPage {
     };
   }
 
-  private newPaxStats(name: string, backblast: IBackblast): AoPaxStats {
+  private newPaxStats(name: string, backblast: Backblast): AoPaxStats {
     return {
       name,
       bds: 0,

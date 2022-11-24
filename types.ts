@@ -1,4 +1,8 @@
-export interface IBackblast {
+export enum BBType {
+  BACKBLAST = 'BackBlast'
+}
+
+export interface Backblast {
   ao: string;
   qs: string[];
   pax: string[];
@@ -7,6 +11,20 @@ export interface IBackblast {
   event_times: null;
 }
 
-export enum BBType {
-  BACKBLAST = 'BackBlast'
+export interface PAX {
+  id: string;
+  name: string;
+  email: string;
+  img_url: string;
+}
+export interface AoPaxStats {
+  name: string;
+  bds: number;
+  qs: number;
+  qRate: number;
+  bdsPerWeek: number;
+  firstBdDate: string;
+  lastBdDate: string;
+  firstQDate?: string;
+  lastQDate?: string;
 }
