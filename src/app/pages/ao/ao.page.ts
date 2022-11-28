@@ -130,9 +130,13 @@ export class AoPage {
   calculatePaxBdsPerWeek() {
     this.paxStats?.forEach(stats => {
       // calculate bds per week
-      const comparisonMoment = moment(stats.firstBdDate);
-      const weeks = moment(stats.lastBdDate).diff(comparisonMoment, 'weeks');
-      stats.bdsPerWeek = stats.bds / (weeks || 1);
+      if (stats.firstBdDate === stats.lastBdDate) {
+        stats.bdsPerWeek = 1;
+      } else {
+        const comparisonMoment = moment(stats.firstBdDate);
+        const days = moment(stats.lastBdDate).diff(comparisonMoment, 'days');
+        stats.bdsPerWeek = (stats.bds / days) * 7;
+      }
     });
   }
 
