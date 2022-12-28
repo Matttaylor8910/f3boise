@@ -1,0 +1,16 @@
+<div class="header-container">
+  <div class="left">
+    <img src="../../../assets/f3-white.png" (click)="goHome()"/>
+  </div>
+  <div class="right">
+    <ion-button
+      color="light"
+      fill="clear"
+      [class.active]="isActive(button)"
+      *ngFor="let button of buttons"
+      (click)="navToUrl(button)"
+    >
+      {{ button.label }}
+    </ion-button>
+  </div>
+</div>

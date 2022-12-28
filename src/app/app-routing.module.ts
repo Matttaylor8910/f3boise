@@ -16,6 +16,14 @@ const routes: Routes = [
     loadChildren: () =>
         import('./pages/pax/pax.module').then(m => m.PaxPageModule)
   },
+  {
+    path: 'fng',
+    loadChildren: () => import('./pages/fng/fng.module').then( m => m.FNGPageModule)
+  },
+  {
+    path: 'workouts',
+    loadChildren: () => import('./pages/workouts/workouts.module').then( m => m.WorkoutsPageModule)
+  },
 ];
 
 @NgModule({

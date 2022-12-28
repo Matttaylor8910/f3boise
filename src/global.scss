@@ -25,6 +25,33 @@
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
 
+@font-face {
+  font-family: 'BlackOps';
+  src: url('assets/BlackOpsOne-Regular.ttf');
+}
+.black-ops {
+  font-family: 'BlackOps';
+}
+
+.font-1vw {
+  font-size: 1vw;
+}
+.font-2vw {
+  font-size: 2vw;
+}
+.font-3vw {
+  font-size: 3vw;
+}
+.font-4vw {
+  font-size: 4vw;
+}
+.font-5vw {
+  font-size: 5vw;
+}
+.font-6vw {
+  font-size: 6vw;
+}
+
 .center-container,
 .empty-container,
 .spinner-container {
@@ -40,5 +67,137 @@
 
   &.full-screen {
     height: 100%;
+  }
+}
+
+.top-container {
+  position: fixed;
+  height: 100vh;
+  width: 100vw;
+  background: rgb(0,0,0);
+  background: radial-gradient(circle, rgba(0,0,0,0.6432948179271709) 0%, rgba(0,0,0,1) 100%);
+
+  .main-img {
+    background: url('assets/home.jpeg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    width: 100%;
+    height: 100%;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 50px;
+    color: #fff;
+    text-align: center;
+    position: relative;
+
+    h1 {
+      font-size: 120px;
+      line-height: 1.2;
+      text-transform: uppercase;
+      font-family: Montserrat, Arial, Helvetica, sans-serif;
+      font-weight: 700;
+      text-shadow: 0px 0px 15px #7f7f7f;
+      max-width: 1000px;
+    }
+
+    h2 {
+      text-transform: uppercase;
+      font-size: 40px;
+      text-shadow: 0px 0px 15px #7f7f7f;
+    }
+  }
+}
+
+.content {
+  position: absolute;
+  width: 100%;
+  color: #fff;
+  padding-top: 95vh;
+
+  app-header {
+    position: absolute;
+    top: 0;
+  }
+
+  .light-grey {
+    background-color: #25292b;
+  }
+
+  .dark-grey {
+    background-color: #1e2123;
+  }
+
+  .section {
+    text-align: center;
+    padding: 50px 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .section > div {
+    width: 100%;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .footer {
+    padding: 20px 30px;
+  }
+}
+
+.main-img:after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  box-shadow: inset 0px 0px 150px black;
+}
+
+.hide-sm {
+  display: initial;
+}
+.show-sm {
+  display: none;
+}
+
+.space-above {
+  margin-top: 16px;
+}
+.space-below {
+  margin-bottom: 16px;
+}
+.space-between {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@media (max-width: 1150px) {
+  .top-container {
+    .main-img {
+      h1 {
+        font-size: 8vw;
+      }
+      h2 {
+        font-size: 3vw;
+      }
+    }
+  }
+  .hide-sm {
+    display: none;
+  }
+  .show-sm {
+    display: initial;
   }
 }
