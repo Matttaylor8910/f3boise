@@ -210,12 +210,13 @@
 }
 
 a {
-  color: #fff;
+  color: #ee6059;;
   font-weight: bold;
   text-decoration: none;
+  opacity: 0.8;
 
   &:hover {
-    opacity: 0.8;
+    opacity: 1;
     cursor: pointer;
   }
 }
