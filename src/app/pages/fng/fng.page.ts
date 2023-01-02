@@ -1,15 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import {Component} from '@angular/core';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-fng',
   templateUrl: './fng.page.html',
   styleUrls: ['./fng.page.scss'],
 })
-export class FNGPage implements OnInit {
+export class FNGPage {
+  constructor(
+      private readonly router: Router,
+  ) {}
 
-  constructor() { }
-
-  ngOnInit() {
+  navTo(url: string) {
+    this.router.navigateByUrl(url);
   }
-
 }

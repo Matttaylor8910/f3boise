@@ -209,6 +209,17 @@
   }
 }
 
+a {
+  color: #fff;
+  font-weight: bold;
+  text-decoration: none;
+
+  &:hover {
+    opacity: 0.8;
+    cursor: pointer;
+  }
+}
+
 @media (max-width: 1150px) {
   .top-container {
     .main-img {
