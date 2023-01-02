@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button></ion-back-button>
     </ion-buttons>
-    <ion-title>{{ name || 'Loading...' }}</ion-title>
+    <ion-title>{{ displayName || 'Loading...' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -21,7 +21,7 @@
         <div class="card-container">
           <ion-card>
             <ion-card-header>
-              <ion-card-title>{{ name }} stats</ion-card-title>
+              <ion-card-title>{{ displayName }} stats</ion-card-title>
               <ion-card-subtitle>
                 {{ aoStats.totalBeatdowns }} {{ aoStats.totalBeatdowns === 1 ? 'beatdown' : 'total beatdowns' }},
                 {{ aoStats.totalUniquePax }} total unique pax,
@@ -180,7 +180,7 @@
 <!-- empty state -->
 <ng-template #empty>
   <div class="empty-container">
-    No data for AO "{{ name }}"
+    No data for AO "{{ displayName }}"
   </div>
 </ng-template>
 

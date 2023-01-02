@@ -1,7 +1,6 @@
 import {Component} from '@angular/core';
 import {Router} from '@angular/router';
 import * as moment from 'moment';
-import {PopoverAction} from 'src/app/components/actions-popover/actions-popover.component';
 import {BackblastService} from 'src/app/services/backblast.service';
 
 @Component({
@@ -10,9 +9,6 @@ import {BackblastService} from 'src/app/services/backblast.service';
   styleUrls: ['home.page.scss'],
 })
 export class HomePage {
-  aos: string[] = [];
-  aoActions: PopoverAction[] = [];
-
   // default to these counts for the home page
   paxCount: number = 100;
   aoCount: number = 10;
@@ -43,18 +39,6 @@ export class HomePage {
 
     this.aoCount = aos.size;
     this.paxCount = uniquePaxLast90Days.size - (uniquePaxLast90Days.size % 25);
-
-    // sort the aos alphabetically
-    this.aos = ['All AOs', ...Array.from(aos.values()).sort()];
-
-    // set up an actions button for smaller screens as well
-    this.aoActions = this.aos.map(ao => {
-      return {label: ao, onClick: () => this.navToAo(ao)};
-    });
-  }
-
-  navToAo(ao: string) {
-    this.navTo(`/ao/${ao.includes('All') ? 'all' : ao}`);
   }
 
   navTo(url: string) {

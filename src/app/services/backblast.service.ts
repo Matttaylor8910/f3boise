@@ -40,4 +40,12 @@ export class BackblastService {
       });
     });
   }
+
+  normalizeAoName(ao: string): string {
+    return ao.split(/(?=[A-Z])/)
+        .map(word => {
+          return word.charAt(0).toUpperCase() + word.slice(1);
+        })
+        .join(' ');
+  }
 }

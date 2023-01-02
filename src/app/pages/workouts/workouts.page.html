@@ -7,5 +7,34 @@
   </div>
   <div class="content">
     <app-header></app-header>
+
+    <div class="light-grey section">
+      <h6 class="font-3 black-ops">AREAS OF OPERATION</h6>
+      <ion-text color="medium" class="font-1">
+        <p>F3 workouts are held in any weather conditions, free of charge and open to men of all ages.</p>
+        <p>Find a workout location [AO] below.</p>
+      </ion-text>
+
+      <iframe src="https://map.f3nation.com/?lat=43.6121&amp;lon=-116.3915&amp;zoom=11" frameborder="0"></iframe>
+      <ion-text color="medium">
+        <a href="https://map.f3nation.com/?lat=43.6121&amp;lon=-116.3915&amp;zoom=11" target="_blank">View this map full screen</a>
+      </ion-text>
+      <ion-button color="secondary" fill="outline" size="large" class="space-above black-ops" href="https://f3near.me" target="_blank">
+        Find nearest to me
+      </ion-button>
+    </div>
+
+    <div class="dark-grey section">
+      <h6 class="font-3 black-ops">AREAS OF OPERATION</h6>
+
+      <div class="aos-container">
+        <h6 class="font-2 black-ops flex-column ao" *ngFor="let ao of aos" (click)="navToAo(ao)">
+          {{ backblastService.normalizeAoName(ao) }}
+          <ion-text color="medium" class="font-1">
+            More info to come
+          </ion-text>
+        </h6>
+      </div>
+    </div>
   </div>
 </ion-content>

@@ -28,6 +28,7 @@ enum TimeRange {
 })
 export class AoPage {
   name: string;
+  displayName: string;
   limit = LIMIT;
 
   timeRanges = Object.values(TimeRange)
@@ -52,6 +53,7 @@ export class AoPage {
       private readonly backblastService: BackblastService,
   ) {
     this.name = this.route.snapshot.params['name'];
+    this.displayName = this.backblastService.normalizeAoName(this.name);
   }
 
   ionViewDidEnter() {

@@ -1,3 +1,31 @@
 .main-img {
   background-image: url('../../../assets/workouts.jpg');
 }
+
+iframe {
+  border: 1px solid #aaa;
+  max-width: 1200px;
+  margin: 60px auto 20px;
+  width: 100%;
+  height: 600px;
+
+  .leaflet-popup-content img {
+    height: 100px;
+  }
+}
+.aos-container {
+  display: flex;
+  flex-wrap: wrap;
+
+  .ao {
+    min-width: 300px;
+    background: #333;
+    margin: 20px;
+    padding: 20px;
+
+    &:hover {
+      cursor: pointer;
+      background: #444;
+    }
+  }
+}
