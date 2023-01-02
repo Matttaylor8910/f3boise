@@ -1,16 +1,39 @@
 <div class="header-container">
+  <!-- f3 logo leading back home -->
   <div class="left">
     <img src="../../../assets/f3-white.png" (click)="goHome()"/>
   </div>
   <div class="right">
+    <!-- on large displays, the button labels for the pages -->
     <ion-button
       color="light"
       fill="clear"
+      class="nav-button"
       [class.active]="isActive(button)"
       *ngFor="let button of buttons"
       (click)="navToUrl(button)"
     >
       {{ button.label }}
     </ion-button>
+
+    <!-- on small displays, show a menu button -->
+    <ion-button
+      color="light"
+      fill="clear"
+      class="menu-button"
+      (click)="toggleMenu()"
+    >
+      <ion-icon slot="icon-only" name="menu"></ion-icon>
+    </ion-button>
+  </div>
+</div>
+
+<div class="menu-container" *ngIf="showMenu">
+  <div
+    class="menu-item"
+    *ngFor="let button of buttons"
+    (click)="navToUrl(button)"
+  >
+    {{ button.label }}
   </div>
 </div>

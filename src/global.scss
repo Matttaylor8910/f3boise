@@ -33,23 +33,23 @@
   font-family: 'BlackOps';
 }
 
-.font-1vw {
-  font-size: 1vw;
+.font-16 {
+  font-size: 16px;
 }
-.font-2vw {
-  font-size: 2vw;
+.font-28 {
+  font-size: 28px;
 }
-.font-3vw {
-  font-size: 3vw;
+.font-42 {
+  font-size: 42px;
 }
-.font-4vw {
-  font-size: 4vw;
+.font-56 {
+  font-size: 56px;
 }
-.font-5vw {
-  font-size: 5vw;
+.font-70 {
+  font-size: 70px;
 }
-.font-6vw {
-  font-size: 6vw;
+.font-120 {
+  font-size: 120px;
 }
 
 .center-container,
@@ -137,6 +137,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    line-height: 1.4em;
   }
   .section > div {
     width: 100%;
@@ -170,6 +171,12 @@
 .space-below {
   margin-bottom: 16px;
 }
+.space-after {
+  margin-right: 16px;
+}
+.space-before {
+  margin-left: 16px;
+}
 .space-between {
   display: flex;
   flex-direction: row;
@@ -179,8 +186,25 @@
 
 .flex-column {
   display: flex;
+  flex: 1;
   flex-direction: column;
   justify-content: center;
+}
+
+.two-column-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+
+  .flex-column {
+    &:first-of-type {
+      margin-right: 16px;
+    }
+    &:last-of-type {
+      margin-left: 16px;
+    }
+  }
 }
 
 @media (max-width: 1150px) {
@@ -199,5 +223,35 @@
   }
   .show-sm {
     display: initial;
+  }
+}
+
+@media (max-width: 800px) {
+  .top-container {
+    .main-img {
+      h1 {
+        font-size: 12vw;
+      }
+      h2 {
+        font-size: 6vw;
+      }
+    }
+  }
+
+  .content .section {
+    padding: 40px 16px;
+
+    .two-column-container {
+      flex-direction: column;
+
+      .flex-column {
+        margin: 0;
+      }
+    }
+  }
+
+  .footer .space-between {
+    flex-direction: column;
+    line-height: 2em;
   }
 }

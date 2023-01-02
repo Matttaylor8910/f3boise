@@ -37,3 +37,18 @@
     }
   }
 }
+
+@media (max-width: 1150px) {
+  .priciples-container {
+    .space-between {
+      flex-wrap: wrap;
+      justify-content: center;
+
+      .principle {
+        min-width: 260px;
+        max-width: 260px;
+        margin: 20px 20px 0;
+      }
+    }
+  }
+}

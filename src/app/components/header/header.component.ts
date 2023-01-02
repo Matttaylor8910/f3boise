@@ -7,6 +7,7 @@ import {Router} from '@angular/router';
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent {
+  showMenu = false;
   buttons = [
     {label: 'Home', url: '/'},
     {label: 'New to F3 [FNG]', url: '/fng'},
@@ -18,14 +19,20 @@ export class HeaderComponent {
   ) {}
 
   goHome() {
+    this.showMenu = false;
     this.router.navigateByUrl('/');
   }
 
   navToUrl(button: {url: string}) {
+    this.showMenu = false;
     this.router.navigateByUrl(button.url);
   }
 
   isActive(button: {url: string}) {
     return location.pathname === button.url;
+  }
+
+  toggleMenu() {
+    this.showMenu = !this.showMenu;
   }
 }
