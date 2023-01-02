@@ -18,11 +18,18 @@ const routes: Routes = [
   },
   {
     path: 'fng',
-    loadChildren: () => import('./pages/fng/fng.module').then( m => m.FNGPageModule)
+    loadChildren: () =>
+        import('./pages/fng/fng.module').then(m => m.FNGPageModule)
   },
   {
     path: 'workouts',
-    loadChildren: () => import('./pages/workouts/workouts.module').then( m => m.WorkoutsPageModule)
+    loadChildren: () => import('./pages/workouts/workouts.module')
+                            .then(m => m.WorkoutsPageModule)
+  },
+  {
+    path: 'ao/:name/kotter',
+    loadChildren: () =>
+        import('./pages/kotter/kotter.module').then(m => m.KotterPageModule)
   },
 ];
 

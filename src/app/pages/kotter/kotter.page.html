@@ -1,0 +1,48 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      <ng-container *ngIf="displayName; else loadingTitle">
+        Kotter Report for {{ displayName }}
+      </ng-container>
+      <ng-template #loadingTitle>Loading...</ng-template>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="kotter-container">
+    <div class="explanation">
+      <h2>{{ explanation }}</h2>
+    </div>
+    <ion-card *ngFor="let pax of inactivePax">
+      <ion-card-header>
+        <ion-card-title class="space-between">
+          <ion-text>
+            <a routerLink="/pax/{{pax.name}}">{{ pax.name }}</a>
+          </ion-text>
+          <ion-text color="medium">{{ pax.totalPosts }} {{ pax.totalPosts === 1 ? 'post' : 'posts' }}</ion-text>
+        </ion-card-title>
+        <ion-card-subtitle class="space-between">
+          <ion-text>Last seen {{ pax.lastBdDate }}</ion-text>
+          <ion-text>{{ pax.daysSinceLastPost }} days ago</ion-text>
+        </ion-card-subtitle>
+        <ion-card-subtitle>
+          Last post was at <a routerLink="/ao/{{pax.lastAo}}">{{ pax.lastAo }}</a>
+        </ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="space-below">
+          <p>First post: {{ pax.firstBdDate }}</p>
+          <p>In their last 6 months, these are the {{ pax.buddies.length }} HIMs he's posted alongside the most:</p>
+        </div>
+        <p class="space-between" *ngFor="let buddy of pax.buddies">
+          <a routerLink="/pax/{{buddy.name}}">{{ buddy.name}}</a>
+          <span>{{ buddy.count }} {{ buddy.count === 1 ? 'time' : 'times' }}</span>
+        </p>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
