@@ -120,14 +120,6 @@
     top: 0;
   }
 
-  .light-grey {
-    background-color: #25292b;
-  }
-
-  .dark-grey {
-    background-color: #1e2123;
-  }
-
   .section {
     text-align: center;
     padding: 50px 30px;
@@ -135,6 +127,9 @@
     flex-direction: column;
     align-items: center;
     line-height: 1.4em;
+
+    &:nth-child(even) { background-color: #25292b; }
+    &:nth-child(odd) { background-color: #1e2123; }
 
     ion-button {
       --ion-color-light: #fff;

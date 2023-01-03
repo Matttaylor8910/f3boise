@@ -8,7 +8,7 @@
   <div class="content">
     <app-header></app-header>
 
-    <div class="light-grey section">
+    <div class="section">
       <h6 class="font-3 black-ops">AREAS OF OPERATION</h6>
       <ion-text color="medium" class="font-1">
         <p>F3 workouts are held in any weather conditions, free of charge and open to men of all ages.</p>
@@ -16,19 +16,36 @@
       </ion-text>
 
       <iframe src="https://map.f3nation.com/?lat=43.6121&amp;lon=-116.3915&amp;zoom=11" frameborder="0"></iframe>
-      <ion-text color="medium">
-        <a href="https://map.f3nation.com/?lat=43.6121&amp;lon=-116.3915&amp;zoom=11" target="_blank">View this map full screen</a>
-      </ion-text>
-      <ion-button color="secondary" fill="outline" size="large" class="space-above black-ops" href="https://f3near.me" target="_blank">
-        Find nearest to me
+      <ion-button color="secondary" fill="clear" href="https://map.f3nation.com/?lat=43.6121&amp;lon=-116.3915&amp;zoom=11" target="_blank">
+        View this map full screen
+        <ion-icon class="space-before" name="expand"></ion-icon>
       </ion-button>
     </div>
 
-    <div class="dark-grey section">
-      <ng-container *ngFor="let grouping of groupings">
+    <div class="section">
+      <ng-container *ngFor="let grouping of groupings; let i = index">
         <h6 class="font-3 black-ops">
           {{ grouping.title }}
         </h6>
+
+        <!-- on the first grouping, show a message for FNGs and the link -->
+        <ng-container *ngIf="i === 0">
+          <h6 class="font-1">
+            <ion-text color="medium">
+              Just show up and introduce yourself as an <a routerLink="/fng">FNG</a>, you will be welcomed!
+            </ion-text>
+          </h6>
+          <ion-button
+            color="secondary"
+            fill="outline"
+            size="large"
+            class="space-above black-ops"
+            href="https://f3near.me"
+            target="_blank"
+          >
+            Find nearest to me
+          </ion-button>
+        </ng-container>
 
         <div class="aos-container">
           <h6 class="font-2 flex-column ao" *ngFor="let ao of grouping.aos">
@@ -64,7 +81,7 @@
         </div>
       </ng-container>
     </div>
-    <div class="footer section light-grey">
+    <div class="footer section">
       <div class="space-between">
         <p>
           © Copyright 2022   |   F3 Boise    |   All Rights Reserved   |   Powered by the PAX
