@@ -9,11 +9,16 @@
       </ng-container>
       <ng-template #loadingTitle>Loading...</ng-template>
     </ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" color="secondary" (click)="toggleSort()">
+        Sorting by: {{ sort }}
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <div class="kotter-container">
+  <div class="kotter-container" *ngIf="inactivePax; else loading">
     <div class="explanation">
       <h2>{{ explanation }}</h2>
     </div>
@@ -27,7 +32,7 @@
         </ion-card-title>
         <ion-card-subtitle class="space-between">
           <ion-text>Last seen {{ pax.lastBdDate }}</ion-text>
-          <ion-text>{{ pax.daysSinceLastPost }} days ago</ion-text>
+          <ion-text>{{ pax.daysAgo }} days ago</ion-text>
         </ion-card-subtitle>
         <ion-card-subtitle>
           Last post was at <a routerLink="/ao/{{pax.lastAo}}">{{ pax.lastAo }}</a>
@@ -46,3 +51,10 @@
     </ion-card>
   </div>
 </ion-content>
+
+<!-- loading spinner -->
+<ng-template #loading>
+  <div class="spinner-container">
+    Loading...
+  </div>
+</ng-template>

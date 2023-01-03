@@ -1,14 +1,12 @@
 import {Component} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
-import {count} from 'console';
 import * as moment from 'moment';
 import {BackblastService} from 'src/app/services/backblast.service';
-import {UtilService} from 'src/app/services/util.service';
 import {Backblast} from 'types';
 
 interface PaxStats {
   name: string;
-  daysSinceLastPost: number;
+  daysAgo: number;
   lastBdDate: string;
   firstBdDate: string;
   totalPosts: number;
@@ -22,6 +20,11 @@ interface Buddy {
   count: number;
 }
 
+enum Sort {
+  TIME = 'Time',
+  POSTS = 'Posts',
+}
+
 @Component({
   selector: 'app-kotter',
   templateUrl: './kotter.page.html',
@@ -31,7 +34,8 @@ export class KotterPage {
   name: string;
   displayName: string;
 
-  inactivePax: PaxStats[] = [];
+  sort = Sort.TIME;
+  inactivePax?: PaxStats[];
 
   constructor(
       private readonly route: ActivatedRoute,
@@ -50,6 +54,26 @@ export class KotterPage {
         `Showing all PAX that haven't posted in the last two weeks` :
         `Showing all PAX that have posted at least once at ${
             this.displayName} and haven't posted anywhere in the past two weeks.`;
+  }
+
+  toggleSort() {
+    this.sort = this.sort === Sort.POSTS ? Sort.TIME : Sort.POSTS;
+    this.handleSort(this.inactivePax ?? []);
+  }
+
+  handleSort(pax: PaxStats[]) {
+    this.inactivePax = pax.sort((a, b) => {
+      // handle sorting by days ago, asc
+      if (this.sort === Sort.TIME && a.daysAgo !== b.daysAgo) {
+        return a.daysAgo - b.daysAgo;
+      }
+      // handle sorting by # of posts, desc
+      if (this.sort === Sort.POSTS && a.totalPosts !== b.totalPosts) {
+        return b.totalPosts - a.totalPosts;
+      }
+
+      return a.name.localeCompare(b.name);
+    });
   }
 
   async calculateStats() {
@@ -91,7 +115,7 @@ export class KotterPage {
     const inactivePax: PaxStats[] = [];
     for (const [name, pax] of Array.from(paxMap)) {
       // don't add pax to the list that have posted in the last 2 weeks
-      if (pax.daysSinceLastPost < 14) continue;
+      if (pax.daysAgo < 14) continue;
 
       // if we're not showing the report for all AOs, exclude pax that have
       // never visited this AO
@@ -109,17 +133,13 @@ export class KotterPage {
       inactivePax.push(pax);
     }
 
-    this.inactivePax = inactivePax.sort((a, b) => {
-      return a.daysSinceLastPost === b.daysSinceLastPost ?
-          a.name.localeCompare(b.name) :
-          a.daysSinceLastPost - b.daysSinceLastPost;
-    });
+    this.handleSort(inactivePax);
   }
 
   private newPaxStats(name: string, backblast: Backblast): PaxStats {
     return {
       name,
-      daysSinceLastPost: moment().diff(moment(backblast.date), 'days'),
+      daysAgo: moment().diff(moment(backblast.date), 'days'),
       lastBdDate: backblast.date,
       firstBdDate: backblast.date,
       totalPosts: 0,
