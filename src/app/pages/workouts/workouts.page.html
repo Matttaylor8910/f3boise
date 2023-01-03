@@ -25,38 +25,44 @@
     </div>
 
     <div class="dark-grey section">
-      <h6 class="font-3 black-ops">AREAS OF OPERATION</h6>
-
-      <div class="aos-container">
-        <h6 class="font-2 flex-column ao" *ngFor="let ao of aos">
-          <div class="title black-ops">
-            {{ backblastService.normalizeAoName(ao.name) }}
-          </div>
-          <ion-text color="medium" class="font-1">
-            <p>
-              <ion-chip color="light">
-                {{ ao.averagePax }}
-                <ion-icon name="people"></ion-icon>
-              </ion-chip>
-              <ion-chip color="light">
-                {{ ao.type }}
-                <ion-icon [name]="ao.icon"></ion-icon>
-              </ion-chip>
-            </p>
-            <p>
-              <a
-                *ngIf="ao.address"
-                [class.readonly]="!ao.addressLink"
-                target="_blank"
-                href="https://www.google.com/maps/dir/?api=1&destination={{ao.address}}"
-              >
-                {{ ao.address }}
-              </a>
-            </p>
-            <p *ngFor="let day of ao.schedule">{{ day }}</p>
-          </ion-text>
+      <ng-container *ngFor="let grouping of groupings">
+        <h6 class="font-3 black-ops">
+          {{ grouping.title }}
         </h6>
-      </div>
+
+        <div class="aos-container">
+          <h6 class="font-2 flex-column ao" *ngFor="let ao of grouping.aos">
+            <div class="title black-ops">
+              {{ backblastService.normalizeAoName(ao.name) }}
+            </div>
+            <ion-text color="medium" class="font-1">
+              <p>
+                <ion-chip color="light">
+                  {{ ao.averagePax }}
+                  <ion-icon name="people"></ion-icon>
+                </ion-chip>
+                <ion-chip color="light">
+                  {{ ao.type }}
+                  <ion-icon [name]="ao.icon"></ion-icon>
+                </ion-chip>
+              </p>
+              <p>
+                <a
+                  *ngIf="ao.address"
+                  [class.readonly]="!ao.addressLink"
+                  target="_blank"
+                  href="https://www.google.com/maps/dir/?api=1&destination={{ao.address}}"
+                >
+                  {{ ao.address }}
+                </a>
+              </p>
+              <p [class.highlight]="day.includes(tomorrow)" *ngFor="let day of ao.schedule">
+                {{ day }}
+              </p>
+            </ion-text>
+          </h6>
+        </div>
+      </ng-container>
     </div>
     <div class="footer section light-grey">
       <div class="space-between">

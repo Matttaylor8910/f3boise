@@ -184,13 +184,19 @@ interface Ao {
   averagePax: number;  // Math.ceil of average in last 90 days
 }
 
+interface AoGrouping {
+  title: string;
+  aos: Ao[];
+}
+
 @Component({
   selector: 'app-workouts',
   templateUrl: './workouts.page.html',
   styleUrls: ['./workouts.page.scss'],
 })
 export class WorkoutsPage {
-  aos: Ao[] = [];
+  groupings: AoGrouping[] = [];
+  tomorrow = moment().add(1, 'day').format('dddd');
 
   constructor(
       public readonly backblastService: BackblastService,
@@ -200,19 +206,19 @@ export class WorkoutsPage {
   }
 
   async setAos() {
-    const aos = new Map<string, number[]>();
+    const aoMap = new Map<string, number[]>();
 
     const data = await this.backblastService.getAllData();
     data.forEach(bb => {
       const days = moment().diff(moment(bb.date), 'days');
       if (days < 90) {
-        const existing = aos.get(bb.ao) ?? [];
-        aos.set(bb.ao, existing.concat(bb.pax.length));
+        const existing = aoMap.get(bb.ao) ?? [];
+        aoMap.set(bb.ao, existing.concat(bb.pax.length));
       }
     });
 
-    this.aos =
-        Array.from(aos)
+    const aos =
+        Array.from(aoMap)
             .map(aoItem => {
               const [name, counts] = aoItem;
               const ao = (AO_DEETS as any)[name];
@@ -238,5 +244,25 @@ export class WorkoutsPage {
             })
             .filter(ao => ao.type && ao.averagePax)
             .sort((a, b) => a.name.localeCompare(b.name));
+
+    // separate the aos into buckets
+    const tomorrow: AoGrouping = {title: 'JOIN US TOMORROW', aos: []};
+    const thisWeek: AoGrouping = {title: 'JOIN US THIS WEEK', aos: []};
+    for (const ao of aos) {
+      console.log(this.tomorrow, ao.schedule);
+      if (ao.schedule.some(day => day.includes(this.tomorrow))) {
+        tomorrow.aos.push(ao);
+      } else {
+        thisWeek.aos.push(ao);
+      }
+    }
+
+    // depending on if there are workouts tomorrow, show multiple buckets
+    if (tomorrow.aos.length === 0) {
+      this.groupings = [thisWeek];
+    } else {
+      thisWeek.title = 'OR ANOTHER TIME';
+      this.groupings = [tomorrow, thisWeek];
+    }
   }
 }
