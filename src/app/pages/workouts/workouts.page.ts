@@ -249,7 +249,6 @@ export class WorkoutsPage {
     const tomorrow: AoGrouping = {title: 'JOIN US TOMORROW', aos: []};
     const thisWeek: AoGrouping = {title: 'JOIN US THIS WEEK', aos: []};
     for (const ao of aos) {
-      console.log(this.tomorrow, ao.schedule);
       if (ao.schedule.some(day => day.includes(this.tomorrow))) {
         tomorrow.aos.push(ao);
       } else {
