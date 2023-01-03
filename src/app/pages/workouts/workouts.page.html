@@ -29,14 +29,24 @@
 
       <div class="aos-container">
         <h6 class="font-2 flex-column ao" *ngFor="let ao of aos">
-          <div class="black-ops">
+          <div class="title black-ops">
             {{ backblastService.normalizeAoName(ao.name) }}
           </div>
           <ion-text color="medium" class="font-1">
-            <p>{{ ao.type }}</p>
+            <p>
+              <ion-chip color="light">
+                {{ ao.averagePax }}
+                <ion-icon name="people"></ion-icon>
+              </ion-chip>
+              <ion-chip color="light">
+                {{ ao.type }}
+                <ion-icon [name]="ao.icon"></ion-icon>
+              </ion-chip>
+            </p>
             <p>
               <a
                 *ngIf="ao.address"
+                [class.readonly]="!ao.addressLink"
                 target="_blank"
                 href="https://www.google.com/maps/dir/?api=1&destination={{ao.address}}"
               >

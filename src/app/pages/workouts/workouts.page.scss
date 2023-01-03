@@ -24,6 +24,11 @@ iframe {
     margin: 10px 0;
     padding: 20px;
     justify-content: start;
+
+    ion-chip,
+    a.readonly {
+      pointer-events: none;
+    }
   }
 }
 

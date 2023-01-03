@@ -1,11 +1,14 @@
 import {Component} from '@angular/core';
 import {Router} from '@angular/router';
+import * as moment from 'moment';
 import {BackblastService} from 'src/app/services/backblast.service';
 
 const AO_DEETS = {
   'Backyard': {
     type: 'Bootcamp',
+    icon: 'barbell-outline',
     address: '2400 S Stoddard Rd, Meridian, ID 83642',
+    addressLink: true,
     schedule: {
       Monday: null,
       Tuesday: null,
@@ -17,7 +20,9 @@ const AO_DEETS = {
   },
   'Bellagio': {
     type: 'Bootcamp',
+    icon: 'barbell-outline',
     address: 'Kleiner Park Loop, Meridian, ID 83642',
+    addressLink: true,
     schedule: {
       Monday: null,
       Tuesday: '5:15am - 6:00am',
@@ -29,7 +34,9 @@ const AO_DEETS = {
   },
   'Bleach': {
     type: 'Ruck/Sandbag',
+    icon: 'barbell-outline',
     address: '801 Aurora Dr, Boise, ID 83709',
+    addressLink: true,
     schedule: {
       Monday: '5:15am - 6:00am',
       Tuesday: null,
@@ -41,7 +48,9 @@ const AO_DEETS = {
   },
   'Discovery': {
     type: 'Bootcamp',
+    icon: 'barbell-outline',
     address: '2121 E Lake Hazel Rd, Meridian, ID 83642',
+    addressLink: true,
     schedule: {
       Monday: null,
       Tuesday: null,
@@ -53,7 +62,9 @@ const AO_DEETS = {
   },
   'Gem': {
     type: 'Bootcamp',
+    icon: 'barbell-outline',
     address: '3423 N Meridian Rd, Meridian, ID 83642',
+    addressLink: true,
     schedule: {
       Monday: null,
       Tuesday: '5:15am - 6:00am',
@@ -65,7 +76,9 @@ const AO_DEETS = {
   },
   'IronMountain': {
     type: 'Bootcamp',
+    icon: 'barbell-outline',
     address: '75 Marjorie Ave, Middleton, ID 83644',
+    addressLink: true,
     schedule: {
       Monday: null,
       Tuesday: '5:30am - 6:15am',
@@ -77,7 +90,9 @@ const AO_DEETS = {
   },
   'OldGlory': {
     type: 'Bootcamp',
+    icon: 'barbell-outline',
     address: '3064 W Malta Dr, Meridian, ID 83646',
+    addressLink: true,
     schedule: {
       Monday: '6:00am - 6:45am',
       Tuesday: null,
@@ -89,7 +104,9 @@ const AO_DEETS = {
   },
   'Rebel': {
     type: 'Speed/Strength training',
+    icon: 'footsteps-outline',
     address: '3801 E Hill Park Street, Meridian, ID 83642',
+    addressLink: true,
     schedule: {
       Monday: null,
       Tuesday: '5:15am - 6:00am',
@@ -101,7 +118,9 @@ const AO_DEETS = {
   },
   'Rise': {
     type: 'Bootcamp',
+    icon: 'barbell-outline',
     address: '4403 S Surprise Way, Boise, ID 83716',
+    addressLink: true,
     schedule: {
       Monday: '5:15am - 6:00am',
       Tuesday: null,
@@ -112,8 +131,10 @@ const AO_DEETS = {
     },
   },
   'RuckershipEast': {
-    type: 'Ruck - location changes every week',
-    address: null,
+    type: 'Ruck/hike',
+    icon: 'footsteps-outline',
+    address: 'Location changes every week',
+    addressLink: false,
     schedule: {
       Monday: null,
       Tuesday: null,
@@ -124,8 +145,10 @@ const AO_DEETS = {
     },
   },
   'RuckershipWest': {
-    type: 'Ruck - location changes every week',
-    address: null,
+    type: 'Ruck/hike',
+    icon: 'footsteps-outline',
+    address: 'Location changes every week',
+    addressLink: false,
     schedule: {
       Monday: null,
       Tuesday: null,
@@ -137,7 +160,9 @@ const AO_DEETS = {
   },
   'WarHorse': {
     type: 'Bootcamp',
+    icon: 'barbell-outline',
     address: '1304 7th St N, Nampa, ID 83687',
+    addressLink: true,
     schedule: {
       Monday: '5:15am - 6:00am',
       Tuesday: null,
@@ -152,8 +177,11 @@ const AO_DEETS = {
 interface Ao {
   name: string;
   type: string;
+  icon: string;
   address: string;
+  addressLink: boolean;
   schedule: string[];
+  averagePax: number;  // Math.ceil of average in last 90 days
 }
 
 @Component({
@@ -172,28 +200,43 @@ export class WorkoutsPage {
   }
 
   async setAos() {
-    const aos = new Set<string>();
+    const aos = new Map<string, number[]>();
 
     const data = await this.backblastService.getAllData();
     data.forEach(bb => {
-      aos.add(bb.ao);
+      const days = moment().diff(moment(bb.date), 'days');
+      if (days < 90) {
+        const existing = aos.get(bb.ao) ?? [];
+        aos.set(bb.ao, existing.concat(bb.pax.length));
+      }
     });
 
-    this.aos = Array.from(aos)
-                   .sort((a, b) => a.localeCompare(b))
-                   .map(name => {
-                     const ao = (AO_DEETS as any)[name];
+    this.aos =
+        Array.from(aos)
+            .map(aoItem => {
+              const [name, counts] = aoItem;
+              const ao = (AO_DEETS as any)[name];
 
-                     const schedule =
-                         Object.entries(ao.schedule)
-                             .map(([day, time]) => `${day}: ${time}`)
-                             .filter(item => !item.includes('null'));
+              const schedule = Object.entries(ao.schedule)
+                                   .map(([day, time]) => `${day}: ${time}`)
+                                   .filter(item => !item.includes('null'));
 
-                     const details =
-                         {name, type: ao.type, address: ao.address, schedule};
+              const averagePax =
+                  Math.ceil(counts.reduce((a, b) => a + b) / counts.length);
 
-                     return details;
-                   })
-                   .filter(ao => ao.type);
+              const details = {
+                name,
+                type: ao.type,
+                icon: ao.icon,
+                address: ao.address,
+                addressLink: ao.addressLink,
+                schedule,
+                averagePax,
+              };
+
+              return details;
+            })
+            .filter(ao => ao.type && ao.averagePax)
+            .sort((a, b) => a.name.localeCompare(b.name));
   }
 }
