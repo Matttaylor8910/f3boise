@@ -30,7 +30,12 @@ iframe {
       font-weight: bold;
     }
 
-    ion-chip,
+    ion-chip {
+      pointer-events: none;
+      background: #444;
+      color: #f4f5f8;
+    }
+
     a.readonly {
       pointer-events: none;
     }
