@@ -16,3 +16,9 @@
     width: 300px;
   }
 }
+
+@media (max-width: 800px) {
+  .kotter-container ion-card {
+    width: 100%;
+  }
+}

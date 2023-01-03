@@ -19,7 +19,7 @@ iframe {
   max-width: 1200px !important;
 
   .ao {
-    min-width: 400px;
+    min-width: 100%;
     background: #333;
     margin: 10px 0;
     padding: 20px;
@@ -29,6 +29,8 @@ iframe {
 
 @media (min-width: 900px) {
   .aos-container .ao {
+    min-width: 400px;
+
     &:nth-child(even) {
       margin: 20px 0 20px 20px;
     }
