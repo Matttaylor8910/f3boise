@@ -8,7 +8,7 @@
     flex: 1;
 
     // by default, hide the show more button, unless...
-    .show-more.has-4 {
+    .show-more {
       display: none;
     }
     // ... the list has more items than the limit
