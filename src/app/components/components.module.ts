@@ -6,6 +6,7 @@ import {IonicModule} from '@ionic/angular';
 import {ActionsPopoverPageComponent} from './actions-popover/actions-popover-page.component';
 import {ActionsPopoverComponent} from './actions-popover/actions-popover.component';
 import {HeaderComponent} from './header/header.component';
+import {PaxAvatarComponent} from './pax-avatar/pax-avatar.component';
 import {PaxListItemComponent} from './pax-list-item/pax-list-item.component';
 import {PAXNameComponent} from './pax-name/pax-name.component';
 import {TimeFilterComponent} from './time-filter/time-filter.component';
@@ -15,6 +16,7 @@ import {TimeFilterComponent} from './time-filter/time-filter.component';
     ActionsPopoverComponent,
     ActionsPopoverPageComponent,
     HeaderComponent,
+    PaxAvatarComponent,
     PaxListItemComponent,
     PAXNameComponent,
     TimeFilterComponent,
@@ -28,6 +30,7 @@ import {TimeFilterComponent} from './time-filter/time-filter.component';
     ActionsPopoverComponent,
     ActionsPopoverPageComponent,
     HeaderComponent,
+    PaxAvatarComponent,
     PaxListItemComponent,
     PAXNameComponent,
     TimeFilterComponent,

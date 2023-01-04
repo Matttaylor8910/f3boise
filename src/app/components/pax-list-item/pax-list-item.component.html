@@ -3,12 +3,10 @@
   [class.hide-sm]="index >= smallLimit && !showMore"
   (click)="goToPaxPage()"
 >
-  <ion-avatar slot="start">
-    <img [src]="avatarUrl" />
-  </ion-avatar>
+  <app-pax-avatar slot="start" [name]="pax.name"></app-pax-avatar>
   <ion-label class="ion-text-wrap">
     <h2>
-      <ion-text color="primary">{{ pax.name }}</ion-text>
+      <a>{{ pax.name }}</a>
     </h2>
     <p>
       {{ subtext }}

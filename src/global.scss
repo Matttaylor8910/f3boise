@@ -205,7 +205,7 @@
 }
 
 a {
-  color: #ee6059;;
+  color: #ee6059;
   font-weight: bold;
   text-decoration: none;
   opacity: 0.8;
@@ -214,6 +214,10 @@ a {
     opacity: 1;
     cursor: pointer;
   }
+}
+
+ion-item app-pax-avatar[slot="start"] {
+  margin-inline-end: 16px;
 }
 
 @media (max-width: 1150px) {

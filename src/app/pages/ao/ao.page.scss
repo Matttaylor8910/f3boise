@@ -10,6 +10,7 @@
     // by default, hide the show more button, unless...
     .show-more {
       display: none;
+      --ion-color-primary: #ee6059;
     }
     // ... the list has more items than the limit
     .show-more.has-more {

@@ -25,7 +25,8 @@
     <ion-card *ngFor="let pax of inactivePax">
       <ion-card-header>
         <ion-card-title class="space-between">
-          <ion-text>
+          <ion-text class="pax-name">
+            <app-pax-avatar class="space-after" [name]="pax.name" [size]="30"></app-pax-avatar>
             <a routerLink="/pax/{{pax.name}}">{{ pax.name }}</a>
           </ion-text>
           <ion-text color="medium">{{ pax.totalPosts }} {{ pax.totalPosts === 1 ? 'post' : 'posts' }}</ion-text>

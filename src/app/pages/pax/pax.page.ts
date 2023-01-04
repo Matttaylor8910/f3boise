@@ -1,6 +1,5 @@
 import {Component} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
-import * as moment from 'moment';
 import {BackblastService} from 'src/app/services/backblast.service';
 import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
@@ -32,7 +31,6 @@ interface AoStats {
 })
 export class PaxPage {
   name: string
-  avatarUrl = '/assets/f3.jpg';
 
   stats?: PaxStats;
   favoriteAos?: AoStats[];
@@ -40,7 +38,6 @@ export class PaxPage {
   constructor(
       private readonly route: ActivatedRoute,
       private readonly backblastService: BackblastService,
-      private readonly paxService: PaxService,
       private readonly utilService: UtilService,
   ) {
     this.name = this.route.snapshot.params['name'];
@@ -48,17 +45,6 @@ export class PaxPage {
 
   ionViewDidEnter() {
     this.calculatePaxStats();
-  }
-
-  ngOnInit() {
-    this.loadAvatarUrl();
-  }
-
-  async loadAvatarUrl() {
-    const pax = await this.paxService.getPax(this.name);
-    if (pax?.img_url) {
-      this.avatarUrl = pax.img_url;
-    }
   }
 
   async calculatePaxStats() {

@@ -5,9 +5,7 @@
     </ion-buttons>
     <ion-title>
       <div class="title-container">
-        <ion-avatar>
-          <img [src]="avatarUrl" />
-        </ion-avatar>
+        <app-pax-avatar class="space-after" [name]="name"></app-pax-avatar>
         {{ name || 'Loading...' }}
       </div>
     </ion-title>

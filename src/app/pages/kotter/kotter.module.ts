@@ -1,20 +1,21 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {CommonModule} from '@angular/common';
+import {NgModule} from '@angular/core';
+import {FormsModule} from '@angular/forms';
+import {IonicModule} from '@ionic/angular';
+import {ComponentsModule} from 'src/app/components/components.module';
 
-import { IonicModule } from '@ionic/angular';
-
-import { KotterPageRoutingModule } from './kotter-routing.module';
-
-import { KotterPage } from './kotter.page';
+import {KotterPageRoutingModule} from './kotter-routing.module';
+import {KotterPage} from './kotter.page';
 
 @NgModule({
   imports: [
     CommonModule,
+    ComponentsModule,
     FormsModule,
     IonicModule,
-    KotterPageRoutingModule
+    KotterPageRoutingModule,
   ],
   declarations: [KotterPage]
 })
-export class KotterPageModule {}
+export class KotterPageModule {
+}

@@ -18,23 +18,9 @@ export class PaxListItemComponent {
   limit = 10;
   smallLimit = 3;
 
-  avatarUrl = '/assets/f3.jpg';
-
   constructor(
-      private readonly paxService: PaxService,
       private readonly router: Router,
   ) {}
-
-  ngOnInit() {
-    this.loadAvatarUrl();
-  }
-
-  async loadAvatarUrl() {
-    const pax = await this.paxService.getPax(this.pax.name);
-    if (pax?.img_url) {
-      this.avatarUrl = pax.img_url;
-    }
-  }
 
   goToPaxPage() {
     this.router.navigateByUrl(`/pax/${this.pax.name}`);
