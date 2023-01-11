@@ -85,14 +85,8 @@ export class QLineUpPage {
     });
   }
 
-  loadMore($event?: any) {
-    const ionicScrollEvent = $event as {target: {complete: Function}};
-
+  loadMore() {
     const {date} = this.dates[this.dates.length - 1];
     this.loadQLineup(moment(date).add(1, 'day').format(FORMAT));
-
-    if (ionicScrollEvent) {
-      ionicScrollEvent.target.complete();
-    }
   }
 }

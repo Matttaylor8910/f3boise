@@ -1,8 +1,14 @@
+.full-height-container {
+  max-height: 100%;
+  overflow: hidden;
+}
+
 .table-container {
   flex-direction: column;
   align-items: center;
   overflow: auto;
   width: 100%;
+  flex: 1;
 
   table {
     border-collapse: initial;
@@ -36,15 +42,29 @@
     }
   }
 
-  .load-more {
-    display: block;
-    max-width: 200px;
-    margin: 20px auto;
+  // positioning garbage to keep the load more button centered
+  table {
+    margin-bottom: 100px;
+    position: relative;
+    z-index: 1;
+    background: #121212;
+  }
+  .load-more-container {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    height: 100px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 }
 
 @media (prefers-color-scheme: light) {
   .table-container table {
+    background: #fff;
+
     th, td {
       background-color: #ccc;
 

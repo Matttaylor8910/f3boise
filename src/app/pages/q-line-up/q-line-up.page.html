@@ -5,46 +5,46 @@
 </ion-header>
 
 <ion-content>
-  <div class="center-container">
-    <h2>
-      If you want to sign up to Q, use the <a href="https://docs.google.com/document/d/1hPpxsF7Zi2frYCTAs4skRielxEF23XcSSdXpje-LMzM" target="_blank">/post-q-sheet</a> command in slack
-    </h2>
-  </div>
-  <div class="table-container">
-    <table>
-      <tr>
-        <th>Date</th>
-        <th *ngFor="let ao of aos">
-          <a routerLink="/ao/{{ao}}">{{ utilService.normalizeName(ao) }}</a>
-        </th>
-      </tr>
-      <tr *ngFor="let row of dates">
-        <td>{{ row.date }}</td>
-        <td
-          [class.taken]="col?.taken"
-          [class.warning]="col?.warning"
-          [class.transparent]="!col"
-          *ngFor="let col of row.cols"
-        >
-          <!-- if closed, show that message -->
-          <span *ngIf="col?.closed">
-            {{ col?.text }}
-          </span>
-          <!-- if we have Qs, show names and link to pax pages -->
-          <span *ngIf="!col?.closed && !!col?.qs?.length">
-            <div *ngFor="let q of col?.qs">
-              <a routerLink="/pax/{{q}}">{{ utilService.normalizeName(q) }}</a>
-            </div>
-          </span>
-        </td>
-      </tr>
-    </table>
-
-    <ion-infinite-scroll threshold="300px" (ionInfinite)="loadMore($event)">
-      <ion-infinite-scroll-content
-        loadingSpinner="crescent"
-        loadingText="Loading more...">
-      </ion-infinite-scroll-content>
-    </ion-infinite-scroll>
+  <div class="full-height-container flex-column">
+    <div class="center-container">
+      <h2>
+        If you want to sign up to Q, use the <a href="https://docs.google.com/document/d/1hPpxsF7Zi2frYCTAs4skRielxEF23XcSSdXpje-LMzM" target="_blank">/post-q-sheet</a> command in slack
+      </h2>
+    </div>
+    <div class="table-container">
+      <table>
+        <tr>
+          <th>Date</th>
+          <th *ngFor="let ao of aos">
+            <a routerLink="/ao/{{ao}}">{{ utilService.normalizeName(ao) }}</a>
+          </th>
+        </tr>
+        <tr *ngFor="let row of dates">
+          <td>{{ row.date }}</td>
+          <td
+            [class.taken]="col?.taken"
+            [class.warning]="col?.warning"
+            [class.transparent]="!col"
+            *ngFor="let col of row.cols"
+          >
+            <!-- if closed, show that message -->
+            <span *ngIf="col?.closed">
+              {{ col?.text }}
+            </span>
+            <!-- if we have Qs, show names and link to pax pages -->
+            <span *ngIf="!col?.closed && !!col?.qs?.length">
+              <div *ngFor="let q of col?.qs">
+                <a routerLink="/pax/{{q}}">{{ utilService.normalizeName(q) }}</a>
+              </div>
+            </span>
+          </td>
+        </tr>
+      </table>
+      <div class="load-more-container">
+        <ion-button fill="clear" (click)="loadMore()">
+          Load {{ days }} more days
+        </ion-button>
+      </div>
+    </div>
   </div>
 </ion-content>
