@@ -14,7 +14,9 @@
     <table>
       <tr>
         <th>Date</th>
-        <th *ngFor="let ao of aos">{{ ao }}</th>
+        <th *ngFor="let ao of aos">
+          <a routerLink="/ao/{{ao}}">{{ utilService.normalizeName(ao) }}</a>
+        </th>
       </tr>
       <tr *ngFor="let row of dates">
         <td>{{ row.date }}</td>
