@@ -1,0 +1,85 @@
+import {Component} from '@angular/core';
+import * as moment from 'moment';
+import {QService} from 'src/app/services/q.service';
+import {UtilService} from 'src/app/services/util.service';
+import {QLineUp} from 'types';
+
+interface DateRow {
+  date: string;
+  cols: (QCell|undefined)[];
+}
+
+interface QCell extends QLineUp {
+  warning: boolean;
+  taken: boolean;
+}
+
+@Component({
+  selector: 'app-q-line-up',
+  templateUrl: './q-line-up.page.html',
+  styleUrls: ['./q-line-up.page.scss'],
+})
+export class QLineUpPage {
+  days = 50;  // days to load at a time
+  warningDays = 2;
+
+  aos: string[] = [];
+  dates: DateRow[] = [];
+
+  constructor(
+      public readonly utilService: UtilService,
+      private readonly qService: QService,
+  ) {
+    this.loadQLineup();
+  }
+
+  async loadQLineup(from = moment().format('YYYY-MM-DD')) {
+    // a map whose key is the date, the value is another map where the key is
+    // the ao and the value the text to display
+    const dateMap = new Map<string, Map<string, QCell>>();
+    const aos = new Set<string>();
+
+    const to = moment(from).add(this.days, 'days').format('YYYY-MM-DD');
+    const qs = await this.qService.getQLineUp(from, to);
+
+    qs.forEach((q, index) => {
+      if (index === 1) {
+        if (q.qs) {
+          q.qs.push('Backslash');
+        }
+      }
+      const days = moment(q.date).diff(moment(), 'days');
+      const taken = q.qs !== null && q.qs.length > 0;
+      const warning = days <= this.warningDays && !taken;
+      const aoMap = dateMap.get(q.date) ?? new Map<string, QCell>();
+      aoMap.set(q.ao, {...q, warning, taken});
+      dateMap.set(q.date, aoMap);
+      aos.add(q.ao);
+    });
+
+    this.aos = Array.from(aos).sort((a, b) => a.localeCompare(b));
+
+    Array.from(dateMap).map(item => {
+      const [date, aoMap] = item;
+
+      // build up the cols for this date
+      const cols: (QCell|undefined)[] = [];
+      for (let i = 0; i < this.aos.length; i++) {
+        cols.push(aoMap.get(this.aos[i]));
+      }
+
+      this.dates.push({date, cols});
+    });
+  }
+
+  loadMore($event?: any) {
+    const ionicScrollEvent = $event as {target: {complete: Function}};
+
+    const {date} = this.dates[this.dates.length - 1];
+    this.loadQLineup(moment(date).add(1, 'day').format('YYYY-MM-DD'));
+
+    if (ionicScrollEvent) {
+      ionicScrollEvent.target.complete();
+    }
+  }
+}

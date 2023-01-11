@@ -226,12 +226,12 @@ export class WorkoutsPage {
     const date = moment().add(1, 'day').format('YYYY-MM-DD');
     const qsTomorrow = await this.qService.getQLineUp(date, date);
     qsTomorrow.forEach(lineup => {
-      if (lineup.qs.length > 0) {
+      const qs = lineup.qs || [];
+      if (qs.length > 0) {
         const ao = this.utilService.normalizeName(lineup.ao);
-        qMap.set(ao, lineup.qs.join(', '));
+        qMap.set(ao, qs.join(', '));
       }
     });
-    console.log(qMap);
 
     const aos: Ao[] =
         Array.from(aoMap)

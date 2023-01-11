@@ -34,5 +34,5 @@ export interface QLineUp {
   date: string;
   closed: boolean;
   text: string|null;
-  qs: string[];
+  qs: string[]|null;
 }

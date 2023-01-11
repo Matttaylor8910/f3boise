@@ -31,13 +31,19 @@ const routes: Routes = [
     loadChildren: () =>
         import('./pages/kotter/kotter.module').then(m => m.KotterPageModule)
   },
-  // fallback to home
   {
-    path: '**',
-    redirectTo: '',
-    pathMatch: 'full',
-  }
+    path: 'q-line-up',
+    loadChildren: () => import('./pages/q-line-up/q-line-up.module')
+                            .then(m => m.QLineUpPageModule)
+  },
 ];
+
+// fallback to home, must be the last route in this list
+routes.push({
+  path: '**',
+  redirectTo: '',
+  pathMatch: 'full',
+});
 
 @NgModule({
   imports: [

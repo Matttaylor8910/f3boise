@@ -1,0 +1,45 @@
+.table-container {
+  flex-direction: column;
+  align-items: center;
+  overflow: auto;
+  width: 100%;
+
+  table {
+    border-collapse: initial;
+    border-spacing: 3px;
+    width: 100%;
+    margin: auto;
+
+    th {
+      position: sticky;
+      top: 0;
+    }
+
+    th, td {
+      background-color: #333;
+      padding: 8px;
+      text-align: center;
+      min-width: 150px;
+
+      &.warning {
+        border: 2px solid var(--ion-color-danger);
+      }
+      &.transparent {
+        opacity: .3;
+      }
+      &.taken {
+        background: #2a532a;
+      }
+
+      a {
+        color: #fff;
+      }
+    }
+  }
+
+  .load-more {
+    display: block;
+    max-width: 200px;
+    margin: 20px auto;
+  }
+}
