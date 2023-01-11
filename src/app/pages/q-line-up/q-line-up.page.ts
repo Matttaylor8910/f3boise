@@ -14,6 +14,8 @@ interface QCell extends QLineUp {
   taken: boolean;
 }
 
+const FORMAT = 'YYYY-MM-DD';
+
 @Component({
   selector: 'app-q-line-up',
   templateUrl: './q-line-up.page.html',
@@ -33,13 +35,13 @@ export class QLineUpPage {
     this.loadQLineup();
   }
 
-  async loadQLineup(from = moment().format('YYYY-MM-DD')) {
+  async loadQLineup(from = moment().format(FORMAT)) {
     // a map whose key is the date, the value is another map where the key is
     // the ao and the value the text to display
     const dateMap = new Map<string, Map<string, QCell>>();
     const aos = new Set<string>();
 
-    const to = moment(from).add(this.days, 'days').format('YYYY-MM-DD');
+    const to = moment(from).add(this.days, 'days').format(FORMAT);
     const qs = await this.qService.getQLineUp(from, to);
 
     qs.forEach(q => {
@@ -54,6 +56,7 @@ export class QLineUpPage {
 
     this.aos = Array.from(aos).sort((a, b) => a.localeCompare(b));
 
+    let lastDate: string;
     Array.from(dateMap).map(item => {
       const [date, aoMap] = item;
 
@@ -63,6 +66,21 @@ export class QLineUpPage {
         cols.push(aoMap.get(this.aos[i]));
       }
 
+      // add in empty days if they're missing
+      while (lastDate !== date) {
+        if (lastDate) {
+          const lastMoment = moment(lastDate).add(1, 'day');
+          const diff = moment(date).diff(lastMoment, 'day');
+          lastDate = lastMoment.format(FORMAT);
+          if (diff > 0) {
+            this.dates.push({date: lastDate, cols: new Array(this.aos.length)});
+          }
+        } else {
+          lastDate = date;
+        }
+      }
+
+      // finally push this date
       this.dates.push({date, cols});
     });
   }
@@ -71,7 +89,7 @@ export class QLineUpPage {
     const ionicScrollEvent = $event as {target: {complete: Function}};
 
     const {date} = this.dates[this.dates.length - 1];
-    this.loadQLineup(moment(date).add(1, 'day').format('YYYY-MM-DD'));
+    this.loadQLineup(moment(date).add(1, 'day').format(FORMAT));
 
     if (ionicScrollEvent) {
       ionicScrollEvent.target.complete();
