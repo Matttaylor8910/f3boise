@@ -45,7 +45,7 @@ export class QLineUpPage {
     const qs = await this.qService.getQLineUp(from, to);
 
     qs.forEach(q => {
-      const days = moment(q.date).diff(moment(), 'days');
+      const days = moment(q.date).diff(moment().startOf('day'), 'days');
       const taken = q.qs !== null && q.qs.length > 0;
       const warning = days <= this.warningDays && !taken;
       const aoMap = dateMap.get(q.date) ?? new Map<string, QCell>();
