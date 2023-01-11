@@ -42,12 +42,7 @@ export class QLineUpPage {
     const to = moment(from).add(this.days, 'days').format('YYYY-MM-DD');
     const qs = await this.qService.getQLineUp(from, to);
 
-    qs.forEach((q, index) => {
-      if (index === 1) {
-        if (q.qs) {
-          q.qs.push('Backslash');
-        }
-      }
+    qs.forEach(q => {
       const days = moment(q.date).diff(moment(), 'days');
       const taken = q.qs !== null && q.qs.length > 0;
       const warning = days <= this.warningDays && !taken;
