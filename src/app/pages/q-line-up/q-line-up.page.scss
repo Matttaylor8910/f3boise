@@ -30,7 +30,6 @@
       &.taken {
         background: #2a532a;
       }
-
       a {
         color: #fff;
       }
@@ -41,5 +40,23 @@
     display: block;
     max-width: 200px;
     margin: 20px auto;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .table-container table {
+    th, td {
+      background-color: #ccc;
+
+      &.taken {
+        background: #4e964e;
+      }
+      &.transparent {
+        opacity: .3;
+      }
+    }
+    th a {
+      color: #000;
+    }
   }
 }
