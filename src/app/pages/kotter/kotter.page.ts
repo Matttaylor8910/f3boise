@@ -2,6 +2,7 @@ import {Component} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import * as moment from 'moment';
 import {BackblastService} from 'src/app/services/backblast.service';
+import {UtilService} from 'src/app/services/util.service';
 import {Backblast} from 'types';
 
 interface PaxStats {
@@ -38,11 +39,12 @@ export class KotterPage {
   inactivePax?: PaxStats[];
 
   constructor(
+      public readonly utilService: UtilService,
       private readonly route: ActivatedRoute,
       private readonly backblastService: BackblastService,
   ) {
     this.name = this.route.snapshot.params['name'];
-    this.displayName = this.backblastService.normalizeAoName(this.name);
+    this.displayName = this.utilService.normalizeName(this.name);
   }
 
   ionViewDidEnter() {
@@ -89,8 +91,7 @@ export class KotterPage {
         // the list is sorted by most recent, so pax stats are creted from your
         // most recent bd
         const paxStats = paxMap.get(name) ?? this.newPaxStats(name, backblast);
-        paxStats.visitedAos.add(
-            this.backblastService.normalizeAoName(backblast.ao));
+        paxStats.visitedAos.add(this.utilService.normalizeName(backblast.ao));
         paxStats.firstBdDate = backblast.date;
         paxStats.totalPosts++;
         paxMap.set(name, paxStats);
@@ -119,7 +120,7 @@ export class KotterPage {
 
       // if we're not showing the report for all AOs, exclude pax that have
       // never visited this AO
-      const normalized = this.backblastService.normalizeAoName(this.name);
+      const normalized = this.utilService.normalizeName(this.name);
       if (normalized !== 'All' && !pax.visitedAos.has(normalized)) continue;
 
       const buddies = buddyMap.get(name) ?? new Map<string, number>();
@@ -143,7 +144,7 @@ export class KotterPage {
       lastBdDate: backblast.date,
       firstBdDate: backblast.date,
       totalPosts: 0,
-      lastAo: this.backblastService.normalizeAoName(backblast.ao),
+      lastAo: this.utilService.normalizeName(backblast.ao),
       buddies: [],
       visitedAos: new Set<string>(),
     };

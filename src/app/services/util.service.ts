@@ -31,4 +31,26 @@ export class UtilService {
 
     return dateString;
   }
+
+  normalizeName(ao: string): string {
+    const sections: string[] = [];
+    ao.split(/(?=[A-Z])/).forEach(splitUppercase => {
+      splitUppercase.split('-').forEach(splitHyphen => {
+        splitHyphen.split(' ').forEach(word => {
+          sections.push(word);
+        });
+      });
+    });
+
+    const name = sections
+                     .map(word => {
+                       return word.charAt(0).toUpperCase() + word.slice(1);
+                     })
+                     .join(' ');
+
+    // TODO: ask Stinger to unify the ao naming lmao
+    if (name === 'Warhorse') return 'War Horse';
+
+    return name;
+  }
 }

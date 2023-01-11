@@ -2,9 +2,9 @@ import {Injectable} from '@angular/core';
 import {Backblast} from 'types';
 
 import {HttpService} from './http.service';
+import {UtilService} from './util.service';
 
 const URL = 'https://f3boiseapi-cycjv.ondigitalocean.app/back_blasts/all';
-// const URL = 'assets/all.json';
 
 @Injectable({providedIn: 'root'})
 export class BackblastService {
@@ -12,12 +12,16 @@ export class BackblastService {
 
   constructor(
       private readonly http: HttpService,
+      private readonly utilService: UtilService,
   ) {
     this.loadAllData();
   }
 
   async loadAllData(): Promise<Backblast[]> {
     this.allData = await this.http.get(URL) as Backblast[];
+    this.allData.forEach(backblast => {
+      backblast.ao = this.utilService.normalizeName(backblast.ao);
+    });
     return this.allData;
   }
 
@@ -39,13 +43,5 @@ export class BackblastService {
         return pax.toLowerCase() === name.toLowerCase();
       });
     });
-  }
-
-  normalizeAoName(ao: string): string {
-    return ao.split(/(?=[A-Z])/)
-        .map(word => {
-          return word.charAt(0).toUpperCase() + word.slice(1);
-        })
-        .join(' ');
   }
 }

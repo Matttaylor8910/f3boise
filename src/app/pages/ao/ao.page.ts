@@ -53,7 +53,7 @@ export class AoPage {
       private readonly backblastService: BackblastService,
   ) {
     this.name = this.route.snapshot.params['name'];
-    this.displayName = this.backblastService.normalizeAoName(this.name);
+    this.displayName = this.utilService.normalizeName(this.name);
   }
 
   ionViewDidEnter() {

@@ -36,9 +36,9 @@ export class PaxPage {
   favoriteAos?: AoStats[];
 
   constructor(
+      public readonly utilService: UtilService,
       private readonly route: ActivatedRoute,
       private readonly backblastService: BackblastService,
-      private readonly utilService: UtilService,
   ) {
     this.name = this.route.snapshot.params['name'];
   }

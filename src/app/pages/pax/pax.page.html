@@ -6,7 +6,7 @@
     <ion-title>
       <div class="title-container">
         <app-pax-avatar class="space-after" [name]="name"></app-pax-avatar>
-        {{ name || 'Loading...' }}
+        {{ utilService.normalizeName(name) }}
       </div>
     </ion-title>
   </ion-toolbar>
@@ -22,7 +22,7 @@
     <div class="card-container">
       <ion-card>
         <ion-card-header>
-          <ion-card-title>{{ name }}'s stats</ion-card-title>
+          <ion-card-title>{{ utilService.normalizeName(name) }}'s stats</ion-card-title>
         </ion-card-header>
         <ion-list>
           <ion-item>

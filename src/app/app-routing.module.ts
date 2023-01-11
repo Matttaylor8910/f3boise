@@ -31,6 +31,12 @@ const routes: Routes = [
     loadChildren: () =>
         import('./pages/kotter/kotter.module').then(m => m.KotterPageModule)
   },
+  // fallback to home
+  {
+    path: '**',
+    redirectTo: '',
+    pathMatch: 'full',
+  }
 ];
 
 @NgModule({

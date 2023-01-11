@@ -2,6 +2,8 @@ import {Component} from '@angular/core';
 import {Router} from '@angular/router';
 import * as moment from 'moment';
 import {BackblastService} from 'src/app/services/backblast.service';
+import {QService} from 'src/app/services/q.service';
+import {UtilService} from 'src/app/services/util.service';
 
 const AO_DEETS = {
   'Backyard': {
@@ -74,7 +76,7 @@ const AO_DEETS = {
       Saturday: '6:00am - 7:00am',
     },
   },
-  'IronMountain': {
+  'Iron Mountain': {
     type: 'Bootcamp',
     icon: 'barbell-outline',
     address: '75 Marjorie Ave, Middleton, ID 83644',
@@ -88,7 +90,7 @@ const AO_DEETS = {
       Saturday: '6:00am - 7:00am',
     },
   },
-  'OldGlory': {
+  'Old Glory': {
     type: 'Bootcamp',
     icon: 'barbell-outline',
     address: '3064 W Malta Dr, Meridian, ID 83646',
@@ -130,7 +132,7 @@ const AO_DEETS = {
       Saturday: null,
     },
   },
-  'RuckershipEast': {
+  'Ruckership East': {
     type: 'Ruck/hike',
     icon: 'footsteps-outline',
     address: 'Location changes every week',
@@ -144,7 +146,7 @@ const AO_DEETS = {
       Saturday: null,
     },
   },
-  'RuckershipWest': {
+  'Ruckership West': {
     type: 'Ruck/hike',
     icon: 'footsteps-outline',
     address: 'Location changes every week',
@@ -158,7 +160,7 @@ const AO_DEETS = {
       Saturday: null,
     },
   },
-  'WarHorse': {
+  'War Horse': {
     type: 'Bootcamp',
     icon: 'barbell-outline',
     address: '1304 7th St N, Nampa, ID 83687',
@@ -182,6 +184,7 @@ interface Ao {
   addressLink: boolean;
   schedule: string[];
   averagePax: number;  // Math.ceil of average in last 90 days
+  qTomorrow?: string;  // optional q
 }
 
 interface AoGrouping {
@@ -199,17 +202,18 @@ export class WorkoutsPage {
   tomorrow = moment().add(1, 'day').format('dddd');
 
   constructor(
-      public readonly backblastService: BackblastService,
-      private readonly router: Router,
+      public readonly utilService: UtilService,
+      private readonly backblastService: BackblastService,
+      private readonly qService: QService,
   ) {
     this.setAos();
   }
 
   async setAos() {
+    // build up a map of aos to the list of pax counts per bd
     const aoMap = new Map<string, number[]>();
-
-    const data = await this.backblastService.getAllData();
-    data.forEach(bb => {
+    const backblasts = await this.backblastService.getAllData();
+    backblasts.forEach(bb => {
       const days = moment().diff(moment(bb.date), 'days');
       if (days < 90) {
         const existing = aoMap.get(bb.ao) ?? [];
@@ -217,7 +221,19 @@ export class WorkoutsPage {
       }
     });
 
-    const aos =
+    // build up a map of aos with a q tomorrow
+    const qMap = new Map<string, string>();
+    const date = moment().add(1, 'day').format('YYYY-MM-DD');
+    const qsTomorrow = await this.qService.getQLineUp(date, date);
+    qsTomorrow.forEach(lineup => {
+      if (lineup.qs.length > 0) {
+        const ao = this.utilService.normalizeName(lineup.ao);
+        qMap.set(ao, lineup.qs.join(', '));
+      }
+    });
+    console.log(qMap);
+
+    const aos: Ao[] =
         Array.from(aoMap)
             .map(aoItem => {
               const [name, counts] = aoItem;
@@ -250,6 +266,7 @@ export class WorkoutsPage {
     const thisWeek: AoGrouping = {title: 'JOIN US THIS WEEK', aos: []};
     for (const ao of aos) {
       if (ao.schedule.some(day => day.includes(this.tomorrow))) {
+        ao.qTomorrow = qMap.get(this.utilService.normalizeName(ao.name));
         tomorrow.aos.push(ao);
       } else {
         thisWeek.aos.push(ao);

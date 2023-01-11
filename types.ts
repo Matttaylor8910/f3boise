@@ -28,3 +28,11 @@ export interface AoPaxStats {
   firstQDate?: string;
   lastQDate?: string;
 }
+
+export interface QLineUp {
+  ao: string;
+  date: string;
+  closed: boolean;
+  text: string|null;
+  qs: string[];
+}

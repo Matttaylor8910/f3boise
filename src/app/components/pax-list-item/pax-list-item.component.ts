@@ -1,6 +1,7 @@
 import {Component, Input} from '@angular/core';
 import {Router} from '@angular/router';
 import {PaxService} from 'src/app/services/pax.service';
+import {UtilService} from 'src/app/services/util.service';
 import {AoPaxStats} from 'types';
 
 @Component({
@@ -19,6 +20,7 @@ export class PaxListItemComponent {
   smallLimit = 3;
 
   constructor(
+      public readonly utilService: UtilService,
       private readonly router: Router,
   ) {}
 

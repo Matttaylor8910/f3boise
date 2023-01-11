@@ -6,7 +6,7 @@
   <app-pax-avatar slot="start" [name]="pax.name"></app-pax-avatar>
   <ion-label class="ion-text-wrap">
     <h2>
-      <a>{{ pax.name }}</a>
+      <a>{{ utilService.normalizeName(pax.name) }}</a>
     </h2>
     <p>
       {{ subtext }}
