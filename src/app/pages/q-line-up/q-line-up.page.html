@@ -20,7 +20,7 @@
           </th>
         </tr>
         <tr *ngFor="let row of dates">
-          <td>{{ row.date }}</td>
+          <td>{{ row.displayDate }}</td>
           <td
             [class.taken]="col?.taken"
             [class.warning]="col?.warning"

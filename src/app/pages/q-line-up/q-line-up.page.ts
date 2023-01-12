@@ -6,6 +6,7 @@ import {QLineUp} from 'types';
 
 interface DateRow {
   date: string;
+  displayDate: string;
   cols: (QCell|undefined)[];
 }
 
@@ -48,6 +49,9 @@ export class QLineUpPage {
       const days = moment(q.date).diff(moment().startOf('day'), 'days');
       const taken = q.qs !== null && q.qs.length > 0;
       const warning = days <= this.warningDays && !taken;
+      if (warning) {
+        console.log(days, q.date, moment().startOf('day').format(FORMAT));
+      }
       const aoMap = dateMap.get(q.date) ?? new Map<string, QCell>();
       aoMap.set(q.ao, {...q, warning, taken});
       dateMap.set(q.date, aoMap);
@@ -91,11 +95,10 @@ export class QLineUpPage {
   }
 
   addDate(date: string, cols: (QCell|undefined)[]) {
+    const displayDate = moment(date).format('ddd, M/D');
     if (date === moment().format(FORMAT)) {
       date = `Today, ${moment(date).format('M/D')}`
-    } else {
-      date = moment(date).format('ddd, M/D');
     }
-    this.dates.push({date, cols});
+    this.dates.push({date, displayDate, cols});
   }
 }
