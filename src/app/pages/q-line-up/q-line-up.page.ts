@@ -73,7 +73,7 @@ export class QLineUpPage {
           const diff = moment(date).diff(lastMoment, 'day');
           lastDate = lastMoment.format(FORMAT);
           if (diff > 0) {
-            this.dates.push({date: lastDate, cols: new Array(this.aos.length)});
+            this.addDate(lastDate, new Array(this.aos.length));
           }
         } else {
           lastDate = date;
@@ -81,12 +81,21 @@ export class QLineUpPage {
       }
 
       // finally push this date
-      this.dates.push({date, cols});
+      this.addDate(date, cols);
     });
   }
 
   loadMore() {
     const {date} = this.dates[this.dates.length - 1];
     this.loadQLineup(moment(date).add(1, 'day').format(FORMAT));
+  }
+
+  addDate(date: string, cols: (QCell|undefined)[]) {
+    if (date === moment().format(FORMAT)) {
+      date = `Today, ${moment(date).format('M/D')}`
+    } else {
+      date = moment(date).format('ddd, M/D');
+    }
+    this.dates.push({date, cols});
   }
 }
