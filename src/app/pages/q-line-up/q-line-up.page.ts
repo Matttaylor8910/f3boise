@@ -95,9 +95,9 @@ export class QLineUpPage {
   }
 
   addDate(date: string, cols: (QCell|undefined)[]) {
-    const displayDate = moment(date).format('ddd, M/D');
+    let displayDate = moment(date).format('ddd, M/D');
     if (date === moment().format(FORMAT)) {
-      date = `Today, ${moment(date).format('M/D')}`
+      displayDate = `Today, ${moment(date).format('M/D')}`
     }
     this.dates.push({date, displayDate, cols});
   }
