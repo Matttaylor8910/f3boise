@@ -36,6 +36,10 @@ const routes: Routes = [
     loadChildren: () => import('./pages/q-line-up/q-line-up.module')
                             .then(m => m.QLineUpPageModule)
   },
+  {
+    path: 'gte',
+    loadChildren: () => import('./pages/gte/gte.module').then( m => m.GtePageModule)
+  },
 ];
 
 // fallback to home, must be the last route in this list
