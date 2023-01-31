@@ -3,6 +3,7 @@ import {ActivatedRoute} from '@angular/router';
 import {BackblastService} from 'src/app/services/backblast.service';
 import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
+import {Backblast} from 'types';
 
 interface PaxStats {
   name: string;
@@ -34,6 +35,7 @@ export class PaxPage {
 
   stats?: PaxStats;
   favoriteAos?: AoStats[];
+  allBds?: Backblast[];
 
   constructor(
       public readonly utilService: UtilService,
@@ -50,6 +52,7 @@ export class PaxPage {
   async calculatePaxStats() {
     // load the data and no-op if they have no data
     const data = await this.backblastService.getBackblastsForPax(this.name);
+    this.allBds = data;
     if (data.length === 0) {
       return;
     }

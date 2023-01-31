@@ -10,6 +10,7 @@ import {PaxAvatarComponent} from './pax-avatar/pax-avatar.component';
 import {PaxListItemComponent} from './pax-list-item/pax-list-item.component';
 import {PAXNameComponent} from './pax-name/pax-name.component';
 import {TimeFilterComponent} from './time-filter/time-filter.component';
+import {YearGridComponent} from './year-grid/year-grid.component';
 
 @NgModule({
   declarations: [
@@ -20,6 +21,7 @@ import {TimeFilterComponent} from './time-filter/time-filter.component';
     PaxListItemComponent,
     PAXNameComponent,
     TimeFilterComponent,
+    YearGridComponent,
   ],
   imports: [
     IonicModule,
@@ -34,6 +36,7 @@ import {TimeFilterComponent} from './time-filter/time-filter.component';
     PaxListItemComponent,
     PAXNameComponent,
     TimeFilterComponent,
+    YearGridComponent,
   ],
   providers: [
     CurrencyPipe,

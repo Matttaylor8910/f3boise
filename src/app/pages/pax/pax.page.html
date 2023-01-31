@@ -13,9 +13,7 @@
 </ion-header>
 
 <ion-content>
-  <div class="center-container">
-    <h2>Some cool charts to come, stay tuned...</h2>
-  </div>
+  <app-year-grid [name]="name" [bds]="allBds"></app-year-grid>
 
   <div class="stats-container" *ngIf="stats; else loading">
     <!-- general stats -->

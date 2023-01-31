@@ -1,0 +1,31 @@
+<div class="chart-container">
+  <div class="year-container">
+    <ion-button fill="clear" (click)="goPrev()" [disabled]="!canGoPrev">
+      <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+    </ion-button>
+    <h2>{{ year }}</h2>
+    <ion-button fill="clear" (click)="goNext()" [disabled]="!canGoNext">
+      <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
+    </ion-button>
+  </div>
+  <div class="grid-container">
+    <div class="row" *ngFor="let row of grid">
+      <div
+        class="cell"
+        [class.hidden]="!cell"
+        [style.background]="cell?.color"
+        *ngFor="let cell of row"
+      >
+        <span *ngIf="cell?.q">
+          Q
+        </span>
+      </div>
+    </div>
+  </div>
+  <div class="legend-container">
+    <div class="legend-item" *ngFor="let item of legend">
+      <div class="color-box" [style.background]="item.color"></div>
+      {{ item.name }}
+    </div>
+  </div>
+</div>
