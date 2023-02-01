@@ -54,13 +54,6 @@ export class YearGridComponent implements OnInit {
   }
 
   calculateGrid() {
-    // fill in a grid with all weeks for the year
-    let current = moment(`${this.year}/01/01`);
-    const grid: (GridCell|undefined)[][] = [[], [], [], [], [], [], []];
-    for (let i = 0; i < current.day(); i++) {
-      grid[i].push(undefined);
-    }
-
     // if we have the pax name and their bds, build up a map of those BDs
     const bdMap = new Map<string, GridCell>();
     const aos = new Set<string>();
@@ -78,6 +71,14 @@ export class YearGridComponent implements OnInit {
           aos.add(bd.ao);
         }
       }
+    }
+
+    // build up a row for each day of the week, and populate with undefineds
+    // until the first day of the year
+    let current = moment(`${this.year}/01/01`);
+    const grid: (GridCell|undefined)[][] = [[], [], [], [], [], [], []];
+    for (let i = 0; i < current.day(); i++) {
+      grid[i].push(undefined);
     }
 
     // fill out the rest of the grid, adding BD info when possible
