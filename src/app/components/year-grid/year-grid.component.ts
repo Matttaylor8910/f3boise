@@ -103,13 +103,13 @@ export class YearGridComponent implements OnInit {
   private getColor(ao: string): string {
     switch (ao) {
       case 'Backyard':
-        return '#1ABC9C';
-      case 'Bleach':
-        return '#16A085';
+        return '#014235';
       case 'Bellagio':
-        return '#2ECC71';
+        return '#16A085';
+      case 'Bleach':
+        return '#8fff5a';
       case 'Discovery':
-        return '#27AE60';
+        return '#9cd6f1';
       case 'Gem':
         return '#3498DB';
       case 'Iron Mountain':
@@ -117,7 +117,7 @@ export class YearGridComponent implements OnInit {
       case 'Old Glory':
         return '#9B59B6';
       case 'Rebel':
-        return '#8E44AD';
+        return '#E0C248';
       case 'Rise':
         return '#F39C12';
       case 'Ruckership East':
