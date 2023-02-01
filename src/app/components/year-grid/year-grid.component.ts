@@ -1,10 +1,13 @@
 import {Component, Input, OnInit} from '@angular/core';
 import * as moment from 'moment';
+import {UtilService} from 'src/app/services/util.service';
 import {Backblast} from 'types';
 
 interface GridCell {
+  date: string;
   color?: string;
   q?: boolean;
+  bd?: Backblast;
 }
 
 interface LegendItem {
@@ -30,7 +33,9 @@ export class YearGridComponent implements OnInit {
   grid: (GridCell|undefined)[][] = [];
   legend: LegendItem[] = [];
 
-  constructor() {}
+  constructor(
+      private readonly utilService: UtilService,
+  ) {}
 
   ngOnInit() {
     this.calculateGrid();
@@ -49,37 +54,38 @@ export class YearGridComponent implements OnInit {
   }
 
   calculateGrid() {
-    const aos = new Set<string>();
-
     // fill in a grid with all weeks for the year
-    const thisYear = moment(`${this.year}/01/01`);
-    const grid: (GridCell|undefined)[][] = new Array(7).fill([]).map(() => {
-      return new Array(thisYear.weeksInYear()).fill({});
-    });
-
-    // remove excess days from the start of the year
-    let current = moment(thisYear).startOf('year').day();
-    while (current > 0) {
-      grid[--current][0] = undefined;
-    }
-    // remove excess days from the end of the year
-    current = moment(thisYear).endOf('year').day();
-    while (current++ < 6) {
-      grid[current][grid[current].length - 1] = undefined;
+    let current = moment(`${this.year}/01/01`);
+    const grid: (GridCell|undefined)[][] = [[], [], [], [], [], [], []];
+    for (let i = 0; i < current.day(); i++) {
+      grid[i].push(undefined);
     }
 
-    // if we have the pax name and their bds, fill out the grid
+    // if we have the pax name and their bds, build up a map of those BDs
+    const bdMap = new Map<string, GridCell>();
+    const aos = new Set<string>();
     if (this.name && this.bds) {
       for (const bd of this.bds) {
         const m = moment(bd.date);
         if (m.year() === this.year) {
-          grid[m.day()][m.week() - 1] = {
+          const date = m.format('YYYY/MM/DD');
+          bdMap.set(date, {
             q: bd.qs.includes(this.name),
             color: this.getColor(bd.ao),
-          };
+            date,
+            bd,
+          });
           aos.add(bd.ao);
         }
       }
+    }
+
+    // fill out the rest of the grid, adding BD info when possible
+    while (current.year() === this.year) {
+      const date = current.format('YYYY/MM/DD');
+      const cell = bdMap.get(date);
+      grid[current.day()].push(cell ?? {date});
+      current = current.add(1, 'day');
     }
 
     // set the legend based on the AOs shown
@@ -98,6 +104,19 @@ export class YearGridComponent implements OnInit {
   goNext() {
     this.year++;
     this.calculateGrid();
+  }
+
+  cellClicked(cell?: GridCell) {
+    if (cell) {
+      const name = this.utilService.normalizeName(this.name!);
+      let message = `${name} did not post anywhere on ${cell?.date}`;
+      if (cell?.bd) {
+        message = name;
+        message += cell.q ? ' Q\'d ' : ' posted ';
+        message += `at ${cell.bd.ao} on ${cell.date}`;
+      }
+      this.utilService.alert(message, '', 'Got It');
+    }
   }
 
   private getColor(ao: string): string {

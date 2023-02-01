@@ -36,6 +36,11 @@
         color: #fff;
         text-shadow: 1px 0 0 #000, 0 -1px 0 #000, 0 1px 0 #000, -1px 0 0 #000;
 
+        &:not(.hidden):hover {
+          cursor: pointer;
+          opacity: .8;
+        }
+
         &.hidden {
           opacity: 0;
         }

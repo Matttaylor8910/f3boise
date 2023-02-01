@@ -15,6 +15,7 @@
         [class.hidden]="!cell"
         [style.background]="cell?.color"
         *ngFor="let cell of row"
+        (click)="cellClicked(cell)"
       >
         <span *ngIf="cell?.q">
           Q

@@ -1,9 +1,12 @@
 import {Injectable} from '@angular/core';
+import {AlertController} from '@ionic/angular';
 import * as moment from 'moment';
 
 @Injectable({providedIn: 'root'})
 export class UtilService {
-  constructor() {}
+  constructor(
+      private readonly alertCtrl: AlertController,
+  ) {}
 
   getRelativeDate(date?: string): string {
     // no-op if no date given
@@ -53,5 +56,25 @@ export class UtilService {
     if (name === 'Discovery Park') return 'Discovery';
 
     return name;
+  }
+
+  /**
+   * Show an alert popup
+   */
+  alert(header: string, message: string, okText: string): Promise<void> {
+    return new Promise(async resolve => {
+      const alert = await this.alertCtrl.create({
+        header,
+        message,
+        buttons: [{
+          text: okText,
+          handler: () => {
+            resolve();
+          }
+        }]
+      });
+
+      await alert.present();
+    });
   }
 }
