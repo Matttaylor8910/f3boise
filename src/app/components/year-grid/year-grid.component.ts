@@ -107,13 +107,13 @@ export class YearGridComponent implements OnInit {
       case 'Bellagio':
         return '#16A085';
       case 'Bleach':
-        return '#8fff5a';
+        return '#8FFF5A';
       case 'Discovery':
-        return '#9cd6f1';
+        return '#9CD6F1';
       case 'Gem':
         return '#3498DB';
       case 'Iron Mountain':
-        return '#2980B9';
+        return '#002F4D';
       case 'Old Glory':
         return '#9B59B6';
       case 'Rebel':
@@ -127,7 +127,7 @@ export class YearGridComponent implements OnInit {
       case 'War Horse':
         return '#E74C3C';
       default:
-        return 'black';
+        return '#000';
     }
   }
 }
