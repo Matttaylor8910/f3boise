@@ -1,13 +1,37 @@
 <div class="chart-container">
-  <div class="year-container">
-    <ion-button fill="clear" (click)="goPrev()" [disabled]="!canGoPrev">
-      <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
-    </ion-button>
-    <h2>{{ year }}</h2>
-    <ion-button fill="clear" (click)="goNext()" [disabled]="!canGoNext">
-      <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
-    </ion-button>
+  <!-- mobile display year select -->
+  <div class="year-options">
+    <ion-item class="select-input">
+      <ion-select [(ngModel)]="year" interface="popover" (ionChange)="setYear(year)">
+        <ion-select-option *ngFor="let y of yearOptions" [value]="y.year">
+          {{ y.name }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
   </div>
+  <!-- large display year options as buttons with underline -->
+  <div class="year-container">
+    <ion-button
+      [class.active]="-1 === year"
+      size="small"
+      fill="clear"
+      (click)="setYear(-1)"
+    >
+      This Past Year
+    </ion-button>
+    <div class="right-buttons">
+      <ion-button
+        *ngFor="let y of years"
+        [class.active]="y === year"
+        size="small"
+        fill="clear"
+        (click)="setYear(y)"
+      >
+        {{ y }}
+      </ion-button>
+    </div>
+  </div>
+  <!-- the grid -->
   <div class="grid-container">
     <div class="row" *ngFor="let row of grid">
       <div
@@ -23,6 +47,7 @@
       </div>
     </div>
   </div>
+  <!-- the legend -->
   <div class="legend-container">
     <div class="legend-item" *ngFor="let item of legend">
       <div class="color-box" [style.background]="item.color"></div>

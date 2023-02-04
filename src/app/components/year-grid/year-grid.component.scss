@@ -5,19 +5,37 @@
   position: relative;
   padding: 20px 0;
 
-  .year-container {
+  .year-options {
     display: flex;
     justify-content: center;
-    align-items: center;
-    margin-bottom: 10px;
+  }
 
-    h2 {
-      margin: 0;
+  .year-container {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1300px;
+    padding: 0 16px;
+    margin: auto;
+
+    ion-button {
+      border-bottom: 2px solid transparent;
+
+      &.active {
+        border-bottom: 2px solid var(--ion-color-primary);
+      }
+    }
+
+    .right-buttons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
   }
   .grid-container {
     overflow: auto;
-    padding-bottom: 10px;
+    padding: 10px 0;
 
     .row {
       display: inline-flex;
@@ -82,14 +100,24 @@
 @media (min-width: 1300px) {
   .chart-container {
     align-items: center;
+
+    // show the year container for bigger displays
+    .year-container {
+      display: flex;
+      margin: 0;
+    }
+    // and hide the mobile year options
+    .year-options {
+      display: none;
+    }
   }
   .grid-container {
     position: absolute;
-    top: 75px;
+    top: 65px;
     left: 50%;
     transform: translateX(-50%);
   }
   .legend-container {
-    margin-top: 200px;
+    margin-top: 220px;
   }
 }

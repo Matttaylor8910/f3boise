@@ -15,9 +15,16 @@ interface LegendItem {
   color: string;
 }
 
+interface TimePeriod {
+  name: string;
+  year: number;
+}
+
 // boise started in 2021
 const MIN_YEAR = 2021;
 const MAX_YEAR = moment().year();
+const THIS_PAST_YEAR = -1;
+const FORMAT = 'YYYY/MM/DD';
 
 @Component({
   selector: 'app-year-grid',
@@ -28,7 +35,9 @@ export class YearGridComponent implements OnInit {
   @Input() name?: string;
   @Input() bds?: Backblast[];
 
-  year = MAX_YEAR;
+  year: number = THIS_PAST_YEAR;
+  years: number[] = [];
+  yearOptions: TimePeriod[] = [];
 
   grid: (GridCell|undefined)[][] = [];
   legend: LegendItem[] = [];
@@ -38,30 +47,38 @@ export class YearGridComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.calculateGrid();
+    this.calculateThisPastYear();
   }
 
   ngOnChanges() {
-    this.calculateGrid();
+    this.calculateThisPastYear();
+  }
+
+  get yearLabel(): string {
+    if (this.year === THIS_PAST_YEAR) return 'This Past Year';
+    return String(this.year);
   }
 
   get canGoPrev(): boolean {
-    return this.year > MIN_YEAR;
+    return this.year > MIN_YEAR || this.year === THIS_PAST_YEAR;
   }
 
   get canGoNext(): boolean {
-    return this.year < MAX_YEAR;
+    return this.year <= MAX_YEAR && this.year !== THIS_PAST_YEAR;
   }
 
-  calculateGrid() {
+  calculateGrid(start = `${this.year}/01/01`, end = `${this.year}/12/31`) {
     // if we have the pax name and their bds, build up a map of those BDs
     const bdMap = new Map<string, GridCell>();
+    const years = new Set<number>();
     const aos = new Set<string>();
     if (this.name && this.bds) {
       for (const bd of this.bds) {
         const m = moment(bd.date);
-        if (m.year() === this.year) {
-          const date = m.format('YYYY/MM/DD');
+        years.add(m.year());
+
+        if (this.inRange(m.format(FORMAT), start, end)) {
+          const date = m.format(FORMAT);
           bdMap.set(date, {
             q: bd.qs.includes(this.name),
             color: this.getColor(bd.ao),
@@ -75,15 +92,15 @@ export class YearGridComponent implements OnInit {
 
     // build up a row for each day of the week, and populate with undefineds
     // until the first day of the year
-    let current = moment(`${this.year}/01/01`);
+    let current = moment(start);
     const grid: (GridCell|undefined)[][] = [[], [], [], [], [], [], []];
     for (let i = 0; i < current.day(); i++) {
       grid[i].push(undefined);
     }
 
     // fill out the rest of the grid, adding BD info when possible
-    while (current.year() === this.year) {
-      const date = current.format('YYYY/MM/DD');
+    while (current.format(FORMAT) <= end) {
+      const date = current.format(FORMAT);
       const cell = bdMap.get(date);
       grid[current.day()].push(cell ?? {date});
       current = current.add(1, 'day');
@@ -94,17 +111,41 @@ export class YearGridComponent implements OnInit {
       return {name, color: this.getColor(name)};
     });
 
+    // set the grid and years options
     this.grid = grid;
+    this.years = Array.from(years.values());
+    this.yearOptions = [
+      {name: 'This Past Year', year: THIS_PAST_YEAR},
+      ...this.years.map(year => ({name: String(year), year})),
+    ];
   }
 
   goPrev() {
-    this.year--;
+    if (this.year === THIS_PAST_YEAR) {
+      this.year = MAX_YEAR - 1;
+    } else {
+      this.year--;
+    }
     this.calculateGrid();
   }
 
   goNext() {
-    this.year++;
-    this.calculateGrid();
+    if (this.year === MAX_YEAR) {
+      this.year = THIS_PAST_YEAR;
+      this.calculateThisPastYear();
+    } else {
+      this.year++;
+      this.calculateGrid();
+    }
+  }
+
+  setYear(year: number) {
+    this.year = year;
+    if (year === THIS_PAST_YEAR) {
+      this.calculateThisPastYear();
+    } else {
+      this.calculateGrid();
+    }
   }
 
   cellClicked(cell?: GridCell) {
@@ -118,6 +159,15 @@ export class YearGridComponent implements OnInit {
       }
       this.utilService.alert(message, '', 'Got It');
     }
+  }
+
+  private calculateThisPastYear() {
+    this.calculateGrid(
+        moment().subtract(1, 'year').format(FORMAT), moment().format(FORMAT));
+  }
+
+  private inRange(date: string, start: string, end: string): boolean {
+    return start <= date && date <= end;
   }
 
   private getColor(ao: string): string {
