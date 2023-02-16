@@ -105,7 +105,7 @@ const AO_DEETS = {
     },
   },
   'Rebel': {
-    type: 'Speed/Strength training',
+    type: 'Running',
     icon: 'footsteps-outline',
     address: '3801 E Hill Park Street, Meridian, ID 83642',
     addressLink: true,
