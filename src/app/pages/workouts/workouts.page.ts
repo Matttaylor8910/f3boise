@@ -146,7 +146,7 @@ const AO_DEETS = {
     },
   },
   'Ruckership East': {
-    type: 'Ruck/hike',
+    type: 'Ruck/Hike',
     icon: 'footsteps-outline',
     address: 'Location changes every week',
     addressLink: false,
@@ -160,7 +160,7 @@ const AO_DEETS = {
     },
   },
   'Ruckership West': {
-    type: 'Ruck/hike',
+    type: 'Ruck/Hike',
     icon: 'footsteps-outline',
     address: 'Location changes every week',
     addressLink: false,
