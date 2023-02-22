@@ -34,6 +34,19 @@ const AO_DEETS = {
       Saturday: '6:00am - 7:00am',
     },
   },
+  'BlackDiamond': {
+    type: 'High Intensity',
+    icon: 'alert-circle-outline',
+    address: 'Kleiner Park Loop, Meridian, ID 83642',
+    schedule: {
+      Monday: '5:00am - 6:00am',
+      Tuesday: null,
+      Wednesday: '5:00am - 6:00am',
+      Thursday: null,
+      Friday: null,
+      Saturday: null,
+    },
+  },
   'Bleach': {
     type: 'Ruck/Sandbag',
     icon: 'barbell-outline',
