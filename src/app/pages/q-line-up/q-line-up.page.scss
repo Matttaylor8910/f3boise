@@ -1,6 +1,14 @@
+ion-searchbar {
+  text-align: left;
+}
+
 .full-height-container {
   max-height: 100%;
   overflow: hidden;
+}
+
+.hidden {
+  display: none;
 }
 
 .table-container {
@@ -13,7 +21,6 @@
   table {
     border-collapse: initial;
     border-spacing: 3px;
-    width: 100%;
     margin: auto;
 
     th {
@@ -22,10 +29,11 @@
     }
 
     th, td {
-      background-color: #333;
+      background: #333;
       padding: 8px;
       text-align: center;
       min-width: 150px;
+      max-width: 300px;
 
       &.warning {
         border: 2px solid var(--ion-color-danger);
@@ -35,6 +43,9 @@
       }
       &.taken {
         background: #2a532a;
+      }
+      &.hide-text {
+        opacity: .2;
       }
       a {
         color: #fff;

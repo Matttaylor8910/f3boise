@@ -1,6 +1,13 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>Q Line-up</ion-title>
+    <div slot="end">
+      <ion-searchbar
+        [(ngModel)]="filterText"
+        placeholder="Filter by PAX"
+        (ionChange)="applyFilter()">
+      </ion-searchbar>
+    </div>
   </ion-toolbar>
 </ion-header>
 
@@ -12,34 +19,39 @@
       </h2>
     </div>
     <div class="table-container">
-      <table>
+      <table [class.hidden]="everythingHidden">
         <tr>
           <th>Date</th>
-          <th *ngFor="let ao of aos">
-            <a routerLink="/ao/{{ao}}">{{ utilService.normalizeName(ao) }}</a>
+          <th *ngFor="let ao of aos" [class.hidden]="ao.hidden">
+            <a routerLink="/ao/{{ao.name}}">{{ utilService.normalizeName(ao.name) }}</a>
           </th>
         </tr>
-        <tr *ngFor="let row of dates">
+        <tr *ngFor="let row of dates" [class.hidden]="row.hidden">
           <td>{{ row.displayDate }}</td>
           <td
-            [class.taken]="col?.taken"
-            [class.warning]="col?.warning"
-            [class.transparent]="!col"
+            [class.taken]="col.taken"
+            [class.warning]="col.warning"
+            [class.transparent]="col.transparent"
+            [class.hide-text]="col.hideText"
+            [class.hidden]="col.hidden"
             *ngFor="let col of row.cols"
           >
             <!-- if closed, show that message -->
-            <span *ngIf="col?.closed">
-              {{ col?.text }}
+            <span *ngIf="col.closed">
+              {{ col.text }}
             </span>
             <!-- if we have Qs, show names and link to pax pages -->
-            <span *ngIf="!col?.closed && !!col?.qs?.length">
-              <div *ngFor="let q of col?.qs">
+            <span *ngIf="!col.closed && col.qs?.length">
+              <div *ngFor="let q of col.qs">
                 <a routerLink="/pax/{{q}}">{{ utilService.normalizeName(q) }}</a>
               </div>
             </span>
           </td>
         </tr>
       </table>
+      <h3 class="center-container" *ngIf="everythingHidden">
+        Nothing to see for "{{ filterText }}"
+      </h3>
       <div class="load-more-container">
         <ion-button fill="clear" (click)="loadMore()">
           Load {{ days }} more days
