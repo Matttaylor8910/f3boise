@@ -34,7 +34,7 @@ const AO_DEETS = {
       Saturday: '6:00am - 7:00am',
     },
   },
-  'BlackDiamond': {
+  'Black Diamond': {
     type: 'High Intensity',
     icon: 'alert-circle-outline',
     address: 'Kleiner Park Loop, Meridian, ID 83642',
@@ -246,33 +246,34 @@ export class WorkoutsPage {
       }
     });
 
-    const aos: Ao[] =
-        Array.from(aoMap)
-            .map(aoItem => {
-              const [name, counts] = aoItem;
-              const ao = (AO_DEETS as any)[name];
+    const aos: Ao[] = []
 
-              const schedule = Object.entries(ao.schedule)
-                                   .map(([day, time]) => `${day}: ${time}`)
-                                   .filter(item => !item.includes('null'));
+    Array.from(aoMap).forEach(aoItem => {
+      const [name, counts] = aoItem;
+      const ao = (AO_DEETS as any)[name];
 
-              const averagePax =
-                  Math.ceil(counts.reduce((a, b) => a + b) / counts.length);
+      if (ao !== undefined) {
+        const schedule = Object.entries(ao.schedule)
+                             .map(([day, time]) => `${day}: ${time}`)
+                             .filter(item => !item.includes('null'));
 
-              const details = {
-                name,
-                type: ao.type,
-                icon: ao.icon,
-                address: ao.address,
-                addressLink: ao.addressLink,
-                schedule,
-                averagePax,
-              };
+        const averagePax =
+            Math.ceil(counts.reduce((a, b) => a + b) / counts.length);
 
-              return details;
-            })
-            .filter(ao => ao.type && ao.averagePax)
-            .sort((a, b) => a.name.localeCompare(b.name));
+        aos.push({
+          name,
+          type: ao.type,
+          icon: ao.icon,
+          address: ao.address,
+          addressLink: ao.addressLink,
+          schedule,
+          averagePax,
+        });
+      }
+    });
+
+
+    aos.sort((a, b) => a!.name.localeCompare(b!.name));
 
     // separate the aos into buckets
     const tomorrow: AoGrouping = {title: 'JOIN US TOMORROW', aos: []};
