@@ -13,11 +13,21 @@
 </ion-header>
 
 <ion-content>
-  <ng-container *ngIf="stats; else loading">
+  <ng-container *ngIf="allBds; else loading">
 
-    <app-year-grid [name]="name" [bds]="allBds"></app-year-grid>
+    <!-- empty state -->
+    <h2 class="center-container" *ngIf="allBds.length === 0">
+      There doesn't seem to be a Boise HIM that goes by {{ utilService.normalizeName(name) }}
+    </h2>
 
-    <div class="stats-container">
+    <!-- cool year grid chart -->
+    <app-year-grid
+      [name]="name"
+      [bds]="allBds"
+      *ngIf="allBds.length > 0">
+    </app-year-grid>
+
+    <div class="stats-container" *ngIf="stats">
       <!-- general stats -->
       <div class="card-container">
         <ion-card>
