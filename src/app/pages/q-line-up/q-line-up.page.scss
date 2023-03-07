@@ -91,3 +91,15 @@ ion-searchbar {
     }
   }
 }
+
+// show/hide the right toolbars for the right screen widths
+@media (max-width: 800px) {
+  .desktop-toolbar {
+    display: none;
+  }
+}
+@media (min-width: 801px) {
+  .mobile-toolbar {
+    display: none;
+  }
+}

@@ -3,11 +3,19 @@
     <ion-title>Q Line-up</ion-title>
     <div slot="end">
       <ion-searchbar
+        class="desktop-toolbar"
         [(ngModel)]="filterText"
         placeholder="Filter by PAX"
         (ionChange)="applyFilter()">
       </ion-searchbar>
     </div>
+  </ion-toolbar>
+  <ion-toolbar class="mobile-toolbar">
+    <ion-searchbar
+      [(ngModel)]="filterText"
+      placeholder="Filter by PAX"
+      (ionChange)="applyFilter()">
+    </ion-searchbar>
   </ion-toolbar>
 </ion-header>
 
