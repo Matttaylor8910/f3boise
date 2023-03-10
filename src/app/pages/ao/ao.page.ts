@@ -17,11 +17,13 @@ interface MonthlyStats {
   // the display name of this month like January 2021
   displayName: string;
 
-  // new guys to the region, showing up for the first time
-  fngs: Set<string>;
-
   // PAX that posted at least once this month
   allPax: Set<string>;
+
+  qs: Set<string>;
+
+  // new guys to the region, showing up for the first time
+  fngs: Set<string>;
 
   // PAX that were missing last month that came back this month
   returnedPax: Set<string>;
@@ -142,6 +144,7 @@ export class AoPage {
         // save their Q stats as well if applicable
         if (backblast.qs.includes(name)) {
           uniqueQs.add(name);
+          monthStats.qs.add(name);
           stats.qs++;
           stats.lastQDate = backblast.date;
 
@@ -252,8 +255,9 @@ export class AoPage {
   private newMonthlyStats(displayName: string): MonthlyStats {
     return {
       displayName,
-      fngs: new Set<string>(),
       allPax: new Set<string>(),
+      qs: new Set<string>(),
+      fngs: new Set<string>(),
       returnedPax: new Set<string>(),
       missingPax: new Set<string>(),
       totalPosts: 0,
