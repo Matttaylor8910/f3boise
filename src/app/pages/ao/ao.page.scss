@@ -17,6 +17,20 @@
       display: block;
     }
   }
+
+  .month-card {
+    width: 100%;
+
+    .pax-avatars {
+      display: flex;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+
+      a {
+        margin: 4px 4px 0 0;
+      }
+    }
+  }
 }
 
 @media (max-width: 1700px) {

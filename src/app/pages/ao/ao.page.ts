@@ -13,6 +13,26 @@ interface AoStats {
   averageAttendance: number;  // total posts / total beatdowns
 }
 
+interface MonthlyStats {
+  // the display name of this month like January 2021
+  displayName: string;
+
+  // new guys to the region, showing up for the first time
+  fngs: Set<string>;
+
+  // PAX that posted at least once this month
+  allPax: Set<string>;
+
+  // PAX that were missing last month that came back this month
+  returnedPax: Set<string>;
+
+  // PAX that were present last month but didn't post this month
+  missingPax: Set<string>;
+
+  // The total number of posts for the month
+  totalPosts: number;
+}
+
 const LIMIT = 10;
 
 enum TimeRange {
@@ -36,6 +56,7 @@ export class AoPage {
 
   aoStats?: AoStats;
   paxStats?: AoPaxStats[];
+  monthlyStats?: MonthlyStats[];
 
   leaderboard: AoPaxStats[] = [];
   topQs: AoPaxStats[] = [];
@@ -60,6 +81,11 @@ export class AoPage {
     this.calculateStats(this.selectedRange);
   }
 
+  get showMonthlyStats(): boolean {
+    return this.displayName === 'All' &&
+        this.selectedRange === TimeRange.ALL_TIME;
+  }
+
   async calculateStats(range: string) {
     // reset the data if the range changed
     if (range !== this.selectedRange) {
@@ -72,7 +98,6 @@ export class AoPage {
         await this.backblastService.getBackblastsForAo(this.name);
 
     // sort the data by date ascending
-    // const data = allData.sort((a, b) => a.date.localeCompare(b.date));
     const data: Backblast[] = [];
     const now = moment();
     for (const backblast of allData) {
@@ -88,15 +113,28 @@ export class AoPage {
     const statsMap = new Map<string, AoPaxStats>();
     const uniqueQs = new Set<string>();
     const uniquePax = new Set<string>();
+    const monthlyStats = new Map<string, MonthlyStats>();
     const aoStats = this.newAoStats();
 
     for (const backblast of data) {
+      const month = moment(backblast.date).format('MMMM YYYY');
+      const monthStats = monthlyStats.get(month) ?? this.newMonthlyStats(month);
+
       // update AO stats for this beatdown
       aoStats.totalBeatdowns++;
       aoStats.totalPosts += backblast.pax.length;
 
-      // update this HIM's stats
+      // update the monthly stats as well
+      monthStats.totalPosts += backblast.pax.length;
+
       for (const name of backblast.pax) {
+        // keep track of all PAX and new FNGs
+        monthStats.allPax.add(name);
+        if (!uniquePax.has(name)) {
+          monthStats.fngs.add(name);
+        }
+
+        // update this HIM's stats
         const stats = statsMap.get(name) ?? this.newPaxStats(name, backblast);
         stats.lastBdDate = backblast.date;
         stats.bds++;
@@ -115,7 +153,22 @@ export class AoPage {
         statsMap.set(name, stats);
         uniquePax.add(name);
       }
+
+      monthlyStats.set(month, monthStats);
     }
+
+    let lastMonth: MonthlyStats;
+    monthlyStats.forEach(thisMonth => {
+      if (lastMonth) {
+        // store the PAX that posted last month but didn't post this month
+        thisMonth.missingPax = new Set([...lastMonth.allPax.values()].filter(
+            name => !thisMonth.allPax.has(name)));
+        // store the non-FNG PAX that came back and posted this month
+        thisMonth.returnedPax = new Set([...thisMonth.allPax.values()].filter(
+            name => !thisMonth.fngs.has(name) && !lastMonth.allPax.has(name)));
+      }
+      lastMonth = thisMonth;
+    });
 
     // update aggregate AO stats
     aoStats.totalUniqueQs = uniqueQs.size;
@@ -125,6 +178,7 @@ export class AoPage {
     // spin off some other stats
     this.aoStats = aoStats;
     this.paxStats = Array.from(statsMap.values());
+    this.monthlyStats = Array.from(monthlyStats.values()).reverse();
     this.calculatePaxBdsPerWeek();
     this.calculateQsCards();
   }
@@ -192,6 +246,17 @@ export class AoPage {
       totalPosts: 0,
       totalUniquePax: 0,
       averageAttendance: 0,
+    };
+  }
+
+  private newMonthlyStats(displayName: string): MonthlyStats {
+    return {
+      displayName,
+      fngs: new Set<string>(),
+      allPax: new Set<string>(),
+      returnedPax: new Set<string>(),
+      missingPax: new Set<string>(),
+      totalPosts: 0,
     };
   }
 

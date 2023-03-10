@@ -165,6 +165,62 @@
           </ion-card>
         </div>
       </div>
+
+      <div class="stats-container" *ngIf="showMonthlyStats">
+        <ion-card class="month-card" *ngFor="let month of monthlyStats">
+          <ion-card-header>
+            <ion-card-title>
+              {{ month.displayName }}
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <strong>{{ month.allPax.size }} Total PAX this month</strong> ({{ month.totalPosts }} posts)
+            <div class="pax-avatars">
+              <a
+                *ngFor="let name of month.allPax"
+                [title]="utilService.normalizeName(name)"
+                routerLink="/pax/{{name}}"
+              >
+                <app-pax-avatar [size]="30" [name]="name"></app-pax-avatar>
+              </a>
+            </div>
+            <strong>{{ month.fngs.size }} New FNGs this month</strong>
+            <div class="pax-avatars">
+              <a
+                *ngFor="let name of month.fngs"
+                [title]="utilService.normalizeName(name)"
+                routerLink="/pax/{{name}}"
+              >
+                <app-pax-avatar [size]="30" [name]="name"></app-pax-avatar>
+              </a>
+            </div>
+            <strong *ngIf="month.returnedPax.size > 0">
+              {{ month.returnedPax.size }} Returned PAX this month
+            </strong>
+            <div class="pax-avatars">
+              <a
+                *ngFor="let name of month.returnedPax"
+                [title]="utilService.normalizeName(name)"
+                routerLink="/pax/{{name}}"
+              >
+                <app-pax-avatar [size]="30" [name]="name"></app-pax-avatar>
+              </a>
+            </div>
+            <strong *ngIf="month.missingPax.size > 0">
+              {{ month.missingPax.size }} PAX dropped off this month
+            </strong>
+            <div class="pax-avatars">
+              <a
+                *ngFor="let name of month.missingPax"
+                [title]="utilService.normalizeName(name)"
+                routerLink="/pax/{{name}}"
+              >
+                <app-pax-avatar [size]="30" [name]="name"></app-pax-avatar>
+              </a>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
     </ng-container>
   </div>
 </ion-content>
