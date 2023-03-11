@@ -34,16 +34,25 @@
   <!-- the grid -->
   <div class="grid-container">
     <div class="row" *ngFor="let row of grid">
-      <div
-        class="cell"
-        [class.hidden]="!cell"
-        [style.background]="cell?.color"
-        *ngFor="let cell of row"
-        (click)="cellClicked(cell)"
-      >
-        <span *ngIf="cell?.q">
-          Q
-        </span>
+      <div class="cell-container" *ngFor="let cell of row; let i = index">
+        <div
+          class="cell"
+          [class.hidden]="!cell"
+          [style.background]="cell?.color"
+          (click)="cellClicked(cell)"
+        >
+          <span *ngIf="cell?.q">
+            Q
+          </span>
+        </div>
+        <div
+          class="popover"
+          [class.first]="i === 0"
+          [class.last]="i === row.length - 1"
+          *ngIf="cell?.bd"
+        >
+          {{ cell?.date }}
+        </div>
       </div>
     </div>
   </div>

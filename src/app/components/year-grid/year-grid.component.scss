@@ -41,26 +41,52 @@
       display: inline-flex;
       padding: 0 20px;
 
-      .cell {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-width: 20px;
-        min-height: 20px;
-        margin: 2px;
-        font-size: 16px;
-        font-weight: bold;
-        border: 1px solid #333;
-        color: #fff;
-        text-shadow: 1px 0 0 #000, 0 -1px 0 #000, 0 1px 0 #000, -1px 0 0 #000;
+      .cell-container {
+        position: relative;
+        margin: 1px 2px;
 
-        &:not(.hidden):hover {
-          cursor: pointer;
-          opacity: .8;
+        .cell {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-width: 20px;
+          min-height: 20px;
+          font-size: 16px;
+          font-weight: bold;
+          border: 1px solid #333;
+          color: #fff;
+          text-shadow: 1px 0 0 #000, 0 -1px 0 #000, 0 1px 0 #000, -1px 0 0 #000;
+
+          &:not(.hidden):hover {
+            cursor: pointer;
+            opacity: .8;
+          }
+
+          &.hidden {
+            opacity: 0;
+          }
         }
 
-        &.hidden {
-          opacity: 0;
+        &:hover .popover {
+          display: initial;
+        }
+
+        .popover {
+          position: absolute;
+          display: none;
+          bottom: 30px;
+          left: 50%;
+          transform: translateX(-50%);
+          padding: 4px 8px;
+          background: #555;
+          color: #fff;
+
+          &.first {
+            transform: translateX(-25%);
+          }
+          &.last {
+            transform: translateX(-75%);
+          }
         }
       }
     }
@@ -89,8 +115,13 @@
   .chart-container {
     .grid-container {
       .row {
-        .cell {
-          border: 1px solid #ddd;
+        .cell-container {
+          .cell {
+            border: 1px solid #ddd;
+          }
+          .popover {
+            background: #999;
+          }
         }
       }
     }
