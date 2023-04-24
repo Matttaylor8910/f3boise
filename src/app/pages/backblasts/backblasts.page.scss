@@ -1,0 +1,22 @@
+.backblasts-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 20px;
+  max-width: 1800px;
+  margin: auto;
+
+  ion-card {
+    width: 500px;
+
+    ion-card-subtitle {
+      margin-top: -4px;
+    }
+  }
+}
+
+@media (max-width: 800px) {
+  .backblasts-container ion-card {
+    width: 100%;
+  }
+}

@@ -38,7 +38,13 @@ const routes: Routes = [
   },
   {
     path: 'gte',
-    loadChildren: () => import('./pages/gte/gte.module').then( m => m.GtePageModule)
+    loadChildren: () =>
+        import('./pages/gte/gte.module').then(m => m.GtePageModule)
+  },
+  {
+    path: 'backblasts',
+    loadChildren: () => import('./pages/backblasts/backblasts.module')
+                            .then(m => m.BackblastsPageModule)
   },
 ];
 
