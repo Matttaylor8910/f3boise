@@ -54,7 +54,9 @@ export class BackblastsPage implements OnInit {
     this.filteredBackblasts = this.filterText.trim().length === 0 ?
         this.allBackblasts :
         this.allBackblasts?.filter(bb => {
-          return bb.pax.some(q => q.includes(lowercase));
+          return bb.date.includes(lowercase) ||
+              bb.ao.toLowerCase().includes(lowercase) ||
+              bb.pax.some(q => q.includes(lowercase));
         });
 
     this.loadMore();

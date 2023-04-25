@@ -1,5 +1,9 @@
 ion-searchbar {
   text-align: left;
+
+  &.desktop-toolbar {
+    width: 320px;
+  }
 }
 
 .backblasts-container {
