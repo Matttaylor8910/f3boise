@@ -178,8 +178,6 @@ export class YearGridComponent implements OnInit {
         return '#16A085';
       case 'Bleach':
         return '#8FFF5A';
-      case 'Discovery':
-        return '#9CD6F1';
       case 'Gem':
         return '#3498DB';
       case 'Iron Mountain':
@@ -194,6 +192,8 @@ export class YearGridComponent implements OnInit {
         return '#E67E22';
       case 'Ruckership West':
         return '#D35400';
+      case 'The Tower':
+        return '#9CD6F1';
       case 'War Horse':
         return '#E74C3C';
       default:

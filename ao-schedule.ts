@@ -54,20 +54,6 @@ export const DETAILS = {
       Saturday: '6:00am - 7:00am',
     },
   },
-  'Discovery': {
-    type: 'Bootcamp',
-    icon: 'barbell-outline',
-    address: '2121 E Lake Hazel Rd, Meridian, ID 83642',
-    addressLink: true,
-    schedule: {
-      Monday: null,
-      Tuesday: null,
-      Wednesday: null,
-      Thursday: null,
-      Friday: null,
-      Saturday: '6:00am - 7:00am',
-    },
-  },
   'Gem': {
     type: 'Bootcamp',
     icon: 'barbell-outline',
@@ -164,6 +150,20 @@ export const DETAILS = {
       Thursday: null,
       Friday: '5:30am - 6:30am',
       Saturday: null,
+    },
+  },
+  'The Tower': {
+    type: 'Bootcamp',
+    icon: 'barbell-outline',
+    address: '2121 E Lake Hazel Rd, Meridian, ID 83642',
+    addressLink: true,
+    schedule: {
+      Monday: null,
+      Tuesday: null,
+      Wednesday: null,
+      Thursday: null,
+      Friday: null,
+      Saturday: '6:00am - 7:00am',
     },
   },
   'War Horse': {

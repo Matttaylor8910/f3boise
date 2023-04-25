@@ -53,7 +53,6 @@ export class UtilService {
 
     // TODO: ask Stinger to unify the ao naming lmao
     if (name === 'Warhorse') return 'War Horse';
-    if (name === 'Discovery Park') return 'Discovery';
 
     return name;
   }
