@@ -1,3 +1,7 @@
+ion-searchbar {
+  text-align: left;
+}
+
 .backblasts-container {
   display: flex;
   justify-content: center;
@@ -18,5 +22,13 @@
 @media (max-width: 800px) {
   .backblasts-container ion-card {
     width: 100%;
+  }
+  .desktop-toolbar {
+    display: none;
+  }
+}
+@media (min-width: 801px) {
+  .mobile-toolbar {
+    display: none;
   }
 }

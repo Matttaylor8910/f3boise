@@ -17,13 +17,21 @@ const SIZE = 48;
 })
 export class BackblastsPage implements OnInit {
   allBackblasts?: BackblastWithTime[];
+  filteredBackblasts?: BackblastWithTime[];
   backblasts?: BackblastWithTime[];
 
   loading = true;
+  filterText = '';
 
   constructor(
       private readonly backblastService: BackblastService,
   ) {}
+
+  get showLoadMore(): boolean {
+    const moreBackblasts =
+        (this.filteredBackblasts?.length ?? 0) > (this.backblasts?.length ?? 0);
+    return !this.loading && moreBackblasts;
+  }
 
   async ngOnInit() {
     this.allBackblasts = (await this.backblastService.getAllData()).map(bb => {
@@ -35,6 +43,20 @@ export class BackblastsPage implements OnInit {
       return backblast;
     });
 
+    this.applyFilter();
+  }
+
+  applyFilter() {
+    this.loading = true;
+
+    delete this.backblasts;
+    const lowercase = this.filterText.toLowerCase();
+    this.filteredBackblasts = this.filterText.trim().length === 0 ?
+        this.allBackblasts :
+        this.allBackblasts?.filter(bb => {
+          return bb.pax.some(q => q.includes(lowercase));
+        });
+
     this.loadMore();
   }
 
@@ -42,14 +64,19 @@ export class BackblastsPage implements OnInit {
     this.loading = true;
 
     setTimeout(() => {
-      if (!this.backblasts) this.backblasts = [];
+      const backblasts = this.backblasts ?? [];
 
-      const all = this.allBackblasts ?? [];
-      const start = this.backblasts.length;
+      const filtered = this.filteredBackblasts ?? [];
+      const start = backblasts.length;
       const end = start + SIZE;
-      this.backblasts.push(...all.slice(start, end));
+      backblasts.push(...filtered.slice(start, end));
+      this.backblasts = backblasts;
 
       this.loading = false;
     });
+  }
+
+  trackByBackblast(_index: number, backblast: BackblastWithTime) {
+    return `${backblast.ao}_${backblast.date}`;
   }
 }

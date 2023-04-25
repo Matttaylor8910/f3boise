@@ -1,12 +1,27 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>Backblasts</ion-title>
+    <div slot="end">
+      <ion-searchbar
+        class="desktop-toolbar"
+        [(ngModel)]="filterText"
+        placeholder="Filter by PAX"
+        (ionChange)="applyFilter()">
+      </ion-searchbar>
+    </div>
+  </ion-toolbar>
+  <ion-toolbar class="mobile-toolbar">
+    <ion-searchbar
+      [(ngModel)]="filterText"
+      placeholder="Filter by PAX"
+      (ionChange)="applyFilter()">
+    </ion-searchbar>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
   <div class="backblasts-container">
-    <ion-card *ngFor="let backblast of backblasts">
+    <ion-card *ngFor="let backblast of backblasts; trackBy: trackByBackblast">
       <ion-card-header>
         <ion-card-title class="space-between">
           <div>{{ backblast.date }} @ {{ backblast.ao }}</div>
@@ -42,9 +57,14 @@
     </ion-card>
   </div>
   <div class="center-container">
-    <h2 *ngIf="loading">Loading...</h2>
-    <ion-button *ngIf="!loading" (click)="loadMore()">
+    <h2 *ngIf="filteredBackblasts?.length && loading">
+      Loading...
+    </h2>
+    <ion-button *ngIf="showLoadMore" (click)="loadMore()">
       Load More
     </ion-button>
+    <h2 *ngIf="filteredBackblasts?.length === 0">
+      No backblasts to show for "{{ filterText }}"
+    </h2>
   </div>
 </ion-content>
