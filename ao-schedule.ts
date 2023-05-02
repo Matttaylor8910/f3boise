@@ -159,9 +159,9 @@ export const DETAILS = {
     addressLink: true,
     schedule: {
       Monday: null,
-      Tuesday: null,
+      Tuesday: '5:15am - 6:00am',
       Wednesday: null,
-      Thursday: null,
+      Thursday: '5:15am - 6:00am',
       Friday: null,
       Saturday: '6:00am - 7:00am',
     },
