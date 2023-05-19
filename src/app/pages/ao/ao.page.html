@@ -169,8 +169,12 @@
       <div class="stats-container" *ngIf="showMonthlyStats">
         <ion-card class="month-card" *ngFor="let month of monthlyStats; let i = index">
           <ion-card-header>
-            <ion-card-title>
+            <ion-card-title class="space-between">
               {{ month.displayName }}
+              <!-- don't show copy button for current month -->
+              <ion-button fill="clear" (click)="copyMonthCard(i)" *ngIf="i > 0">
+                Copy
+              </ion-button>
             </ion-card-title>
           </ion-card-header>
           <ion-card-content>

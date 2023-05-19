@@ -1,11 +1,12 @@
 import {Injectable} from '@angular/core';
-import {AlertController} from '@ionic/angular';
+import {AlertController, ToastController} from '@ionic/angular';
 import * as moment from 'moment';
 
 @Injectable({providedIn: 'root'})
 export class UtilService {
   constructor(
       private readonly alertCtrl: AlertController,
+      private readonly toastCtrl: ToastController,
   ) {}
 
   getRelativeDate(date?: string): string {
@@ -75,5 +76,39 @@ export class UtilService {
 
       await alert.present();
     });
+  }
+
+  // Copies a string to the clipboard. Must be called from within an
+  // event handler such as click. May return false if it failed, but
+  // this is not always possible. Browser support for Chrome 43+,
+  // Firefox 42+, Safari 10+, Edge and IE 10+.
+  // IE: The clipboard feature may be disabled by an administrator. By
+  // default a prompt is shown the first time the clipboard is
+  // used (per session).
+  copyToClipboard(text: string, successText = 'Copied link to clipboard') {
+    if (document.queryCommandSupported &&
+        document.queryCommandSupported('copy')) {
+      const textarea = document.createElement('textarea');
+      textarea.textContent = text;
+      // Prevent scrolling to bottom of page in MS Edge.
+      textarea.style.position = 'fixed';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        // Security exception may be thrown by some browsers.
+        document.execCommand('copy');
+        this.showToast(successText);
+      } catch (ex) {
+        this.showToast('Copy to clipboard failed');
+      } finally {
+        document.body.removeChild(textarea);
+      }
+    }
+  }
+
+  async showToast(message: string, duration: number = 2000, options?: any) {
+    const toast = await this.toastCtrl.create({message, duration, ...options});
+    await toast.present();
+    return toast;
   }
 }

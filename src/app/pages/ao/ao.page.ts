@@ -227,6 +227,34 @@ export class AoPage {
     });
   }
 
+  copyMonthCard(index: number) {
+    const thisMonth = this.monthlyStats![index];
+    const prevMonth = this.monthlyStats![index + 1];
+    const [thisName] = thisMonth.displayName.split(' ');
+    const [prevName] = prevMonth.displayName.split(' ');
+
+    let string = `We had ${thisMonth.allPax.size} PAX in ${thisName}, ${
+        thisMonth.qs.size} of which Qd at least one BD, and we had ${
+        thisMonth.returnedPax.size} PAX come back out in ${
+        thisName} that didn't post in ${prevName}!\n\n`;
+
+    const fngs =
+        Array.from(thisMonth.fngs.values()).map(this.utilService.normalizeName);
+    string += `We had ${fngs.length} FNGs in ${
+        thisName}! If you met one of these HIMs, keep encouraging them to come out and push them towards joining slack as we see more stickiness that way!\n${
+        fngs.join('\n')}\n\n`;
+
+    const missing = Array.from(thisMonth.missingPax.values())
+                        .map(this.utilService.normalizeName);
+    string += `We had ${missing.length} PAX drop off in ${
+        thisName} that came out at least once in ${
+        prevName}. If you know one of the HIMs below, maybe give em a shout to encourage them to come join us in the gloom again:\n${
+        missing.join('\n')}`;
+
+    this.utilService.copyToClipboard(
+        string, 'Copied the deails to the clipboard');
+  }
+
   private reset() {
     delete this.aoStats;
     delete this.paxStats;
