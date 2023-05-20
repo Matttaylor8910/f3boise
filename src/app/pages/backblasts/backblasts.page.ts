@@ -1,12 +1,6 @@
 import {Component, OnInit} from '@angular/core';
-import {DETAILS} from 'ao-schedule';
-import * as moment from 'moment';
 import {BackblastService} from 'src/app/services/backblast.service';
 import {Backblast} from 'types';
-
-interface BackblastWithTime extends Backblast {
-  time: string;
-}
 
 const SIZE = 48;
 
@@ -16,9 +10,9 @@ const SIZE = 48;
   styleUrls: ['./backblasts.page.scss'],
 })
 export class BackblastsPage implements OnInit {
-  allBackblasts?: BackblastWithTime[];
-  filteredBackblasts?: BackblastWithTime[];
-  backblasts?: BackblastWithTime[];
+  allBackblasts?: Backblast[];
+  filteredBackblasts?: Backblast[];
+  backblasts?: Backblast[];
 
   loading = true;
   filterText = '';
@@ -34,14 +28,7 @@ export class BackblastsPage implements OnInit {
   }
 
   async ngOnInit() {
-    this.allBackblasts = (await this.backblastService.getAllData()).map(bb => {
-      const backblast = bb as BackblastWithTime;
-      const day = moment(backblast.date).format('dddd');
-
-      backblast.time = (DETAILS as any)[backblast.ao]?.schedule[day] ?? '';
-
-      return backblast;
-    });
+    this.allBackblasts = await this.backblastService.getAllData();
 
     this.applyFilter();
   }
@@ -78,7 +65,7 @@ export class BackblastsPage implements OnInit {
     });
   }
 
-  trackByBackblast(_index: number, backblast: BackblastWithTime) {
+  trackByBackblast(_index: number, backblast: Backblast) {
     return `${backblast.ao}_${backblast.date}`;
   }
 }

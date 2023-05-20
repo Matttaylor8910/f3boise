@@ -50,30 +50,29 @@
         <div class="aos-container">
           <h6 class="font-2 flex-column ao" *ngFor="let ao of grouping.aos">
             <div class="title black-ops">
-              {{ utilService.normalizeName(ao.name) }}
+              {{ ao.name }}
             </div>
             <ion-text color="medium" class="font-1">
-              <p *ngIf="ao.qTomorrow">
-                Led by <span class="highlight">{{ utilService.normalizeName(ao.qTomorrow) }}</span> tomorrow
+              <p *ngIf="ao.is_tomorrow">
+                Led by <span class="highlight">{{ utilService.normalizeName(ao.tomorrows_q) }}</span> tomorrow
               </p>
               <p>
                 <ion-chip color="light">
-                  {{ ao.averagePax }}
+                  {{ ao.avg_pax_count }}
                   <ion-icon name="people"></ion-icon>
                 </ion-chip>
                 <ion-chip color="light">
-                  {{ ao.type }}
+                  {{ ao.workout_type }}
                   <ion-icon [name]="ao.icon"></ion-icon>
                 </ion-chip>
               </p>
               <p>
                 <a
-                  *ngIf="ao.address"
-                  [class.readonly]="!ao.addressLink"
+                  [class.readonly]="!ao.map_location_url"
+                  [href]="ao.map_location_url"
                   target="_blank"
-                  href="https://www.google.com/maps/dir/?api=1&destination={{ao.address}}"
                 >
-                  {{ ao.address }}
+                  {{ ao.address || 'Location changes every week' }}
                 </a>
               </p>
               <p [class.highlight]="day.includes(tomorrow)" *ngFor="let day of ao.schedule">

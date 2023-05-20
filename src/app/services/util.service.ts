@@ -36,7 +36,9 @@ export class UtilService {
     return dateString;
   }
 
-  normalizeName(ao: string): string {
+  normalizeName(ao: string|null): string {
+    if (!ao) return '';
+
     const sections: string[] = [];
     ao.split(/(?=[A-Z])/).forEach(splitUppercase => {
       splitUppercase.split('-').forEach(splitHyphen => {
