@@ -38,7 +38,7 @@
           <ion-card>
             <ion-card-header>
               <ion-card-title>Leaderboard</ion-card-title>
-              <ion-card-subtitle>Posted at the most BDs</ion-card-subtitle>
+              <ion-card-subtitle>Posted at the most {{ bbShort }}s</ion-card-subtitle>
             </ion-card-header>
             <ion-list>
               <app-pax-list-item
@@ -137,7 +137,7 @@
           <ion-card>
             <ion-card-header>
               <ion-card-title>Has not been the Q</ion-card-title>
-              <ion-card-subtitle>Lead 0 beatdowns</ion-card-subtitle>
+              <ion-card-subtitle>Lead 0 {{ bbPlural }}</ion-card-subtitle>
             </ion-card-header>
             <ion-list>
               <app-pax-list-item
@@ -145,7 +145,7 @@
                 [pax]="q"
                 [index]="i"
                 [showMore]="showMoreNoQs"
-                subtext="Last BD was {{ utilService.getRelativeDate(q.lastBdDate) }}"
+                subtext="Last {{ bbShort }} was {{ utilService.getRelativeDate(q.lastBdDate) }}"
                 metric="{{ q.bds }} {{ q.bds === 1 ? bbSingular : bbPlural }}">
               </app-pax-list-item>
 

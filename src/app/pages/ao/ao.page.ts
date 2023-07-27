@@ -95,6 +95,10 @@ export class AoPage {
                                             BBType.BACKBLAST;
   }
 
+  get bbShort(): string {
+    return this.bbType === BBType.BACKBLAST ? 'BD' : 'DD';
+  }
+
   get bbSingular(): string {
     return this.bbType === BBType.BACKBLAST ? 'beatdown' : 'double down';
   }
