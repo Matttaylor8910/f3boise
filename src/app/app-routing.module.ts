@@ -12,6 +12,10 @@ const routes: Routes = [
     loadChildren: () => import('./pages/ao/ao.module').then(m => m.AoPageModule)
   },
   {
+    path: 'dd/:name',
+    loadChildren: () => import('./pages/ao/ao.module').then(m => m.AoPageModule)
+  },
+  {
     path: 'pax/:name',
     loadChildren: () =>
         import('./pages/pax/pax.module').then(m => m.PaxPageModule)

@@ -3,7 +3,7 @@ import {ActivatedRoute} from '@angular/router';
 import * as moment from 'moment';
 import {BackblastService} from 'src/app/services/backblast.service';
 import {UtilService} from 'src/app/services/util.service';
-import {AoPaxStats, Backblast} from 'types';
+import {AoPaxStats, Backblast, BBType} from 'types';
 
 interface AoStats {
   totalUniqueQs: number;      // count of unique qs
@@ -42,6 +42,8 @@ enum TimeRange {
   DAYS_90 = '90 Days',
   DAYS_30 = '30 Days',
 }
+
+const DD_START_DATE = '2023-07-09';
 
 @Component({
   selector: 'app-ao',
@@ -88,6 +90,19 @@ export class AoPage {
         this.selectedRange === TimeRange.ALL_TIME;
   }
 
+  get bbType(): BBType {
+    return location.href.includes('/dd/') ? BBType.DOUBLEDOWN :
+                                            BBType.BACKBLAST;
+  }
+
+  get bbSingular(): string {
+    return this.bbType === BBType.BACKBLAST ? 'beatdown' : 'double down';
+  }
+
+  get bbPlural(): string {
+    return this.bbType === BBType.BACKBLAST ? 'beatdowns' : 'double downs';
+  }
+
   async calculateStats(range: string) {
     // reset the data if the range changed
     if (range !== this.selectedRange) {
@@ -96,13 +111,21 @@ export class AoPage {
     this.selectedRange = range as TimeRange;
 
     const allData = this.name === 'all' ?
-        await this.backblastService.getAllData() :
-        await this.backblastService.getBackblastsForAo(this.name);
+        await this.backblastService.getAllData(this.bbType) :
+        await this.backblastService.getBackblastsForAo(this.name, this.bbType);
 
     // sort the data by date ascending
     const data: Backblast[] = [];
     const now = moment();
     for (const backblast of allData) {
+      // filter out DDs that were before the date
+      // TODO: do not hardcode this date for the first DD
+      if (this.bbType === BBType.DOUBLEDOWN &&
+          backblast.date <= DD_START_DATE) {
+        continue;
+      }
+
+
       // handle filtering down the days
       if (range !== TimeRange.ALL_TIME) {
         const days = now.diff(moment(backblast.date), 'days');

@@ -1,5 +1,6 @@
 export enum BBType {
-  BACKBLAST = 'BackBlast'
+  BACKBLAST = 'BackBlast',
+  DOUBLEDOWN = 'DoubleDown'
 }
 
 export interface Backblast {

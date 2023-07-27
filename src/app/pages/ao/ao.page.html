@@ -23,9 +23,9 @@
             <ion-card-header>
               <ion-card-title>{{ displayName }} stats</ion-card-title>
               <ion-card-subtitle>
-                {{ aoStats.totalBeatdowns }} {{ aoStats.totalBeatdowns === 1 ? 'beatdown' : 'total beatdowns' }},
+                {{ aoStats.totalBeatdowns }} {{ aoStats.totalBeatdowns === 1 ? bbSingular : 'total ' + bbPlural }},
                 {{ aoStats.totalUniquePax }} total unique pax,
-                {{ aoStats.averageAttendance | number:'0.1-1' }} pax post per beatdown
+                {{ aoStats.averageAttendance | number:'0.1-1' }} pax post per {{ bbSingular }}
               </ion-card-subtitle>
             </ion-card-header>
           </ion-card>
@@ -46,8 +46,8 @@
                 [pax]="pax"
                 [index]="i"
                 [showMore]="showMoreLeaderboard"
-                subtext="{{ pax.bdsPerWeek | number:'0.0-2' }} {{ pax.bdsPerWeek === 1 ? 'beatdown' : 'beatdowns' }} per week"
-                metric="{{ pax.bds }} {{ pax.bds === 1 ? 'beatdown' : 'beatdowns' }}">
+                subtext="{{ pax.bdsPerWeek | number:'0.0-2' }} {{ pax.bdsPerWeek === 1 ? bbSingular : bbPlural }} per week"
+                metric="{{ pax.bds }} {{ pax.bds === 1 ? bbSingular : bbPlural }}">
               </app-pax-list-item>
 
               <ion-button
@@ -79,7 +79,7 @@
                 [pax]="q"
                 [index]="i"
                 [showMore]="showMoreTop"
-                subtext="Lead {{ q.qs }} / {{ q.bds }} {{ q.bds === 1 ? 'beatdown' : 'beatdowns' }}"
+                subtext="Lead {{ q.qs }} / {{ q.bds }} {{ q.bds === 1 ? bbSingular : bbPlural }}"
                 metric="{{ q.qRate | percent }}">
               </app-pax-list-item>
 
@@ -112,7 +112,7 @@
                 [pax]="q"
                 [index]="i"
                 [showMore]="showMoreBottom"
-                subtext="Lead {{ q.qs }} / {{ q.bds }} {{ q.bds === 1 ? 'beatdown' : 'beatdowns' }}"
+                subtext="Lead {{ q.qs }} / {{ q.bds }} {{ q.bds === 1 ? bbSingular : bbPlural }}"
                 metric="{{ q.qRate | percent }}">
               </app-pax-list-item>
 
@@ -146,7 +146,7 @@
                 [index]="i"
                 [showMore]="showMoreNoQs"
                 subtext="Last BD was {{ utilService.getRelativeDate(q.lastBdDate) }}"
-                metric="{{ q.bds }} {{ q.bds === 1 ? 'beatdown' : 'beatdowns' }}">
+                metric="{{ q.bds }} {{ q.bds === 1 ? bbSingular : bbPlural }}">
               </app-pax-list-item>
 
               <ion-button
