@@ -52,6 +52,7 @@ export interface Workout {
   // client only field
   schedule: string[];
   icon: string;
+  closed: boolean;
 }
 
 export interface WorkoutDates {

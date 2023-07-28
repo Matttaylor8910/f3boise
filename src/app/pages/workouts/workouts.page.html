@@ -53,8 +53,11 @@
               {{ ao.name }}
             </div>
             <ion-text color="medium" class="font-1">
-              <p *ngIf="ao.is_tomorrow">
+              <p *ngIf="ao.is_tomorrow && !ao.closed">
                 Led by <span class="highlight">{{ utilService.normalizeName(ao.tomorrows_q) }}</span> tomorrow
+              </p>
+              <p class="highlight" *ngIf="ao.closed">
+                Closed tomorrow
               </p>
               <p>
                 <ion-chip color="light">

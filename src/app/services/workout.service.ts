@@ -58,6 +58,12 @@ export class WorkoutService {
     // map the workout type to an ion-icon name
     workout.icon = this.getIcon(workout.workout_type);
 
+    // determine if the workout is closed tomorrow
+    if (workout.tomorrows_q === 'closed') {
+      workout.closed = true;
+      workout.is_tomorrow = false;
+    }
+
     return workout;
   }
 
