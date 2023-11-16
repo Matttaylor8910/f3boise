@@ -86,8 +86,8 @@ export class AoPage {
   }
 
   get showMonthlyStats(): boolean {
-    return this.displayName === 'All' &&
-        this.selectedRange === TimeRange.ALL_TIME;
+    return false;  // this.displayName === 'All' && this.selectedRange ===
+                   // TimeRange.ALL_TIME;
   }
 
   get bbType(): BBType {
