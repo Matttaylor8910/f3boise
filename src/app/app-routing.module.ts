@@ -50,6 +50,11 @@ const routes: Routes = [
     loadChildren: () => import('./pages/backblasts/backblasts.module')
                             .then(m => m.BackblastsPageModule)
   },
+  {
+    path: 'calendar',
+    loadChildren: () => import('./pages/calendar/calendar.module')
+                            .then(m => m.CalendarPageModule)
+  },
 ];
 
 // fallback to home, must be the last route in this list
