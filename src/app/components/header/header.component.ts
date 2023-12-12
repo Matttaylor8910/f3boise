@@ -12,7 +12,6 @@ export class HeaderComponent {
     {label: 'Home', url: '/'},
     {label: 'New to F3 [FNG]', url: '/fng'},
     {label: 'Workouts [AO]', url: '/workouts'},
-    {label: 'GrowRuck [GTE]', url: '/gte'},
   ];
 
   constructor(
