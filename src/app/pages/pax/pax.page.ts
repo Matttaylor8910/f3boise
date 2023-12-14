@@ -3,7 +3,7 @@ import {ActivatedRoute} from '@angular/router';
 import {BackblastService} from 'src/app/services/backblast.service';
 import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
-import {Backblast} from 'types';
+import {Backblast, BBType} from 'types';
 
 interface PaxStats {
   name: string;
@@ -31,7 +31,10 @@ interface AoStats {
   styleUrls: ['./pax.page.scss'],
 })
 export class PaxPage {
-  name: string
+  name: string;
+
+  statsType = BBType.BACKBLAST;
+  ddCount = 0;
 
   stats?: PaxStats;
   favoriteAos?: AoStats[];
@@ -43,15 +46,41 @@ export class PaxPage {
       private readonly backblastService: BackblastService,
   ) {
     this.name = this.route.snapshot.params['name'];
+
+    // load the statsType if it exists
+    const statsType = localStorage.getItem('BBTYPE');
+    if (statsType !== null) this.statsType = statsType as BBType;
+    localStorage.removeItem('BBTYPE');
   }
 
   ionViewDidEnter() {
-    this.calculatePaxStats();
+    this.calculatePaxStats(this.statsType);
+    this.determineShowDDButton();
   }
 
-  async calculatePaxStats() {
+  get toggleButtonText(): string {
+    if (this.statsType === BBType.BACKBLAST && this.ddCount > 0) {
+      return `Show ${this.ddCount} Double Down${this.ddCount === 1 ? '' : 's'}`;
+    }
+
+    if (this.statsType === BBType.DOUBLEDOWN && this.stats) {
+      return `Show beatdowns`;
+    }
+
+    return '';
+  }
+
+  toggleStats() {
+    this.statsType = this.statsType === BBType.BACKBLAST ? BBType.DOUBLEDOWN :
+                                                           BBType.BACKBLAST;
+    this.calculatePaxStats(this.statsType);
+  }
+
+  async calculatePaxStats(type: BBType) {
     // load the data and no-op if they have no data
-    const data = await this.backblastService.getBackblastsForPax(this.name);
+    const data =
+        await this.backblastService.getBackblastsForPax(this.name, type);
+
     this.allBds = data;
     if (data.length === 0) {
       return;
@@ -102,5 +131,12 @@ export class PaxPage {
       firstQAo,
       lastQAo,
     };
+  }
+
+  async determineShowDDButton() {
+    const dds = await this.backblastService.getBackblastsForPax(
+        this.name, BBType.DOUBLEDOWN);
+
+    this.ddCount = dds.length;
   }
 }

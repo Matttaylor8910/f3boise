@@ -1,6 +1,4 @@
 import {Component, Input} from '@angular/core';
-import {Router} from '@angular/router';
-import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
 import {AoPaxStats} from 'types';
 
@@ -21,10 +19,5 @@ export class PaxListItemComponent {
 
   constructor(
       public readonly utilService: UtilService,
-      private readonly router: Router,
   ) {}
-
-  goToPaxPage() {
-    this.router.navigateByUrl(`/pax/${this.pax.name}`);
-  }
 }

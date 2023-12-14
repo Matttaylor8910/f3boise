@@ -5,6 +5,7 @@ import {HttpService} from './http.service';
 import {UtilService} from './util.service';
 
 const BASE_URL = 'https://f3boiseapi-cycjv.ondigitalocean.app';
+const DD_START_DATE = '2023-07-09';
 
 @Injectable({providedIn: 'root'})
 export class BackblastService {
@@ -21,11 +22,19 @@ export class BackblastService {
 
   async loadAllData(type: BBType): Promise<Backblast[]> {
     const url = `${BASE_URL}/${this.getRoute(type)}/all`;
-    this.allBackblasts = await this.http.get(url) as Backblast[];
-    this.allBackblasts.forEach(backblast => {
+    let backblasts = await this.http.get(url) as Backblast[];
+    backblasts.forEach(backblast => {
       backblast.ao = this.utilService.normalizeName(backblast.ao);
     });
-    return this.allBackblasts;
+
+    if (type === BBType.BACKBLAST) {
+      this.allBackblasts = backblasts;
+    } else {
+      backblasts = backblasts.filter(dd => dd.date > DD_START_DATE);
+      this.allDoubleDowns = backblasts;
+    }
+
+    return backblasts;
   }
 
   async getAllData(type = BBType.BACKBLAST): Promise<Backblast[]> {

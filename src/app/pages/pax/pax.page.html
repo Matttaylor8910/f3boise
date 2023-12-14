@@ -32,7 +32,13 @@
       <div class="card-container">
         <ion-card>
           <ion-card-header>
-            <ion-card-title>{{ utilService.normalizeName(name) }}'s stats</ion-card-title>
+            <ion-card-title class="space-between">
+              {{ utilService.normalizeName(name) }}'s stats
+
+              <ion-button fill="clear" (click)="toggleStats()" *ngIf="ddCount > 0">
+                {{ toggleButtonText }}
+              </ion-button>
+            </ion-card-title>
           </ion-card-header>
           <ion-list>
             <ion-item>

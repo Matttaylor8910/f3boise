@@ -1,7 +1,6 @@
 <ion-item
   *ngIf="index < limit || showMore"
   [class.hide-sm]="index >= smallLimit && !showMore"
-  (click)="goToPaxPage()"
 >
   <app-pax-avatar slot="start" [name]="pax.name"></app-pax-avatar>
   <ion-label class="ion-text-wrap">

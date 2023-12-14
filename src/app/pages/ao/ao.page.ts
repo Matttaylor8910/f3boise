@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment';
 import {BackblastService} from 'src/app/services/backblast.service';
 import {UtilService} from 'src/app/services/util.service';
@@ -43,8 +43,6 @@ enum TimeRange {
   DAYS_30 = '30 Days',
 }
 
-const DD_START_DATE = '2023-07-09';
-
 @Component({
   selector: 'app-ao',
   templateUrl: './ao.page.html',
@@ -71,14 +69,18 @@ export class AoPage {
   showMoreTop = false;
   showMoreBottom = false;
   showMoreNoQs = false;
+  bbType: BBType;
 
   constructor(
       public readonly utilService: UtilService,
       private readonly route: ActivatedRoute,
+      private readonly router: Router,
       private readonly backblastService: BackblastService,
   ) {
     this.name = this.route.snapshot.params['name'];
     this.displayName = this.utilService.normalizeName(this.name);
+    this.bbType =
+        location.href.includes('/dd/') ? BBType.DOUBLEDOWN : BBType.BACKBLAST;
   }
 
   ionViewDidEnter() {
@@ -88,11 +90,6 @@ export class AoPage {
   get showMonthlyStats(): boolean {
     return false;  // this.displayName === 'All' && this.selectedRange ===
                    // TimeRange.ALL_TIME;
-  }
-
-  get bbType(): BBType {
-    return location.href.includes('/dd/') ? BBType.DOUBLEDOWN :
-                                            BBType.BACKBLAST;
   }
 
   get bbShort(): string {
@@ -105,6 +102,11 @@ export class AoPage {
 
   get bbPlural(): string {
     return this.bbType === BBType.BACKBLAST ? 'beatdowns' : 'double downs';
+  }
+
+  goToPaxPage(name: string) {
+    localStorage.setItem('BBTYPE', this.bbType);
+    this.router.navigateByUrl(`/pax/${name}`);
   }
 
   async calculateStats(range: string) {
@@ -122,14 +124,6 @@ export class AoPage {
     const data: Backblast[] = [];
     const now = moment();
     for (const backblast of allData) {
-      // filter out DDs that were before the date
-      // TODO: do not hardcode this date for the first DD
-      if (this.bbType === BBType.DOUBLEDOWN &&
-          backblast.date <= DD_START_DATE) {
-        continue;
-      }
-
-
       // handle filtering down the days
       if (range !== TimeRange.ALL_TIME) {
         const days = now.diff(moment(backblast.date), 'days');

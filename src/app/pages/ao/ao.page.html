@@ -47,7 +47,8 @@
                 [index]="i"
                 [showMore]="showMoreLeaderboard"
                 subtext="{{ pax.bdsPerWeek | number:'0.0-2' }} {{ pax.bdsPerWeek === 1 ? bbSingular : bbPlural }} per week"
-                metric="{{ pax.bds }} {{ pax.bds === 1 ? bbSingular : bbPlural }}">
+                metric="{{ pax.bds }} {{ pax.bds === 1 ? bbSingular : bbPlural }}"
+                (click)="goToPaxPage(pax.name)">
               </app-pax-list-item>
 
               <ion-button
@@ -80,7 +81,8 @@
                 [index]="i"
                 [showMore]="showMoreTop"
                 subtext="Lead {{ q.qs }} / {{ q.bds }} {{ q.bds === 1 ? bbSingular : bbPlural }}"
-                metric="{{ q.qRate | percent }}">
+                metric="{{ q.qRate | percent }}"
+                (click)="goToPaxPage(q.name)">
               </app-pax-list-item>
 
               <ion-button
@@ -113,7 +115,8 @@
                 [index]="i"
                 [showMore]="showMoreBottom"
                 subtext="Lead {{ q.qs }} / {{ q.bds }} {{ q.bds === 1 ? bbSingular : bbPlural }}"
-                metric="{{ q.qRate | percent }}">
+                metric="{{ q.qRate | percent }}"
+                (click)="goToPaxPage(q.name)">
               </app-pax-list-item>
 
               <ion-button
@@ -146,7 +149,8 @@
                 [index]="i"
                 [showMore]="showMoreNoQs"
                 subtext="Last {{ bbShort }} was {{ utilService.getRelativeDate(q.lastBdDate) }}"
-                metric="{{ q.bds }} {{ q.bds === 1 ? bbSingular : bbPlural }}">
+                metric="{{ q.bds }} {{ q.bds === 1 ? bbSingular : bbPlural }}"
+                (click)="goToPaxPage(q.name)">
               </app-pax-list-item>
 
               <ion-button
@@ -183,7 +187,7 @@
               <a
                 *ngFor="let name of month.allPax"
                 [title]="utilService.normalizeName(name)"
-                routerLink="/pax/{{name}}"
+                (click)="goToPaxPage(name)"
               >
                 <app-pax-avatar [size]="30" [name]="name"></app-pax-avatar>
               </a>
@@ -193,7 +197,7 @@
               <a
                 *ngFor="let name of month.qs"
                 [title]="utilService.normalizeName(name)"
-                routerLink="/pax/{{name}}"
+                (click)="goToPaxPage(name)"
               >
                 <app-pax-avatar [size]="30" [name]="name"></app-pax-avatar>
               </a>
@@ -203,7 +207,7 @@
               <a
                 *ngFor="let name of month.fngs"
                 [title]="utilService.normalizeName(name)"
-                routerLink="/pax/{{name}}"
+                (click)="goToPaxPage(name)"
               >
                 <app-pax-avatar [size]="30" [name]="name"></app-pax-avatar>
               </a>
@@ -215,7 +219,7 @@
               <a
                 *ngFor="let name of month.returnedPax"
                 [title]="utilService.normalizeName(name)"
-                routerLink="/pax/{{name}}"
+                (click)="goToPaxPage(name)"
               >
                 <app-pax-avatar [size]="30" [name]="name"></app-pax-avatar>
               </a>
@@ -229,7 +233,7 @@
                 <a
                   *ngFor="let name of month.missingPax"
                   [title]="utilService.normalizeName(name)"
-                  routerLink="/pax/{{name}}"
+                  (click)="goToPaxPage(name)"
                 >
                   <app-pax-avatar [size]="30" [name]="name"></app-pax-avatar>
                 </a>
