@@ -63,6 +63,7 @@
                 <h2>Bestie</h2>
               </ion-label>
               <span slot="end">
+                {{ stats.bestieCount }} {{ stats.bestieCount === 1 ? 'BD' : 'BDs' }} with
                 <a routerLink="/pax/{{stats.bestie}}">{{ utilService.normalizeName(stats.bestie) }}</a>
               </span>
             </ion-item>

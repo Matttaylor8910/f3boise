@@ -19,6 +19,7 @@ interface PaxStats {
   firstQAo?: string;
   lastQAo?: string;
   bestie?: string;
+  bestieCount?: number;
 }
 
 interface AoStats {
@@ -125,7 +126,7 @@ export class PaxPage {
     this.favoriteAos =
         Array.from(aoCount.values()).sort((a, b) => b.total - a.total);
 
-    const [[bestie]] =
+    const [[bestie, bestieCount]] =
         Array.from(besties.entries()).sort(([, a], [, b]) => b - a);
 
     this.stats = {
@@ -143,6 +144,7 @@ export class PaxPage {
       firstQAo,
       lastQAo,
       bestie,
+      bestieCount,
     };
   }
 
