@@ -54,8 +54,16 @@
               <span slot="end" *ngIf="stats.qs > 0">
                 {{ stats.qs }} <strong>({{ stats.qRate | percent }})</strong>
               </span>
-              <span  *ngIf="stats.qs === 0">
+              <span *ngIf="stats.qs === 0">
                 Has not been the Q yet
+              </span>
+            </ion-item>
+            <ion-item *ngIf="stats.bestie">
+              <ion-label class="ion-text-wrap">
+                <h2>Bestie</h2>
+              </ion-label>
+              <span slot="end">
+                <a routerLink="/pax/{{stats.bestie}}">{{ utilService.normalizeName(stats.bestie) }}</a>
               </span>
             </ion-item>
             <ion-item>

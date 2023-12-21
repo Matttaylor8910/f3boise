@@ -1,7 +1,6 @@
 import {Component} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {BackblastService} from 'src/app/services/backblast.service';
-import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
 import {Backblast, BBType} from 'types';
 
@@ -19,6 +18,7 @@ interface PaxStats {
   lastQDate?: string;
   firstQAo?: string;
   lastQAo?: string;
+  bestie?: string;
 }
 
 interface AoStats {
@@ -93,10 +93,19 @@ export class PaxPage {
     let firstQAo = undefined;
     let lastQAo = undefined;
 
+    const besties = new Map<string, number>();
+
     for (const post of data) {
       const ao = aoCount.get(post.ao) ?? {name: post.ao, total: 0};
       ao.total++;
       aoCount.set(ao.name, ao);
+
+      post.pax.forEach(pax => {
+        if (this.name.toLowerCase() !== pax.toLowerCase()) {
+          const count = besties.get(pax) ?? 0;
+          besties.set(pax, count + 1);
+        }
+      });
 
       // data is date descending, so set the new first Q each time
       if (post.qs.includes(this.name)) {
@@ -116,6 +125,9 @@ export class PaxPage {
     this.favoriteAos =
         Array.from(aoCount.values()).sort((a, b) => b.total - a.total);
 
+    const [[bestie]] =
+        Array.from(besties.entries()).sort(([, a], [, b]) => b - a);
+
     this.stats = {
       name: this.name,
       posts: data.length,
@@ -130,6 +142,7 @@ export class PaxPage {
       lastQDate: this.utilService.getRelativeDate(lastQDate),
       firstQAo,
       lastQAo,
+      bestie,
     };
   }
 
