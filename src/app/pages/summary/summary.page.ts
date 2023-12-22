@@ -23,6 +23,9 @@ interface MonthlyStats {
 
   // The total number of posts for the month
   totalPosts: number;
+
+  // The total number of posts for the month
+  totalBeatdowns: number;
 }
 
 @Component({
@@ -50,8 +53,9 @@ export class SummaryPage {
       const month = moment(backblast.date).format('MMMM YYYY');
       const monthStats = monthlyStats.get(month) ?? this.newMonthlyStats(month);
 
-      // update the monthly stats as well
+      // update the monthly stats
       monthStats.totalPosts += backblast.pax.length;
+      monthStats.totalBeatdowns++;
 
       for (const name of backblast.pax) {
         // keep track of all PAX and new FNGs
@@ -123,6 +127,7 @@ export class SummaryPage {
       returnedPax: new Set<string>(),
       missingPax: new Set<string>(),
       totalPosts: 0,
+      totalBeatdowns: 0,
     };
   }
 }
