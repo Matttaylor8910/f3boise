@@ -31,7 +31,9 @@ export class AoPage {
   displayName: string;
   limit = LIMIT;
 
-  timeRanges = Object.values(TimeRange)
+  thisMonth = moment().format('MMMM');
+  thisYear = moment().format('YYYY');
+  timeRanges = [...Object.values(TimeRange), this.thisMonth];
   selectedRange = this.timeRanges[0];
 
   aoStats?: AoStats;
@@ -99,8 +101,22 @@ export class AoPage {
       // handle filtering down the days
       if (range !== TimeRange.ALL_TIME) {
         const days = now.diff(moment(backblast.date), 'days');
-        if (range === TimeRange.DAYS_30 && days > 30) continue;
-        if (range === TimeRange.DAYS_90 && days > 90) continue;
+        switch (range) {
+          case TimeRange.DAYS_30:
+            if (days > 30) continue;
+            break;
+          case (TimeRange.DAYS_90):
+            if (days > 90) continue;
+            break;
+          default:
+            // the last case is this month, filter to just this month
+            const thisMoment = moment(backblast.date);
+            const month = thisMoment.format('MMMM');
+            const year = thisMoment.format('YYYY');
+            if (month !== this.thisMonth || year !== this.thisYear) {
+              continue;
+            }
+        }
       }
       data.unshift(backblast);
     }
