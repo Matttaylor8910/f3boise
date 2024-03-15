@@ -171,8 +171,8 @@ export class AoPage {
       if (stats.firstBdDate === stats.lastBdDate) {
         stats.bdsPerWeek = 1;
       } else {
-        const comparisonMoment = moment(stats.firstBdDate);
-        const days = moment(stats.lastBdDate).diff(comparisonMoment, 'days');
+        const startMoment = moment(stats.firstBdDate);
+        const days = moment(stats.lastBdDate).diff(startMoment, 'days') + 1;
         stats.bdsPerWeek = (stats.bds / days) * 7;
       }
     });
