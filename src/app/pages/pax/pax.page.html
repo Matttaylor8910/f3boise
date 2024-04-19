@@ -58,6 +58,14 @@
                 Has not been the Q yet
               </span>
             </ion-item>
+            <ion-item *ngIf="stats.qs > 0">
+              <ion-label class="ion-text-wrap">
+                <h2>Avg Pax as Q</h2>
+              </ion-label>
+              <span slot="end">
+                {{ stats.avgPaxAsQ | number:'0.0-2' }}
+              </span>
+            </ion-item>
             <ion-item *ngIf="stats.bestie">
               <ion-label class="ion-text-wrap">
                 <h2>Bestie</h2>

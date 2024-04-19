@@ -20,6 +20,7 @@ interface PaxStats {
   lastQAo?: string;
   bestie?: string;
   bestieCount?: number;
+  avgPaxAsQ?: number;
 }
 
 interface AoStats {
@@ -89,6 +90,7 @@ export class PaxPage {
 
     const aoCount = new Map<string, AoStats>();
     let qCount = 0;
+    let totalPaxAsQ = 0;
     let firstQDate = undefined;
     let lastQDate = undefined;
     let firstQAo = undefined;
@@ -111,6 +113,7 @@ export class PaxPage {
       // data is date descending, so set the new first Q each time
       if (post.qs.includes(this.name)) {
         qCount++;
+        totalPaxAsQ += post.pax.length - post.qs.length;  // don't include qs
         firstQDate = post.date;
         firstQAo = post.ao;
 
@@ -145,6 +148,7 @@ export class PaxPage {
       lastQAo,
       bestie,
       bestieCount,
+      avgPaxAsQ: qCount === 0 ? 0 : totalPaxAsQ / qCount,
     };
   }
 
