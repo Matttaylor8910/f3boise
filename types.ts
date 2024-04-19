@@ -15,8 +15,11 @@ export interface Backblast {
 export interface Pax {
   id: string;
   name: string;
-  email: string;
-  img_url: string;
+  email?: string;
+  img_url?: string;
+
+  // TODO: this doesn't exist on Stinger's endpoint
+  parent?: string;
 }
 export interface AoPaxStats {
   name: string;
