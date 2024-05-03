@@ -2,7 +2,7 @@
   <!-- mobile display year select -->
   <div class="year-options">
     <ion-item class="select-input">
-      <ion-select [(ngModel)]="year" interface="popover" (ionChange)="setYear(year)">
+      <ion-select [(ngModel)]="year" interface="action-sheet" (ionChange)="setYear(year)">
         <ion-select-option *ngFor="let y of yearOptions" [value]="y.year">
           {{ y.name }}
         </ion-select-option>
