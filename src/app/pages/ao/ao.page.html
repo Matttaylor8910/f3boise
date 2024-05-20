@@ -72,7 +72,7 @@
           <ion-card>
             <ion-card-header>
               <ion-card-title>Top Qs</ion-card-title>
-              <ion-card-subtitle>Highest % of Q</ion-card-subtitle>
+              <ion-card-subtitle>Has Q'd the most</ion-card-subtitle>
             </ion-card-header>
             <ion-list>
               <app-pax-list-item
@@ -80,8 +80,8 @@
                 [pax]="q"
                 [index]="i"
                 [showMore]="showMoreTop"
-                subtext="Lead {{ q.qs }} / {{ q.bds }} {{ q.bds === 1 ? bbSingular : bbPlural }}"
-                metric="{{ q.qRate | percent }}"
+                subtext="Led {{ q.qs }} / {{ q.bds }} ({{ q.qRate | percent }})"
+                metric="{{ q.qs }} {{ q.qs === 1 ? bbSingular : bbPlural }}"
                 (click)="goToPaxPage(q.name)">
               </app-pax-list-item>
 

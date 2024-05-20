@@ -190,7 +190,7 @@ export class AoPage {
     }
 
     // sort and set stats
-    hasQd.sort((a, b) => a.qRate - b.qRate);
+    hasQd.sort((a, b) => a.qs - b.qs);
     this.noQs = noQs.sort((a, b) => b.bds - a.bds);
     this.bottomQs = [...hasQd];
     this.topQs = [...hasQd].reverse();
