@@ -170,6 +170,11 @@ export class YearGridComponent implements OnInit {
     return start <= date && date <= end;
   }
 
+  private randomHexColorCode() {
+    const n = (Math.random() * 0xfffff * 1000000).toString(16);
+    return '#' + n.slice(0, 6);
+  };
+
   private getColor(ao: string): string {
     switch (ao) {
       case 'Backyard':
@@ -205,7 +210,7 @@ export class YearGridComponent implements OnInit {
       case 'War Horse':
         return '#E74C3C';
       default:
-        return '#000';
+        return this.randomHexColorCode();
     }
   }
 }
