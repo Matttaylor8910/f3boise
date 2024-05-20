@@ -178,21 +178,29 @@ export class YearGridComponent implements OnInit {
         return '#16A085';
       case 'Bleach':
         return '#8FFF5A';
+      case 'Camels Back':
+        return '#FFDD33 ';
       case 'Gem':
         return '#3498DB';
+      case 'Goose Dynasty':
+        return '#A8AAAF';
       case 'Iron Mountain':
         return '#002F4D';
       case 'Old Glory':
         return '#9B59B6';
       case 'Rebel':
         return '#E0C248';
+      case 'Reid Merrill':
+        return '#3C6F19 ';
+      case 'Reta Huskey':
+        return '#E75293';
       case 'Rise':
         return '#F39C12';
       case 'Ruckership East':
         return '#E67E22';
       case 'Ruckership West':
         return '#D35400';
-      case 'The Tower':
+      case 'Tower':
         return '#9CD6F1';
       case 'War Horse':
         return '#E74C3C';
