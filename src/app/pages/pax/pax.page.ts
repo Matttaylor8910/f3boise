@@ -41,6 +41,7 @@ export class PaxPage {
   stats?: PaxStats;
   favoriteAos?: AoStats[];
   allBds?: Backblast[];
+  recentBds?: Backblast[];
 
   constructor(
       public readonly utilService: UtilService,
@@ -84,6 +85,7 @@ export class PaxPage {
         await this.backblastService.getBackblastsForPax(this.name, type);
 
     this.allBds = data;
+    this.recentBds = data.slice(0, 10);
     if (data.length === 0) {
       return;
     }
@@ -158,4 +160,9 @@ export class PaxPage {
 
     this.ddCount = dds.length;
   }
+
+  trackByBackblast(_index: number, backblast: Backblast) {
+    return `${backblast.ao}_${backblast.date}`;
+  }
+
 }

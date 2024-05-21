@@ -21,6 +21,19 @@
   }
 }
 
+.backblasts-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 20px;
+  max-width: 1800px;
+  margin: auto;
+
+  app-backblast-card {
+    margin-bottom: 20px
+  }
+}
+
 @media (max-width: 1200px) {
   .stats-container .card-container {
     min-width: 50%;

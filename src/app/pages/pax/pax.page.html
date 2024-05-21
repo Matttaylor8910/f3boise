@@ -131,6 +131,14 @@
       </div>
     </div>
 
+    <h2 class="space-before">Recent Backblasts</h2>
+    <div class="backblasts-container">
+      <app-backblast-card
+        *ngFor="let backblast of recentBds; trackBy: trackByBackblast"
+        [backblast]="backblast"
+      ></app-backblast-card>
+    </div>
+
   </ng-container>
 </ion-content>
 
