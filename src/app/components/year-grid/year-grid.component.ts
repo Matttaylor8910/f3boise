@@ -74,6 +74,8 @@ export class YearGridComponent implements OnInit {
     const bdMap = new Map<string, GridCell>();
     const years = new Set<number>();
     const aos = new Set<string>();
+    const aoColorMap = new Map<string, string>();
+
     if (this.name && this.bds) {
       for (const bd of this.bds) {
         const m = moment(bd.date);
@@ -81,9 +83,17 @@ export class YearGridComponent implements OnInit {
 
         if (this.inRange(m.format(FORMAT), start, end)) {
           const date = m.format(FORMAT);
+
+          // load the color for this ao, and save it to to a map for future bds at the same ao
+          let color = aoColorMap.get(bd.ao);
+          if (color === undefined) {
+            color = this.getColor(bd.ao);
+            aoColorMap.set(bd.ao, color);
+          }
+
           bdMap.set(date, {
             q: bd.qs.includes(this.name),
-            color: this.getColor(bd.ao),
+            color,
             date,
             bd,
           });
@@ -182,6 +192,8 @@ export class YearGridComponent implements OnInit {
         return '#014235';
       case 'Bellagio':
         return '#16A085';
+      case 'Black Diamond':
+        return '#000000';
       case 'Bleach':
         return '#8FFF5A';
       case 'Camels Back':
