@@ -17,7 +17,11 @@ export class PaxChipComponent implements OnInit {
 
   ngOnInit() {}
 
-  goToPax() {
+  goToPax($event: Event) {
+    // go to the pax page, prevent other routing nonsense
+    $event.preventDefault();
+    $event.stopPropagation();
+
     this.router.navigateByUrl(`/pax/${this.name}`);
   }
 }
