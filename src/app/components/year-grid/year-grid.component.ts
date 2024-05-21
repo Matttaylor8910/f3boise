@@ -193,6 +193,7 @@ export class YearGridComponent implements OnInit {
       case 'Bellagio':
         return '#16A085';
       case 'Black Diamond':
+      case 'Black Ops':
         return '#000000';
       case 'Bleach':
         return '#8FFF5A';
