@@ -6,3 +6,9 @@ ion-card {
     margin-top: -4px;
   }
 }
+
+@media (max-width: 800px) {
+  ion-card {
+    width: 100%;
+  }
+}
