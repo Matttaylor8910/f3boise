@@ -1,0 +1,33 @@
+<ion-card
+  routerLink="/backblasts/{{backblast.id}}"
+>
+  <ion-card-header>
+    <ion-card-title class="space-between">
+      <div>{{ backblast.date }} @ {{ backblast.ao }}</div>
+      <ion-chip>
+        {{ backblast.pax.length }}
+        <ion-icon name="people"></ion-icon>
+      </ion-chip>
+    </ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <div>
+      <strong>
+        {{ backblast.qs.length === 1 ? 'Q:' : 'Qs:' }}
+      </strong>
+      <app-pax-chip
+        *ngFor="let q of backblast.qs"
+        [name]="q">
+      </app-pax-chip>
+    </div>
+    <div>
+      <strong>
+        PAX:
+      </strong>
+      <app-pax-chip
+        *ngFor="let name of backblast.pax"
+        [name]="name">
+      </app-pax-chip>
+    </div>
+  </ion-card-content>
+</ion-card>

@@ -12,11 +12,14 @@ import {PaxListItemComponent} from './pax-list-item/pax-list-item.component';
 import {PAXNameComponent} from './pax-name/pax-name.component';
 import {TimeFilterComponent} from './time-filter/time-filter.component';
 import {YearGridComponent} from './year-grid/year-grid.component';
+import { BackblastCardComponent } from './backblast-card/backblast-card.component';
+import { RouterModule } from '@angular/router';
 
 @NgModule({
   declarations: [
     ActionsPopoverComponent,
     ActionsPopoverPageComponent,
+    BackblastCardComponent,
     HeaderComponent,
     PaxAvatarComponent,
     PaxChipComponent,
@@ -29,10 +32,12 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     IonicModule,
     CommonModule,
     FormsModule,
+    RouterModule,
   ],
   exports: [
     ActionsPopoverComponent,
     ActionsPopoverPageComponent,
+    BackblastCardComponent,
     HeaderComponent,
     PaxAvatarComponent,
     PaxChipComponent,
