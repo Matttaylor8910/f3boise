@@ -21,7 +21,10 @@
 
 <ion-content>
   <div class="backblasts-container">
-    <ion-card *ngFor="let backblast of backblasts; trackBy: trackByBackblast">
+    <ion-card
+      *ngFor="let backblast of backblasts; trackBy: trackByBackblast"
+      routerLink="/backblasts/{{backblast.id}}"
+    >
       <ion-card-header>
         <ion-card-title class="space-between">
           <div>{{ backblast.date }} @ {{ backblast.ao }}</div>

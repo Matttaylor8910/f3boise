@@ -51,6 +51,11 @@ const routes: Routes = [
                             .then(m => m.BackblastsPageModule)
   },
   {
+    path: 'backblasts/:id',
+    loadChildren: () => import('./pages/backblast-detail/backblast-detail.module')
+                            .then( m => m.BackblastDetailPageModule)
+  },
+  {
     path: 'calendar',
     loadChildren: () => import('./pages/calendar/calendar.module')
                             .then(m => m.CalendarPageModule)
