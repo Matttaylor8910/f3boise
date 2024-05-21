@@ -120,7 +120,7 @@ export class YearGridComponent implements OnInit {
 
     // set the legend based on the AOs shown
     this.legend = Array.from(aos.values()).sort().map(name => {
-      return {name, color: this.getColor(name)};
+      return {name, color: aoColorMap.get(name)!};
     });
 
     // set the grid and years options
