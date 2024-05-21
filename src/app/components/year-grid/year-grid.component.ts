@@ -1,6 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
+import { Router } from '@angular/router';
 import * as moment from 'moment';
-import {UtilService} from 'src/app/services/util.service';
+import { UtilService } from 'src/app/services/util.service';
 import {Backblast} from 'types';
 
 interface GridCell {
@@ -43,6 +44,7 @@ export class YearGridComponent implements OnInit {
   legend: LegendItem[] = [];
 
   constructor(
+      private readonly router: Router,
       private readonly utilService: UtilService,
   ) {}
 
@@ -150,14 +152,13 @@ export class YearGridComponent implements OnInit {
 
   cellClicked(cell?: GridCell) {
     if (cell) {
-      const name = this.utilService.normalizeName(this.name!);
-      let message = `${name} did not post anywhere on ${cell?.date}`;
       if (cell?.bd) {
-        message = name;
-        message += cell.q ? ' Q\'d ' : ' posted ';
-        message += `at ${cell.bd.ao} on ${cell.date}`;
+        this.router.navigateByUrl(`backblasts/${cell.bd.id}`);
+      } else {
+        const name = this.utilService.normalizeName(this.name!);
+        const message = `${name} did not post anywhere on ${cell?.date}`;
+        this.utilService.alert(message, '', 'Got It');
       }
-      this.utilService.alert(message, '', 'Got It');
     }
   }
 
