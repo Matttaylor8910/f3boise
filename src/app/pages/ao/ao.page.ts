@@ -96,10 +96,10 @@ export class AoPage {
         await this.backblastService.getAllData(this.bbType) :
         await this.backblastService.getBackblastsForAo(this.name, this.bbType);
 
-        this.recentBds = allData.slice(0, 10);
-        if (allData.length === 0) {
-          return;
-        }
+    this.recentBds = allData.slice(0, 20);
+    if (allData.length === 0) {
+      return;
+    }
 
     // sort the data by date ascending
     const data: Backblast[] = [];
@@ -253,5 +253,4 @@ export class AoPage {
   trackByBackblast(_index: number, backblast: Backblast) {
     return `${backblast.ao}_${backblast.date}`;
   }
-
 }
