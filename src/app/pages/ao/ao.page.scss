@@ -18,19 +18,6 @@
     }
   }
 
-.backblasts-container {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  padding: 20px;
-  max-width: 1800px;
-  margin: auto;
-
-  app-backblast-card {
-    margin-bottom: 20px
-  }
-}
-
   .month-card {
     width: 100%;
 
@@ -61,5 +48,18 @@
     .show-more.has-4 {
       display: block;
     }
+  }
+}
+
+.backblasts-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 20px;
+  max-width: 1800px;
+  margin: auto;
+
+  app-backblast-card {
+    margin-bottom: 20px
   }
 }
