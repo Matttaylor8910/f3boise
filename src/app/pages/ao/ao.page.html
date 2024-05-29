@@ -178,7 +178,10 @@
           [backblast]="backblast"
         ></app-backblast-card>
       </div>
-      <div class="center-container">
+      <div
+        *ngIf="all"
+        class="center-container"
+      >
         <ion-button
           fill="clear"
           routerLink="/backblasts"

@@ -68,6 +68,10 @@ export class AoPage {
     this.calculateStats(this.selectedRange);
   }
 
+  get all(): boolean {
+    return this.name === 'all';
+  }
+
   get bbShort(): string {
     return this.bbType === BBType.BACKBLAST ? 'BD' : 'DD';
   }
@@ -92,7 +96,7 @@ export class AoPage {
     }
     this.selectedRange = range as TimeRange;
 
-    const allData = this.name === 'all' ?
+    const allData = this.all ?
         await this.backblastService.getAllData(this.bbType) :
         await this.backblastService.getBackblastsForAo(this.name, this.bbType);
 
