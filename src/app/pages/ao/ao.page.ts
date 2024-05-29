@@ -50,6 +50,8 @@ export class AoPage {
   showMoreNoQs = false;
   bbType: BBType;
 
+  recentBds?: Backblast[];
+
   constructor(
       public readonly utilService: UtilService,
       private readonly route: ActivatedRoute,
@@ -93,6 +95,11 @@ export class AoPage {
     const allData = this.name === 'all' ?
         await this.backblastService.getAllData(this.bbType) :
         await this.backblastService.getBackblastsForAo(this.name, this.bbType);
+
+        this.recentBds = allData.slice(0, 10);
+        if (allData.length === 0) {
+          return;
+        }
 
     // sort the data by date ascending
     const data: Backblast[] = [];
@@ -242,4 +249,9 @@ export class AoPage {
       lastBdDate: backblast.date,
     };
   }
+
+  trackByBackblast(_index: number, backblast: Backblast) {
+    return `${backblast.ao}_${backblast.date}`;
+  }
+
 }
