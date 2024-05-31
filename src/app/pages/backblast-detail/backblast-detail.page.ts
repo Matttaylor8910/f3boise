@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { BackblastService } from 'src/app/services/backblast.service';
-import { Backblast } from 'types';
-import { marked } from 'marked';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { UtilService } from 'src/app/services/util.service';
+import {Component, OnInit} from '@angular/core';
+import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
+import {ActivatedRoute} from '@angular/router';
+import {marked} from 'marked';
+import {BackblastService} from 'src/app/services/backblast.service';
+import {UtilService} from 'src/app/services/util.service';
+import {Backblast} from 'types';
 
 @Component({
   selector: 'app-backblast-detail',
@@ -16,10 +16,10 @@ export class BackblastDetailPage implements OnInit {
   backblast?: Backblast;
 
   constructor(
-    public readonly utilService: UtilService,
-    private readonly route: ActivatedRoute,
-    private readonly backblastService: BackblastService,
-    private readonly domSanitizer: DomSanitizer,
+      public readonly utilService: UtilService,
+      private readonly route: ActivatedRoute,
+      private readonly backblastService: BackblastService,
+      private readonly domSanitizer: DomSanitizer,
   ) {
     this.id = this.route.snapshot.params['id'];
   }
@@ -31,7 +31,7 @@ export class BackblastDetailPage implements OnInit {
   get moleskine(): SafeHtml {
     if (!this.backblast?.moleskine) return '';
 
-    const parsed = marked(this.backblast.moleskine) as string;
+    const parsed = marked(this.backblast.moleskine, {breaks: true}) as string;
     return this.domSanitizer.bypassSecurityTrustHtml(parsed);
   }
 
