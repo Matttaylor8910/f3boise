@@ -20,6 +20,8 @@
 </ion-header>
 
 <ion-content>
+  <app-year-grid [bds]="filteredBackblasts"></app-year-grid>
+
   <div class="backblasts-container">
     <app-backblast-card
       *ngFor="let backblast of backblasts; trackBy: trackByBackblast"

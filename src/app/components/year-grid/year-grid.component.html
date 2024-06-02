@@ -33,7 +33,7 @@
   </div>
   <!-- the grid -->
   <div class="grid-container">
-    <div class="row" *ngFor="let row of grid">
+    <div class="row" *ngFor="let row of grid; let r = index">
       <div class="cell-container" *ngFor="let cell of row; let i = index">
         <div
           class="cell"
@@ -41,23 +41,27 @@
           [style.background]="cell?.color"
           (click)="cellClicked(cell)"
         >
-          <span *ngIf="cell?.q">
-            Q
+          <span *ngIf="cell?.text as text">
+            {{ text }}
           </span>
         </div>
         <div
           class="popover"
+          [class.top]="r === 0"
           [class.first]="i === 0"
           [class.last]="i === row.length - 1"
-          *ngIf="cell?.bd"
+          *ngIf="cell?.popover"
         >
-          {{ cell?.date }}
+          {{ cell?.popover }}
         </div>
       </div>
     </div>
   </div>
   <!-- the legend -->
-  <div class="legend-container">
+  <div
+    class="legend-container"
+    [class.hide-legend]="!name"
+  >
     <div class="legend-item" *ngFor="let item of legend">
       <div class="color-box" [style.background]="item.color"></div>
       {{ item.name }}
