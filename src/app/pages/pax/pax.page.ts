@@ -20,6 +20,7 @@ interface PaxStats {
   lastQAo?: string;
   bestie?: string;
   bestieCount?: number;
+  paxTally?: number;
   avgPaxAsQ?: number;
 }
 
@@ -131,8 +132,9 @@ export class PaxPage {
     this.favoriteAos =
         Array.from(aoCount.values()).sort((a, b) => b.total - a.total);
 
-    const [[bestie, bestieCount]] =
-        Array.from(besties.entries()).sort(([, a], [, b]) => b - a);
+    // sort besties and pick your top one
+    const sorted = Array.from(besties.entries()).sort(([, a], [, b]) => b - a);
+    const [[bestie, bestieCount]] = sorted;
 
     this.stats = {
       name: this.name,
@@ -150,6 +152,7 @@ export class PaxPage {
       lastQAo,
       bestie,
       bestieCount,
+      paxTally: sorted.length,
       avgPaxAsQ: qCount === 0 ? 0 : totalPaxAsQ / qCount,
     };
   }
@@ -164,5 +167,4 @@ export class PaxPage {
   trackByBackblast(_index: number, backblast: Backblast) {
     return `${backblast.ao}_${backblast.date}`;
   }
-
 }

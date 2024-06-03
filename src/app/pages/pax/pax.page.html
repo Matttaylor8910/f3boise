@@ -75,6 +75,14 @@
                 <a routerLink="/pax/{{stats.bestie}}">{{ utilService.normalizeName(stats.bestie) }}</a>
               </span>
             </ion-item>
+            <ion-item *ngIf="stats.paxTally">
+              <ion-label class="ion-text-wrap">
+                <h2>PAX Tally</h2>
+              </ion-label>
+              <span slot="end">
+                {{ stats.paxTally }} unique PAX
+              </span>
+            </ion-item>
             <ion-item>
               <ion-label class="ion-text-wrap">
                 <h2>Last Seen</h2>
