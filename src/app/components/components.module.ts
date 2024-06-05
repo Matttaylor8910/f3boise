@@ -1,10 +1,12 @@
 import {CommonModule, CurrencyPipe} from '@angular/common';
 import {NgModule} from '@angular/core';
 import {FormsModule} from '@angular/forms';
+import {RouterModule} from '@angular/router';
 import {IonicModule} from '@ionic/angular';
 
 import {ActionsPopoverPageComponent} from './actions-popover/actions-popover-page.component';
 import {ActionsPopoverComponent} from './actions-popover/actions-popover.component';
+import {BackblastCardComponent} from './backblast-card/backblast-card.component';
 import {HeaderComponent} from './header/header.component';
 import {PaxAvatarComponent} from './pax-avatar/pax-avatar.component';
 import {PaxChipComponent} from './pax-chip/pax-chip.component';
@@ -17,6 +19,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
   declarations: [
     ActionsPopoverComponent,
     ActionsPopoverPageComponent,
+    BackblastCardComponent,
     HeaderComponent,
     PaxAvatarComponent,
     PaxChipComponent,
@@ -29,10 +32,12 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     IonicModule,
     CommonModule,
     FormsModule,
+    RouterModule,
   ],
   exports: [
     ActionsPopoverComponent,
     ActionsPopoverPageComponent,
+    BackblastCardComponent,
     HeaderComponent,
     PaxAvatarComponent,
     PaxChipComponent,

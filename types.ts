@@ -5,11 +5,15 @@ export enum BBType {
 
 export interface Backblast {
   ao: string;
-  qs: string[];
-  pax: string[];
-  date: string;
   bb_type: BBType;
+  date: string;
   event_times: null;
+  fngs: string[];
+  id: string;
+  moleskine: null|string;
+  pax: string[];
+  qs: string[];
+  title: null|string;
 }
 
 export interface Pax {

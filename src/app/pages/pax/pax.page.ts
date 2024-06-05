@@ -20,6 +20,8 @@ interface PaxStats {
   lastQAo?: string;
   bestie?: string;
   bestieCount?: number;
+  paxTally?: number;
+  avgPaxAsQ?: number;
 }
 
 interface AoStats {
@@ -40,6 +42,7 @@ export class PaxPage {
   stats?: PaxStats;
   favoriteAos?: AoStats[];
   allBds?: Backblast[];
+  recentBds?: Backblast[];
 
   constructor(
       public readonly utilService: UtilService,
@@ -83,12 +86,14 @@ export class PaxPage {
         await this.backblastService.getBackblastsForPax(this.name, type);
 
     this.allBds = data;
+    this.recentBds = data.slice(0, 10);
     if (data.length === 0) {
       return;
     }
 
     const aoCount = new Map<string, AoStats>();
     let qCount = 0;
+    let totalPaxAsQ = 0;
     let firstQDate = undefined;
     let lastQDate = undefined;
     let firstQAo = undefined;
@@ -111,6 +116,7 @@ export class PaxPage {
       // data is date descending, so set the new first Q each time
       if (post.qs.includes(this.name)) {
         qCount++;
+        totalPaxAsQ += post.pax.length - post.qs.length;  // don't include qs
         firstQDate = post.date;
         firstQAo = post.ao;
 
@@ -126,8 +132,9 @@ export class PaxPage {
     this.favoriteAos =
         Array.from(aoCount.values()).sort((a, b) => b.total - a.total);
 
-    const [[bestie, bestieCount]] =
-        Array.from(besties.entries()).sort(([, a], [, b]) => b - a);
+    // sort besties and pick your top one
+    const sorted = Array.from(besties.entries()).sort(([, a], [, b]) => b - a);
+    const [[bestie, bestieCount]] = sorted;
 
     this.stats = {
       name: this.name,
@@ -145,6 +152,8 @@ export class PaxPage {
       lastQAo,
       bestie,
       bestieCount,
+      paxTally: sorted.length,
+      avgPaxAsQ: qCount === 0 ? 0 : totalPaxAsQ / qCount,
     };
   }
 
@@ -153,5 +162,9 @@ export class PaxPage {
         this.name, BBType.DOUBLEDOWN);
 
     this.ddCount = dds.length;
+  }
+
+  trackByBackblast(_index: number, backblast: Backblast) {
+    return `${backblast.ao}_${backblast.date}`;
   }
 }

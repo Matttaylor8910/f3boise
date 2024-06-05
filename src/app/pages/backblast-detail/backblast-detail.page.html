@@ -1,0 +1,57 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ backblast?.title }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div
+    *ngIf="backblast; else loading"
+    class="backblast-container"
+  >
+    <h2>Date</h2>
+    <h4>{{ backblast.date }}</h4>
+    <h2>AO</h2>
+    <h4>
+      <a routerLink="/ao/{{ ao }}">
+        {{ ao }}
+      </a>
+    </h4>
+    <h2>Q</h2>
+    <div>
+      <app-pax-chip
+        *ngFor="let q of backblast.qs"
+        [name]="q">
+      </app-pax-chip>
+    </div>
+    <h2>PAX ({{ backblast.pax.length }})</h2>
+    <div>
+      <app-pax-chip
+        *ngFor="let name of backblast.pax"
+        [name]="name">
+      </app-pax-chip>
+    </div>
+    <ng-container *ngIf="backblast.fngs.length > 0">
+      <h2>FNGs ({{ backblast.fngs.length }})</h2>
+      <div>
+        <app-pax-chip
+          *ngFor="let fng of backblast.fngs"
+          [name]="fng">
+        </app-pax-chip>
+      </div>
+    </ng-container>
+
+    <div [innerHTML]="moleskine"></div>
+  </div>
+</ion-content>
+
+<!-- loading spinner -->
+<ng-template #loading>
+  <div class="spinner-container">
+    <h2>Loading...</h2>
+    <ion-spinner></ion-spinner>
+  </div>
+</ng-template>

@@ -14,12 +14,8 @@ ion-searchbar {
   max-width: 1800px;
   margin: auto;
 
-  ion-card {
-    width: 500px;
-
-    ion-card-subtitle {
-      margin-top: -4px;
-    }
+  app-backblast-card {
+    margin-bottom: 20px
   }
 }
 

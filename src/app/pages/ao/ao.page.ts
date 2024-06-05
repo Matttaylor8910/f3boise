@@ -50,6 +50,8 @@ export class AoPage {
   showMoreNoQs = false;
   bbType: BBType;
 
+  recentBds?: Backblast[];
+
   constructor(
       public readonly utilService: UtilService,
       private readonly route: ActivatedRoute,
@@ -64,6 +66,10 @@ export class AoPage {
 
   ionViewDidEnter() {
     this.calculateStats(this.selectedRange);
+  }
+
+  get all(): boolean {
+    return this.name === 'all';
   }
 
   get bbShort(): string {
@@ -90,9 +96,14 @@ export class AoPage {
     }
     this.selectedRange = range as TimeRange;
 
-    const allData = this.name === 'all' ?
+    const allData = this.all ?
         await this.backblastService.getAllData(this.bbType) :
         await this.backblastService.getBackblastsForAo(this.name, this.bbType);
+
+    this.recentBds = allData.slice(0, 20);
+    if (allData.length === 0) {
+      return;
+    }
 
     // sort the data by date ascending
     const data: Backblast[] = [];
@@ -190,7 +201,7 @@ export class AoPage {
     }
 
     // sort and set stats
-    hasQd.sort((a, b) => a.qRate - b.qRate);
+    hasQd.sort((a, b) => a.qs - b.qs);
     this.noQs = noQs.sort((a, b) => b.bds - a.bds);
     this.bottomQs = [...hasQd];
     this.topQs = [...hasQd].reverse();
@@ -241,5 +252,9 @@ export class AoPage {
       firstBdDate: backblast.date,
       lastBdDate: backblast.date,
     };
+  }
+
+  trackByBackblast(_index: number, backblast: Backblast) {
+    return `${backblast.ao}_${backblast.date}`;
   }
 }

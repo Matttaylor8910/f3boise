@@ -64,6 +64,12 @@ export class BackblastService {
     });
   }
 
+  async getBackblast(id: string): Promise<Backblast> {
+    const url = `${BASE_URL}/back_blasts/single/${id}`;
+    const backblast = await this.http.get(url) as Backblast;
+    return backblast;
+  }
+
   private getRoute(type: BBType) {
     switch (type) {
       case BBType.DOUBLEDOWN:

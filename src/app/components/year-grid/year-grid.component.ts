@@ -1,13 +1,17 @@
 import {Component, Input, OnInit} from '@angular/core';
+import {Router} from '@angular/router';
+import {count} from 'console';
 import * as moment from 'moment';
 import {UtilService} from 'src/app/services/util.service';
 import {Backblast} from 'types';
 
 interface GridCell {
   date: string;
+  popover?: string;
   color?: string;
-  q?: boolean;
-  bd?: Backblast;
+  text?: string;
+  backblastId?: string;
+  count?: number;
 }
 
 interface LegendItem {
@@ -26,14 +30,24 @@ const MAX_YEAR = moment().year();
 const THIS_PAST_YEAR = -1;
 const FORMAT = 'YYYY/MM/DD';
 
+// shades of green from lightest to darkest
+const HEATMAP_COLORS = [
+  '#e0f8e0', '#c8f0c8', '#b0e8b0', '#98e098', '#80d880', '#68d068', '#50c850',
+  '#38c038', '#20b820', '#08b008'
+];
+
 @Component({
   selector: 'app-year-grid',
   templateUrl: './year-grid.component.html',
   styleUrls: ['./year-grid.component.scss'],
 })
 export class YearGridComponent implements OnInit {
-  @Input() name?: string;
+  // the list of bds
   @Input() bds?: Backblast[];
+
+  // when a name is passed in, we filter the BDs and only show this in the
+  // context of a PAX
+  @Input() name?: string;
 
   year: number = THIS_PAST_YEAR;
   years: number[] = [];
@@ -43,6 +57,7 @@ export class YearGridComponent implements OnInit {
   legend: LegendItem[] = [];
 
   constructor(
+      private readonly router: Router,
       private readonly utilService: UtilService,
   ) {}
 
@@ -72,20 +87,59 @@ export class YearGridComponent implements OnInit {
     const bdMap = new Map<string, GridCell>();
     const years = new Set<number>();
     const aos = new Set<string>();
-    if (this.name && this.bds) {
-      for (const bd of this.bds) {
+    const aoColorMap = new Map<string, string>();
+    let largestPaxCount = 0;
+
+    if (this.bds) {
+      for (let bd of this.bds) {
+        bd = {...bd};  // clone it
         const m = moment(bd.date);
         years.add(m.year());
 
         if (this.inRange(m.format(FORMAT), start, end)) {
           const date = m.format(FORMAT);
-          bdMap.set(date, {
-            q: bd.qs.includes(this.name),
-            color: this.getColor(bd.ao),
-            date,
-            bd,
-          });
-          aos.add(bd.ao);
+
+          // PAX grid
+          if (this.name) {
+            // show when they Q and show the date as a popover
+            const text = bd.qs.includes(this.name) ? 'Q' : '';
+            const popover = date;
+
+            // load the color for this ao, and save it to to a map for future
+            // bds at the same ao
+            let color = aoColorMap.get(bd.ao);
+            if (color === undefined) {
+              color = this.getColor(bd);
+              aoColorMap.set(bd.ao, color);
+            }
+
+            bdMap.set(date, {text, popover, color, date, backblastId: bd.id});
+            aos.add(bd.ao);
+          }
+
+          // non-PAX grid
+          else {
+            // if there's already other BDs for this day, aggregate the total
+            // count of PAX for the day
+            let count = bd.pax.length;
+            const existing = bdMap.get(date);
+            if (existing?.count) {
+              count += existing.count;
+            }
+
+            // show the # of PAX in the popover and leave the text blank
+            const text = '';
+            const popover = `${count} PAX`;
+
+            // keep track of the largest count
+            if (count > largestPaxCount) {
+              largestPaxCount = count;
+            }
+
+            // set the color to a blank string, we will set colors based on
+            // total counts at the end
+            bdMap.set(date, {text, popover, color: '', date, count});
+          }
         }
       }
     }
@@ -102,13 +156,20 @@ export class YearGridComponent implements OnInit {
     while (current.format(FORMAT) <= end) {
       const date = current.format(FORMAT);
       const cell = bdMap.get(date);
+
+      // calculate non-PAX grid colors for cells with
+      if (cell && !this.name) {
+        const paxCount = cell.count || 0;
+        cell.color = this.getHeatmapColor(paxCount, largestPaxCount);
+      }
+
       grid[current.day()].push(cell ?? {date});
       current = current.add(1, 'day');
     }
 
     // set the legend based on the AOs shown
     this.legend = Array.from(aos.values()).sort().map(name => {
-      return {name, color: this.getColor(name)};
+      return {name, color: aoColorMap.get(name)!};
     });
 
     // set the grid and years options
@@ -150,14 +211,18 @@ export class YearGridComponent implements OnInit {
 
   cellClicked(cell?: GridCell) {
     if (cell) {
-      const name = this.utilService.normalizeName(this.name!);
-      let message = `${name} did not post anywhere on ${cell?.date}`;
-      if (cell?.bd) {
-        message = name;
-        message += cell.q ? ' Q\'d ' : ' posted ';
-        message += `at ${cell.bd.ao} on ${cell.date}`;
+      if (cell?.backblastId) {
+        this.router.navigateByUrl(`backblasts/${cell.backblastId}`);
+      } else if (this.name) {
+        const name = this.utilService.normalizeName(this.name!);
+        const message = `${name} did not post anywhere on ${cell?.date}`;
+        this.utilService.alert(message, '', 'Got It');
+      } else {
+        const {count = 0} = cell;
+        const message = count > 0 ? `${count} PAX posted on ${cell?.date}` :
+                                    `No PAX posted on ${cell?.date}`;
+        this.utilService.alert(message, '', 'Got It');
       }
-      this.utilService.alert(message, '', 'Got It');
     }
   }
 
@@ -170,34 +235,57 @@ export class YearGridComponent implements OnInit {
     return start <= date && date <= end;
   }
 
-  private getColor(ao: string): string {
-    switch (ao) {
+  private randomHexColorCode() {
+    const n = (Math.random() * 0xfffff * 1000000).toString(16);
+    return '#' + n.slice(0, 6);
+  };
+
+  private getColor(bd: Backblast): string {
+    switch (bd.ao) {
       case 'Backyard':
         return '#014235';
       case 'Bellagio':
         return '#16A085';
+      case 'Black Diamond':
+      case 'Black Ops':
+        return '#000000';
       case 'Bleach':
         return '#8FFF5A';
+      case 'Camels Back':
+        return '#FFDD33 ';
       case 'Gem':
         return '#3498DB';
+      case 'Goose Dynasty':
+        return '#A8AAAF';
       case 'Iron Mountain':
         return '#002F4D';
       case 'Old Glory':
         return '#9B59B6';
       case 'Rebel':
         return '#E0C248';
+      case 'Reid Merrill':
+        return '#3C6F19 ';
+      case 'Reta Huskey':
+        return '#E75293';
       case 'Rise':
         return '#F39C12';
       case 'Ruckership East':
         return '#E67E22';
       case 'Ruckership West':
         return '#D35400';
-      case 'The Tower':
+      case 'Tower':
         return '#9CD6F1';
       case 'War Horse':
         return '#E74C3C';
       default:
-        return '#000';
+        return this.randomHexColorCode();
     }
+  }
+
+  private getHeatmapColor(count: number, max: number): string {
+    // Calculate the index of the color based on the count, returning a lighter
+    // color the closer the count is to 0, darker the closer it is to "max"
+    const index = Math.floor((count / max) * (HEATMAP_COLORS.length - 1));
+    return HEATMAP_COLORS[index];
   }
 }
