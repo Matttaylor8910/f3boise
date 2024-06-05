@@ -3,7 +3,14 @@ import {Pax} from 'types';
 
 import {HttpService} from './http.service';
 
-const URL = 'https://f3boiseapi-cycjv.ondigitalocean.app/pax/all';
+const URL = 'https://f3boiseapi-cycjv.ondigitalocean.app/pax/';
+
+interface SetParentBody {
+  slack_id: string;
+  invited_by: {
+    pax: string,
+  };
+}
 
 @Injectable({providedIn: 'root'})
 export class PaxService {
@@ -20,7 +27,7 @@ export class PaxService {
   }
 
   async loadAllData(): Promise<Pax[]> {
-    this.allData = await this.http.get(URL) as Pax[];
+    this.allData = await this.http.get(URL + 'all') as Pax[];
     this.allData.forEach(pax => {
       this.paxMap.set(pax.name.toLowerCase(), pax);
     });
@@ -39,5 +46,19 @@ export class PaxService {
   async getPax(name: string): Promise<Pax|undefined> {
     if (!this.allData) await this.getAllData();
     return this.paxMap.get(name.toLowerCase());
+  }
+
+  async setParent(name: string, invitedBy: string) {
+    const {id} = await this.getPax(name) as Pax;
+    const body: SetParentBody = {
+      slack_id: id,
+      invited_by: {
+        pax: invitedBy.toLowerCase(),
+      },
+    };
+
+    // TODO: see if this works
+    const response = await this.http.post(URL + 'set-parent', body);
+    console.log(response);
   }
 }

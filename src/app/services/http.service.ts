@@ -20,4 +20,17 @@ export class HttpService {
       });
     });
   }
+
+  /**
+   * Hit the given data and return the response
+   * @param url
+   * @returns
+   */
+  post(url: string, data: any): Promise<any> {
+    return new Promise(resolve => {
+      this.http.post(url, data).pipe(take(1)).subscribe(data => {
+        resolve(data);
+      });
+    });
+  }
 }

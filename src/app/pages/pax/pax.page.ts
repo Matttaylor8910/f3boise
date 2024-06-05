@@ -1,6 +1,8 @@
 import {Component} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
+import {ActionSheetController} from '@ionic/angular';
 import {BackblastService} from 'src/app/services/backblast.service';
+import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
 import {Backblast, BBType} from 'types';
 
@@ -11,8 +13,9 @@ interface PaxStats {
   qs: number;
   qRate: number;
   firstBdDate: string;
-  lastBdDate: string;
+  firstBdPax: string[];
   firstAo: string;
+  lastBdDate: string;
   lastAo: string;
   firstQDate?: string;
   lastQDate?: string;
@@ -48,6 +51,8 @@ export class PaxPage {
       public readonly utilService: UtilService,
       private readonly route: ActivatedRoute,
       private readonly backblastService: BackblastService,
+      private readonly paxService: PaxService,
+      private readonly actionSheetController: ActionSheetController,
   ) {
     this.name = this.route.snapshot.params['name'];
 
@@ -136,15 +141,19 @@ export class PaxPage {
     const sorted = Array.from(besties.entries()).sort(([, a], [, b]) => b - a);
     const [[bestie, bestieCount]] = sorted;
 
+    // grab some fields off the first beatdown
+    const {date, ao, pax} = data[data.length - 1];
+
     this.stats = {
       name: this.name,
       posts: data.length,
       favoriteAo: this.favoriteAos[0].name,
       qs: qCount,
       qRate: qCount / data.length,
-      firstBdDate: this.utilService.getRelativeDate(data[data.length - 1].date),
+      firstBdDate: this.utilService.getRelativeDate(date),
+      firstAo: ao,
+      firstBdPax: pax,
       lastBdDate: this.utilService.getRelativeDate(data[0].date),
-      firstAo: data[data.length - 1].ao,
       lastAo: data[0].ao,
       firstQDate: this.utilService.getRelativeDate(firstQDate),
       lastQDate: this.utilService.getRelativeDate(lastQDate),
@@ -162,6 +171,35 @@ export class PaxPage {
         this.name, BBType.DOUBLEDOWN);
 
     this.ddCount = dds.length;
+  }
+
+  async getParentSuggestions() {
+    // create a button for each pax name
+    const pax = this.stats?.firstBdPax ?? [];
+    const nameButtons = pax.filter(name => name !== this.name).map(name => {
+      const normalized = this.utilService.normalizeName(name);
+      return {text: normalized, role: name};
+    });
+
+    // display the sheet
+    const sheet = await this.actionSheetController.create({
+      header:
+          `Who was ${this.utilService.normalizeName(this.name)} invited by?`,
+      subHeader: 'Under construction - will work soon \\',
+      buttons: [...nameButtons, {text: 'Cancel', role: 'CANCEL'}],
+    });
+    await sheet.present();
+
+    // if a PAX name was selected, set the parent
+    sheet.onWillDismiss().then(({role}) => {
+      if (role && role !== 'CANCEL') {
+        this.setParent(role);
+      }
+    });
+  }
+
+  async setParent(parent: string) {
+    await this.paxService.setParent(this.name, parent);
   }
 
   trackByBackblast(_index: number, backblast: Backblast) {

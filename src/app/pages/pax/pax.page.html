@@ -85,9 +85,16 @@
             </ion-item>
             <ion-item>
               <ion-label class="ion-text-wrap">
-                <h2>Last Seen</h2>
+                <h2>Invited By</h2>
               </ion-label>
-              <span slot="end">{{ stats.lastBdDate }} at <a routerLink="/ao/{{stats.lastAo}}">{{ stats.lastAo }}</a></span>
+              <span slot="end">
+                <ion-button
+                  color="primary"
+                  (click)="getParentSuggestions()"
+                >
+                  Set Parent
+                </ion-button>
+              </span>
             </ion-item>
             <ion-item>
               <ion-label class="ion-text-wrap">
@@ -111,6 +118,12 @@
                 <span slot="end">
                   <span slot="end">{{ stats.lastQDate }} at <a routerLink="/ao/{{stats.lastQAo}}">{{ stats.lastQAo }}</a></span>
                 </span>
+              </ion-item>
+              <ion-item>
+                <ion-label class="ion-text-wrap">
+                  <h2>Last Seen</h2>
+                </ion-label>
+                <span slot="end">{{ stats.lastBdDate }} at <a routerLink="/ao/{{stats.lastAo}}">{{ stats.lastAo }}</a></span>
               </ion-item>
             </ng-container>
           </ion-list>
