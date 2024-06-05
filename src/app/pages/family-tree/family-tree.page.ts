@@ -28,14 +28,15 @@ export class FamilyTreePage implements OnInit {
 
     // loop through everyone, adding them to their parent's pax set
     for (const man of pax) {
-      if (man.parent) {
+      if (man.invited_by) {
         // re-using down the existing parent, or generating a new one, if this
         // is the first child
-        const parent = parentMap.get(man.parent) ?? this.getNewNode(man.parent);
+        const parent =
+            parentMap.get(man.invited_by) ?? this.getNewNode(man.invited_by);
 
         // add this pax to the parent's set and save it
         parent.pax.add(man.name);
-        parentMap.set(man.parent, parent);
+        parentMap.set(man.invited_by, parent);
       } else {
         // this pax doesn't have a parent
         unknown.add(man.name);
