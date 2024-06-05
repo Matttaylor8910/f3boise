@@ -19,8 +19,9 @@ export interface Backblast {
 export interface Pax {
   id: string;
   name: string;
-  email: string;
-  img_url: string;
+  invited_by: string|null;
+  email?: string;
+  img_url?: string;
 }
 export interface AoPaxStats {
   name: string;
