@@ -1,6 +1,8 @@
 import {Component} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
+import {ActionSheetButton, ActionSheetController} from '@ionic/angular';
 import {BackblastService} from 'src/app/services/backblast.service';
+import {PaxOrigin, PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
 import {Backblast, BBType} from 'types';
 
@@ -11,13 +13,16 @@ interface PaxStats {
   qs: number;
   qRate: number;
   firstBdDate: string;
-  lastBdDate: string;
+  firstBdPax: string[];
   firstAo: string;
+  lastBdDate: string;
   lastAo: string;
   firstQDate?: string;
   lastQDate?: string;
   firstQAo?: string;
   lastQAo?: string;
+  parent?: string|null;
+  parentIsPax?: boolean;
   bestie?: string;
   bestieCount?: number;
   paxTally?: number;
@@ -48,6 +53,8 @@ export class PaxPage {
       public readonly utilService: UtilService,
       private readonly route: ActivatedRoute,
       private readonly backblastService: BackblastService,
+      private readonly paxService: PaxService,
+      private readonly actionSheetController: ActionSheetController,
   ) {
     this.name = this.route.snapshot.params['name'];
 
@@ -84,6 +91,12 @@ export class PaxPage {
     // load the data and no-op if they have no data
     const data =
         await this.backblastService.getBackblastsForPax(this.name, type);
+
+    // get the name of the PAX who invited them out, see if this a pax name
+    const parent = (await this.paxService.getPax(this.name))?.invited_by;
+    const parentIsPax = parent ?
+        !Object.values(PaxOrigin).map(String).includes(parent?.pax) :
+        false;
 
     this.allBds = data;
     this.recentBds = data.slice(0, 10);
@@ -136,20 +149,26 @@ export class PaxPage {
     const sorted = Array.from(besties.entries()).sort(([, a], [, b]) => b - a);
     const [[bestie, bestieCount]] = sorted;
 
+    // grab some fields off the first beatdown
+    const {date, ao, pax} = data[data.length - 1];
+
     this.stats = {
       name: this.name,
       posts: data.length,
       favoriteAo: this.favoriteAos[0].name,
       qs: qCount,
       qRate: qCount / data.length,
-      firstBdDate: this.utilService.getRelativeDate(data[data.length - 1].date),
+      firstBdDate: this.utilService.getRelativeDate(date),
+      firstAo: ao,
+      firstBdPax: pax,
       lastBdDate: this.utilService.getRelativeDate(data[0].date),
-      firstAo: data[data.length - 1].ao,
       lastAo: data[0].ao,
       firstQDate: this.utilService.getRelativeDate(firstQDate),
       lastQDate: this.utilService.getRelativeDate(lastQDate),
       firstQAo,
       lastQAo,
+      parent: parent?.pax,
+      parentIsPax,
       bestie,
       bestieCount,
       paxTally: sorted.length,
@@ -162,6 +181,59 @@ export class PaxPage {
         this.name, BBType.DOUBLEDOWN);
 
     this.ddCount = dds.length;
+  }
+
+  async getParentSuggestions() {
+    // create a button for each pax name
+    const pax = this.stats?.firstBdPax ?? [];
+    const nameButtons =
+        pax.filter(name => name !== this.name).sort().map(name => {
+          const normalized = this.utilService.normalizeName(name);
+          return {text: normalized, role: name, icon: 'person-sharp'};
+        });
+
+    // build up the buttons
+    const buttons: ActionSheetButton[] = [
+      ...nameButtons,
+      {text: PaxOrigin.AT_BD, role: PaxOrigin.AT_BD, icon: 'barbell-sharp'},
+      {text: PaxOrigin.DR_EH, role: PaxOrigin.DR_EH, icon: 'people-sharp'},
+      {text: PaxOrigin.MOVED, role: PaxOrigin.MOVED, icon: 'home-sharp'},
+      {text: PaxOrigin.ONLINE, role: PaxOrigin.ONLINE, icon: 'qr-code-sharp'},
+    ];
+
+    // if there's a parent set, allow you to clear it
+    if (this.stats?.parent) {
+      buttons.push({text: 'Remove', role: 'RESET', icon: 'trash-sharp'});
+    }
+
+    // cancel should always be the last option
+    buttons.push({text: 'Cancel', role: 'CANCEL', icon: 'close-sharp'});
+
+    // display the sheet
+    const header =
+        `Who was ${this.utilService.normalizeName(this.name)} invited by?`;
+    const sheet = await this.actionSheetController.create({header, buttons});
+    await sheet.present();
+
+    // if a PAX name was selected, set the parent
+    sheet.onWillDismiss().then(({role}) => {
+      if (role === 'RESET') {
+        this.paxService.clear(this.name);
+      }
+      // pax name
+      else if (role && pax.includes(role)) {
+        this.setParent(role);
+      }
+      // other parent option
+      else if (role && Object.values(PaxOrigin).map(String).includes(role)) {
+        this.setParent(role);
+      }
+    });
+  }
+
+  setParent(parent: string) {
+    this.stats!.parent = parent;
+    this.paxService.setParent(this.name, parent);
   }
 
   trackByBackblast(_index: number, backblast: Backblast) {

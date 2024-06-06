@@ -3,7 +3,21 @@ import {Pax} from 'types';
 
 import {HttpService} from './http.service';
 
-const URL = 'https://f3boiseapi-cycjv.ondigitalocean.app/pax/all';
+const URL = 'https://f3boiseapi-cycjv.ondigitalocean.app/pax/';
+
+interface SetParentBody {
+  slack_id: string;
+  invited_by: null|string|{
+    pax: string | null,
+  };
+}
+
+export enum PaxOrigin {
+  AT_BD = 'EH\'ed at/during BD',
+  DR_EH = 'EH\'ed from DR PAX',
+  MOVED = 'Moved from DR',
+  ONLINE = 'Found F3 online',
+}
 
 @Injectable({providedIn: 'root'})
 export class PaxService {
@@ -20,7 +34,7 @@ export class PaxService {
   }
 
   async loadAllData(): Promise<Pax[]> {
-    this.allData = await this.http.get(URL) as Pax[];
+    this.allData = await this.http.get(URL + 'all') as Pax[];
     this.allData.forEach(pax => {
       this.paxMap.set(pax.name.toLowerCase(), pax);
     });
@@ -39,5 +53,27 @@ export class PaxService {
   async getPax(name: string): Promise<Pax|undefined> {
     if (!this.allData) await this.getAllData();
     return this.paxMap.get(name.toLowerCase());
+  }
+
+  async setParent(name: string, invitedBy: string) {
+    const {id} = await this.getPax(name) as Pax;
+    const body: SetParentBody = {
+      slack_id: id,
+      invited_by: {
+        pax: invitedBy,
+      },
+    };
+    return this.http.post(URL + 'set-parent', body);
+  }
+
+  async clear(name: string) {
+    // TODO: ensure we use whatever clearing mechanism @Stinger sets up
+    const {id} = await this.getPax(name) as Pax;
+    const body: SetParentBody = {
+      slack_id: id,
+      invited_by: null,
+    };
+
+    return await this.http.post(URL + 'set-parent', body);
   }
 }
