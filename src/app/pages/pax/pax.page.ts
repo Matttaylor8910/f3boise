@@ -237,8 +237,9 @@ export class PaxPage {
   async getMoreSuggestions() {
     const seenPax = new Set<string>();
     const buttons: ActionSheetButton[] = [];
+    const allBds = await this.backblastService.getAllData();
 
-    for (const bd of this.allBds ?? []) {
+    for (const bd of allBds) {
       for (const name of bd.pax) {
         if (!seenPax.has(name)) {
           const normalized = this.utilService.normalizeName(name);

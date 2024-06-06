@@ -2,6 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {Node} from 'ngx-org-chart/lib/node';
 import {PaxOrigin, PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
+import {Pax} from 'types';
 
 @Component({
   selector: 'app-family-tree',
@@ -9,9 +10,14 @@ import {UtilService} from 'src/app/services/util.service';
   styleUrls: ['./family-tree.page.scss'],
 })
 export class FamilyTreePage implements OnInit {
+  mode: 'tree'|'list' = 'tree';
   direction: 'horizontal'|'vertical' = 'horizontal';
+
   nodes: Node[] = [];
   nodeMap = new Map<string, Node>();
+
+  parentless: Pax[] = [];
+  allPax: Pax[] = [];
 
   constructor(
       private readonly paxService: PaxService,
@@ -28,8 +34,8 @@ export class FamilyTreePage implements OnInit {
     ];
     nodes.forEach(node => this.nodeMap.set(node.name.toLowerCase(), node));
 
-    const allPax = await this.paxService.getAllData();
-    for (const pax of allPax) {
+    this.allPax = await this.paxService.getAllData();
+    for (const pax of this.allPax) {
       if (pax.invited_by) {
         // get the node for this pax, or make a new one
         // reset the name to be from the response
@@ -49,6 +55,8 @@ export class FamilyTreePage implements OnInit {
         // persist each node to the nodeMap
         this.nodeMap.set(key, node);
         this.nodeMap.set(parentKey, node.parent);
+      } else {
+        this.parentless.push(pax);
       }
     }
 
@@ -65,6 +73,10 @@ export class FamilyTreePage implements OnInit {
 
   test($event: any) {
     console.log($event);
+  }
+
+  toggleMode() {
+    this.mode = this.mode === 'tree' ? 'list' : 'tree';
   }
 
   toggleDirection() {
