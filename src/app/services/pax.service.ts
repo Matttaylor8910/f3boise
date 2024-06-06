@@ -7,9 +7,16 @@ const URL = 'https://f3boiseapi-cycjv.ondigitalocean.app/pax/';
 
 interface SetParentBody {
   slack_id: string;
-  invited_by: {
-    pax: string,
+  invited_by: null|string|{
+    pax: string | null,
   };
+}
+
+export enum PaxOrigin {
+  AT_BD = 'EH\'ed at/during BD',
+  DR_EH = 'EH\'ed from DR PAX',
+  MOVED = 'Moved from DR',
+  ONLINE = 'Found F3 online',
 }
 
 @Injectable({providedIn: 'root'})
@@ -53,12 +60,20 @@ export class PaxService {
     const body: SetParentBody = {
       slack_id: id,
       invited_by: {
-        pax: invitedBy.toLowerCase(),
+        pax: invitedBy,
       },
     };
+    return this.http.post(URL + 'set-parent', body);
+  }
 
-    // TODO: see if this works
-    const response = await this.http.post(URL + 'set-parent', body);
-    console.log(response);
+  async clear(name: string) {
+    // TODO: ensure we use whatever clearing mechanism @Stinger sets up
+    const {id} = await this.getPax(name) as Pax;
+    const body: SetParentBody = {
+      slack_id: id,
+      invited_by: null,
+    };
+
+    return await this.http.post(URL + 'set-parent', body);
   }
 }

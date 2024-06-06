@@ -34,6 +34,11 @@
   }
 }
 
+.centered {
+  display: flex;
+  align-items: center;
+}
+
 @media (max-width: 1200px) {
   .stats-container .card-container {
     min-width: 50%;

@@ -1,8 +1,8 @@
 import {Component} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
-import {ActionSheetController} from '@ionic/angular';
+import {ActionSheetButton, ActionSheetController} from '@ionic/angular';
 import {BackblastService} from 'src/app/services/backblast.service';
-import {PaxService} from 'src/app/services/pax.service';
+import {PaxOrigin, PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
 import {Backblast, BBType} from 'types';
 
@@ -21,6 +21,8 @@ interface PaxStats {
   lastQDate?: string;
   firstQAo?: string;
   lastQAo?: string;
+  parent?: string|null;
+  parentIsPax?: boolean;
   bestie?: string;
   bestieCount?: number;
   paxTally?: number;
@@ -89,6 +91,12 @@ export class PaxPage {
     // load the data and no-op if they have no data
     const data =
         await this.backblastService.getBackblastsForPax(this.name, type);
+
+    // get the name of the PAX who invited them out, see if this a pax name
+    const parent = (await this.paxService.getPax(this.name))?.invited_by;
+    const parentIsPax = parent ?
+        !Object.values(PaxOrigin).map(String).includes(parent?.pax) :
+        false;
 
     this.allBds = data;
     this.recentBds = data.slice(0, 10);
@@ -159,6 +167,8 @@ export class PaxPage {
       lastQDate: this.utilService.getRelativeDate(lastQDate),
       firstQAo,
       lastQAo,
+      parent: parent?.pax,
+      parentIsPax,
       bestie,
       bestieCount,
       paxTally: sorted.length,
@@ -176,30 +186,54 @@ export class PaxPage {
   async getParentSuggestions() {
     // create a button for each pax name
     const pax = this.stats?.firstBdPax ?? [];
-    const nameButtons = pax.filter(name => name !== this.name).map(name => {
-      const normalized = this.utilService.normalizeName(name);
-      return {text: normalized, role: name};
-    });
+    const nameButtons =
+        pax.filter(name => name !== this.name).sort().map(name => {
+          const normalized = this.utilService.normalizeName(name);
+          return {text: normalized, role: name, icon: 'person-sharp'};
+        });
+
+    // build up the buttons
+    const buttons: ActionSheetButton[] = [
+      ...nameButtons,
+      {text: PaxOrigin.AT_BD, role: PaxOrigin.AT_BD, icon: 'barbell-sharp'},
+      {text: PaxOrigin.DR_EH, role: PaxOrigin.DR_EH, icon: 'people-sharp'},
+      {text: PaxOrigin.MOVED, role: PaxOrigin.MOVED, icon: 'home-sharp'},
+      {text: PaxOrigin.ONLINE, role: PaxOrigin.ONLINE, icon: 'qr-code-sharp'},
+    ];
+
+    // if there's a parent set, allow you to clear it
+    if (this.stats?.parent) {
+      buttons.push({text: 'Remove', role: 'RESET', icon: 'trash-sharp'});
+    }
+
+    // cancel should always be the last option
+    buttons.push({text: 'Cancel', role: 'CANCEL', icon: 'close-sharp'});
 
     // display the sheet
-    const sheet = await this.actionSheetController.create({
-      header:
-          `Who was ${this.utilService.normalizeName(this.name)} invited by?`,
-      subHeader: 'Under construction - will work soon \\',
-      buttons: [...nameButtons, {text: 'Cancel', role: 'CANCEL'}],
-    });
+    const header =
+        `Who was ${this.utilService.normalizeName(this.name)} invited by?`;
+    const sheet = await this.actionSheetController.create({header, buttons});
     await sheet.present();
 
     // if a PAX name was selected, set the parent
     sheet.onWillDismiss().then(({role}) => {
-      if (role && role !== 'CANCEL') {
+      if (role === 'RESET') {
+        this.paxService.clear(this.name);
+      }
+      // pax name
+      else if (role && pax.includes(role)) {
+        this.setParent(role);
+      }
+      // other parent option
+      else if (role && Object.values(PaxOrigin).map(String).includes(role)) {
         this.setParent(role);
       }
     });
   }
 
-  async setParent(parent: string) {
-    await this.paxService.setParent(this.name, parent);
+  setParent(parent: string) {
+    this.stats!.parent = parent;
+    this.paxService.setParent(this.name, parent);
   }
 
   trackByBackblast(_index: number, backblast: Backblast) {

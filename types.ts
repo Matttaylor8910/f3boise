@@ -19,7 +19,7 @@ export interface Backblast {
 export interface Pax {
   id: string;
   name: string;
-  invited_by: string|null;
+  invited_by: null|{pax: string};
   email?: string;
   img_url?: string;
 }
