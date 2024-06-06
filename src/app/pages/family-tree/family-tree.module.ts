@@ -1,20 +1,21 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {CommonModule} from '@angular/common';
+import {NgModule} from '@angular/core';
+import {FormsModule} from '@angular/forms';
+import {IonicModule} from '@ionic/angular';
+import {NgxOrgChartModule} from 'ngx-org-chart';
 
-import { IonicModule } from '@ionic/angular';
-
-import { FamilyTreePageRoutingModule } from './family-tree-routing.module';
-
-import { FamilyTreePage } from './family-tree.page';
+import {FamilyTreePageRoutingModule} from './family-tree-routing.module';
+import {FamilyTreePage} from './family-tree.page';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    FamilyTreePageRoutingModule
+    FamilyTreePageRoutingModule,
+    NgxOrgChartModule,
   ],
   declarations: [FamilyTreePage]
 })
-export class FamilyTreePageModule {}
+export class FamilyTreePageModule {
+}

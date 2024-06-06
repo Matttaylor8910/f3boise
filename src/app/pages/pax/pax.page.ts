@@ -199,6 +199,7 @@ export class PaxPage {
       {text: PaxOrigin.DR_EH, role: PaxOrigin.DR_EH, icon: 'people-sharp'},
       {text: PaxOrigin.MOVED, role: PaxOrigin.MOVED, icon: 'home-sharp'},
       {text: PaxOrigin.ONLINE, role: PaxOrigin.ONLINE, icon: 'qr-code-sharp'},
+      {text: 'Other PAX', role: 'OTHER', icon: 'person-sharp'},
     ];
 
     // if there's a parent set, allow you to clear it
@@ -219,6 +220,8 @@ export class PaxPage {
     sheet.onWillDismiss().then(({role}) => {
       if (role === 'RESET') {
         this.paxService.clear(this.name);
+      } else if (role === 'OTHER') {
+        this.getMoreSuggestions();
       }
       // pax name
       else if (role && pax.includes(role)) {
@@ -227,6 +230,39 @@ export class PaxPage {
       // other parent option
       else if (role && Object.values(PaxOrigin).map(String).includes(role)) {
         this.setParent(role);
+      }
+    });
+  }
+
+  async getMoreSuggestions() {
+    const seenPax = new Set<string>();
+    const buttons: ActionSheetButton[] = [];
+
+    for (const bd of this.allBds ?? []) {
+      for (const name of bd.pax) {
+        if (!seenPax.has(name)) {
+          const normalized = this.utilService.normalizeName(name);
+          buttons.push({text: normalized, role: name, icon: 'person-sharp'});
+          seenPax.add(name);
+        }
+      }
+    }
+
+    buttons.sort((a, b) => a.role!.localeCompare(b.role!));
+
+    // cancel should always be the last option
+    buttons.push({text: 'Cancel', role: 'CANCEL', icon: 'close-sharp'});
+
+    // display the sheet
+    const header =
+        `Who was ${this.utilService.normalizeName(this.name)} invited by?`;
+    const sheet = await this.actionSheetController.create({header, buttons});
+    await sheet.present();
+
+    // if a PAX name was selected, set the parent
+    sheet.onWillDismiss().then(({role}) => {
+      if (role !== 'CANCEL' && buttons.find(button => button.role === role)) {
+        this.setParent(role!);
       }
     });
   }

@@ -1,11 +1,7 @@
 import {Component, OnInit} from '@angular/core';
-import {PaxService} from 'src/app/services/pax.service';
-
-interface FamilyTreeNode {
-  name: string;
-  pax: Set<string>;
-  children: FamilyTreeNode[];
-}
+import {Node} from 'ngx-org-chart/lib/node';
+import {PaxOrigin, PaxService} from 'src/app/services/pax.service';
+import {UtilService} from 'src/app/services/util.service';
 
 @Component({
   selector: 'app-family-tree',
@@ -13,78 +9,70 @@ interface FamilyTreeNode {
   styleUrls: ['./family-tree.page.scss'],
 })
 export class FamilyTreePage implements OnInit {
+  direction: 'horizontal'|'vertical' = 'horizontal';
+  nodes: Node[] = [];
+  nodeMap = new Map<string, Node>();
+
   constructor(
       private readonly paxService: PaxService,
+      private readonly utilService: UtilService,
   ) {}
 
   async ngOnInit() {
-    // TODO - this pax data needs to be all 600+ pax, not the 300+ that are in
-    // slack (which is what the pax service is)
-    const pax = await this.paxService.getAllData();
-    console.log(pax);
+    // have the origins as the root nodes
+    const nodes: Node[] = [
+      this.getNode(PaxOrigin.AT_BD),
+      this.getNode(PaxOrigin.DR_EH),
+      this.getNode(PaxOrigin.MOVED),
+      this.getNode(PaxOrigin.ONLINE),
+    ];
+    nodes.forEach(node => this.nodeMap.set(node.name.toLowerCase(), node));
 
-    const parentMap = new Map<string, FamilyTreeNode>();
-    const unknown = new Set<string>();
+    const allPax = await this.paxService.getAllData();
+    for (const pax of allPax) {
+      if (pax.invited_by) {
+        // get the node for this pax, or make a new one
+        // reset the name to be from the response
+        const key = pax.name.toLowerCase();
+        const node = this.nodeMap.get(key) ?? this.getNode(pax.name);
+        node.name = pax.name;
+        node.image = pax.img_url ?? '';
 
-    // loop through everyone, adding them to their parent's pax set
-    for (const man of pax) {
-      if (man.invited_by) {
-        // re-using down the existing parent, or generating a new one, if this
-        // is the first child
-        const parent =
-            parentMap.get(man.invited_by) ?? this.getNewNode(man.invited_by);
+        // create a node for the parent if there isn't one already
+        const parentKey = pax.invited_by.pax.toLowerCase();
+        const parent = await this.paxService.getPax(parentKey);
+        node.parent = this.nodeMap.get(parentKey) ??
+            this.getNode(this.utilService.normalizeName(parentKey));
+        node.parent.image = parent?.img_url ?? '';
+        node.parent.childs.push(node);
 
-        // add this pax to the parent's set and save it
-        parent.pax.add(man.name);
-        parentMap.set(man.invited_by, parent);
-      } else {
-        // this pax doesn't have a parent
-        unknown.add(man.name);
+        // persist each node to the nodeMap
+        this.nodeMap.set(key, node);
+        this.nodeMap.set(parentKey, node.parent);
       }
     }
 
-    console.log(parentMap.size, unknown.size);
-
-    // now - iterate through the flat list of parents to create the tree
-    for (const entry of parentMap.entries()) {
-      const [_name, parent] = entry;
-
-      // for every man who is a child of this parent, see if they have their own
-      // tree node, and if not just create a new empty one
-      for (const man of parent.pax) {
-        const child = parentMap.get(man) ?? this.getNewNode(man);
-        parent.children.push(child);
-
-        // remove this node from the flat list as we go, so that we're only
-        // left with parents in that list that don't have their own parent
-        // (hence they were DR or an OG or we just don't know who brought them
-        // out)
-        parentMap.delete(man);
+    // Add any parent-less nodes that aren't already in the tree
+    const paxOrigins = Object.values(PaxOrigin).map(String);
+    for (const node of this.nodeMap.values()) {
+      if (!node.parent && !paxOrigins.includes(node.name)) {
+        nodes.push(node);
       }
     }
 
-    // at this point, the only PAX left in that parentMap flat list are those
-    // without the parent field set
-    // add the remaining parentless parents to the root node
-    const root = this.getNewNode('F3');
-    for (const noParentMan of parentMap.entries()) {
-      const [name, node] = noParentMan;
-      root.children.push(node);
-      root.pax.add(name);
-    }
-
-    console.log(root);
+    this.nodes = nodes;
   }
 
-  getNewNode(name: string): FamilyTreeNode {
-    return {
-      name,
-      children: [],
-      pax: new Set<string>(),
-    };
+  test($event: any) {
+    console.log($event);
   }
 
-  handleFamilyTreeNodeClick() {
-    // TODO
+  toggleDirection() {
+    this.direction =
+        this.direction === 'horizontal' ? 'vertical' : 'horizontal';
+  }
+
+  getNode(name: string): Node {
+    return {name, title: '', cssClass: '', image: '', childs: []};
   }
 }
