@@ -88,7 +88,8 @@
                 <h2>Invited By</h2>
               </ion-label>
               <span class="centered" slot="end">
-                <ion-button
+                <!-- TODO: see if @Stinger will add the ability to change for authed users -->
+                <!-- <ion-button
                   *ngIf="stats.parent"
                   color="dark"
                   fill="clear"
@@ -98,7 +99,7 @@
                     slot="icon-only"
                     name="reload-sharp"
                   ></ion-icon>
-                </ion-button>
+                </ion-button> -->
                 <a
                   *ngIf="stats.parent && stats.parentIsPax"
                   routerLink="/pax/{{stats.parent}}"
