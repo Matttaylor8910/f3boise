@@ -109,13 +109,16 @@
                 <span *ngIf="stats.parent && !stats.parentIsPax">
                   {{ stats.parent }}
                 </span>
-                <ion-button
+                <!-- <ion-button
                   *ngIf="!stats.parent"
                   color="primary"
                   (click)="getParentSuggestions()"
                 >
                   Set Parent
-                </ion-button>
+                </ion-button> -->
+                <span *ngIf="!stats.parent">
+                  No parent set
+                </span>
               </span>
             </ion-item>
             <ion-item>
