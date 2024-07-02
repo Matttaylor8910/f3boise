@@ -64,8 +64,4 @@ export class BackblastsPage implements OnInit {
       this.loading = false;
     });
   }
-
-  trackByBackblast(_index: number, backblast: Backblast) {
-    return `${backblast.ao}_${backblast.date}`;
-  }
 }

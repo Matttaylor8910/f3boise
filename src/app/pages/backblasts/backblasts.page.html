@@ -22,12 +22,9 @@
 <ion-content>
   <app-year-grid [bds]="filteredBackblasts"></app-year-grid>
 
-  <div class="backblasts-container">
-    <app-backblast-card
-      *ngFor="let backblast of backblasts; trackBy: trackByBackblast"
-      [backblast]="backblast"
-    ></app-backblast-card>
-  </div>
+  <app-backblast-grid [backblasts]="backblasts">
+      </app-backblast-grid>
+
   <div class="center-container">
     <h2 *ngIf="filteredBackblasts?.length && loading">
       Loading...

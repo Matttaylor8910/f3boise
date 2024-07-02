@@ -272,8 +272,4 @@ export class PaxPage {
     this.stats!.parent = parent;
     this.paxService.setParent(this.name, parent);
   }
-
-  trackByBackblast(_index: number, backblast: Backblast) {
-    return `${backblast.ao}_${backblast.date}`;
-  }
 }

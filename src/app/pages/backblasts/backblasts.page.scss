@@ -6,23 +6,7 @@ ion-searchbar {
   }
 }
 
-.backblasts-container {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  padding: 20px;
-  max-width: 1800px;
-  margin: auto;
-
-  app-backblast-card {
-    margin-bottom: 20px
-  }
-}
-
 @media (max-width: 800px) {
-  .backblasts-container ion-card {
-    width: 100%;
-  }
   .desktop-toolbar {
     display: none;
   }

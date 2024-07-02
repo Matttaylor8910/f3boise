@@ -1,27 +1,11 @@
-.title-container {
+.backblasts-container {
   display: flex;
-  align-items: center;
-
-  ion-avatar {
-    display: inline-block;
-    height: 40px;
-    width: 40px;
-    margin-right: 12px;
-  }
-}
-
-.stats-container {
-  display: flex;
+  justify-content: center;
   flex-wrap: wrap;
-  max-width: 1500px;
+  padding: 20px;
+  max-width: 1800px;
   margin: auto;
 
-  .card-container {
-    flex: 1;
-  }
-}
-
-.backblasts-container {
   app-backblast-card {
     margin-bottom: 20px
   }
@@ -39,6 +23,7 @@
 }
 
 @media (max-width: 930px) {
+  .backblasts-container,
   .stats-container .card-container {
     min-width: 100%;
   }
