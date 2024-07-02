@@ -14,12 +14,14 @@ import {PaxListItemComponent} from './pax-list-item/pax-list-item.component';
 import {PAXNameComponent} from './pax-name/pax-name.component';
 import {TimeFilterComponent} from './time-filter/time-filter.component';
 import {YearGridComponent} from './year-grid/year-grid.component';
+import { BackblastGridComponent } from './backblast-grid/backblast-grid.component';
 
 @NgModule({
   declarations: [
     ActionsPopoverComponent,
     ActionsPopoverPageComponent,
     BackblastCardComponent,
+    BackblastGridComponent,
     HeaderComponent,
     PaxAvatarComponent,
     PaxChipComponent,
@@ -38,6 +40,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     ActionsPopoverComponent,
     ActionsPopoverPageComponent,
     BackblastCardComponent,
+    BackblastGridComponent,
     HeaderComponent,
     PaxAvatarComponent,
     PaxChipComponent,

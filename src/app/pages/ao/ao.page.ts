@@ -253,8 +253,4 @@ export class AoPage {
       lastBdDate: backblast.date,
     };
   }
-
-  trackByBackblast(_index: number, backblast: Backblast) {
-    return `${backblast.ao}_${backblast.date}`;
-  }
 }
