@@ -1,0 +1,40 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Family Tree</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        *ngIf="mode === 'tree'"
+        (click)="toggleDirection()"
+      >
+        <ion-icon
+          slot="icon-only"
+          [name]="direction === 'horizontal' ? 'swap-vertical' : 'swap-horizontal'"
+        ></ion-icon>
+      </ion-button>
+      <!-- <ion-button (click)="toggleMode()">
+        <ion-icon
+          slot="icon-only"
+          [name]="mode === 'list' ? 'git-branch-outline' : 'menu'"
+        ></ion-icon>
+      </ion-button> -->
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div
+    *ngIf="mode === 'tree'"
+    class="page-container"
+  >
+    <ngx-org-chart
+      [nodes]="nodes"
+      [direction]="direction"
+      (itemClick)="test($event)"
+    ></ngx-org-chart>
+  </div>
+  <ion-list *ngIf="mode === 'list'">
+    <ion-item *ngFor="let pax of parentless">
+      {{ pax.name }}
+    </ion-item>
+  </ion-list>
+</ion-content>

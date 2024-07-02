@@ -65,6 +65,11 @@ const routes: Routes = [
     loadChildren: () =>
         import('./pages/summary/summary.module').then(m => m.SummaryPageModule)
   },
+  {
+    path: 'family-tree',
+    loadChildren: () => import('./pages/family-tree/family-tree.module')
+                            .then(m => m.FamilyTreePageModule)
+  },
 ];
 
 // fallback to home, must be the last route in this list

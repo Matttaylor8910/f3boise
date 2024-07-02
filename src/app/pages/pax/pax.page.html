@@ -85,12 +85,11 @@
             </ion-item>
             <ion-item>
               <ion-label class="ion-text-wrap">
-                <h2>Invited By</h2>
+                <h2>{{ !stats.parentLabel || stats.parentIsPax ? 'Invited By' : 'Origin' }}</h2>
               </ion-label>
               <span class="centered" slot="end">
-                <!-- TODO: see if @Stinger will add the ability to change for authed users -->
-                <!-- <ion-button
-                  *ngIf="stats.parent"
+                <ion-button
+                  *ngIf="allowChangeParent"
                   color="dark"
                   fill="clear"
                   (click)="getParentSuggestions()"
@@ -99,18 +98,18 @@
                     slot="icon-only"
                     name="reload-sharp"
                   ></ion-icon>
-                </ion-button> -->
+                </ion-button>
                 <a
-                  *ngIf="stats.parent && stats.parentIsPax"
-                  routerLink="/pax/{{stats.parent}}"
+                  *ngIf="stats.parentLabel && stats.parentIsPax"
+                  routerLink="/pax/{{stats.parentLabel}}"
                 >
-                  {{ utilService.normalizeName(stats.parent) }}
+                  {{ utilService.normalizeName(stats.parentLabel) }}
                 </a>
-                <span *ngIf="stats.parent && !stats.parentIsPax">
-                  {{ stats.parent }}
+                <span *ngIf="stats.parentLabel && !stats.parentIsPax">
+                  {{ stats.parentLabel }}
                 </span>
                 <ion-button
-                  *ngIf="!stats.parent"
+                  *ngIf="!stats.parentLabel"
                   color="primary"
                   (click)="getParentSuggestions()"
                 >

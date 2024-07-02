@@ -25,6 +25,24 @@
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
 
+/* Family Tree Styles */
+@import '~ngx-org-chart/_theming.scss';
+.ngx-org-name {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.ngx-org-title {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  margin-top: 2px;
+}
+.ngx-org-image {
+  min-width: 2em;
+  background-position: center;
+  background-size: cover;
+}
+
 @font-face {
   font-family: 'BlackOps';
   src: url('assets/BlackOpsOne-Regular.ttf');
