@@ -27,18 +27,29 @@
 
 /* Family Tree Styles */
 @import '~ngx-org-chart/_theming.scss';
+ngx-chart-designer {
+  margin: 4px 0;
+}
+.ngx-org-horizontal {
+  padding: 0;
+}
+.ngx-org-box {
+  padding: 4px 8px;
+}
 .ngx-org-name {
   font-family: Roboto, "Helvetica Neue", sans-serif;
   font-weight: 500;
   white-space: nowrap;
+  font-size: 14px;
 }
 .ngx-org-title {
   font-family: Roboto, "Helvetica Neue", sans-serif;
-  font-size: 14px;
+  font-size: 12px;
   margin-top: 2px;
 }
 .ngx-org-image {
-  min-width: 2em;
+  width: 24px;
+  height: 24px;
   background-position: center;
   background-size: cover;
 }
