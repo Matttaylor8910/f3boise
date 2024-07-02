@@ -19,7 +19,7 @@ export interface Backblast {
 export interface Pax {
   id: string;
   name: string;
-  invited_by: null|{pax: string};
+  parent: null|Parent;
   email?: string;
   img_url?: string;
 }
@@ -68,4 +68,32 @@ export interface WorkoutDates {
   Thu?: string[];
   Fri?: string[];
   Sat?: string[];
+}
+
+export type Parent = PaxParent|AtBdParent|DrEhParent|MovedParent|OnlineParent;
+
+interface PaxParent {
+  type: PaxOrigin.PAX;
+  name: string;
+  slackId: string;
+}
+interface AtBdParent {
+  type: PaxOrigin.AT_BD;
+}
+interface DrEhParent {
+  type: PaxOrigin.DR_EH;
+}
+interface MovedParent {
+  type: PaxOrigin.MOVED;
+}
+interface OnlineParent {
+  type: PaxOrigin.ONLINE;
+}
+
+export enum PaxOrigin {
+  AT_BD = 'atBd',
+  DR_EH = 'drEh',
+  MOVED = 'moved',
+  ONLINE = 'online',
+  PAX = 'pax'
 }

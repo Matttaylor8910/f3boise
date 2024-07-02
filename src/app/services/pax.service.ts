@@ -1,22 +1,14 @@
 import {Injectable} from '@angular/core';
-import {Pax} from 'types';
+import {Parent, Pax, PaxOrigin} from 'types';
 
 import {HttpService} from './http.service';
 
 const URL = 'https://f3boiseapi-cycjv.ondigitalocean.app/pax/';
 
 interface SetParentBody {
-  slack_id: string;
-  invited_by: null|string|{
-    pax: string | null,
-  };
-}
-
-export enum PaxOrigin {
-  AT_BD = 'EH\'ed at/during BD',
-  DR_EH = 'EH\'ed from DR PAX',
-  MOVED = 'Moved from DR',
-  ONLINE = 'Found F3 online',
+  pax_name: string;
+  slack_id?: string;
+  parent: null|Parent;
 }
 
 @Injectable({providedIn: 'root'})
@@ -50,30 +42,53 @@ export class PaxService {
     }
   }
 
-  async getPax(name: string): Promise<Pax|undefined> {
+  async getPax(name: string, reload = false): Promise<Pax|undefined> {
     if (!this.allData) await this.getAllData();
     return this.paxMap.get(name.toLowerCase());
   }
 
-  async setParent(name: string, invitedBy: string) {
-    const {id} = await this.getPax(name) as Pax;
+  async setParent(name: string, invitedBy: string): Promise<Pax[]> {
+    const {id = ''} = await this.getPax(name) || {} as Pax;
+
+    let type = PaxOrigin.PAX;
+    let parentName = invitedBy;
+    let {id: parentSlackId} = await this.getPax(parentName) || {} as Pax;
+
+    if (this.isPaxOrigin(invitedBy)) {
+      type = invitedBy as PaxOrigin;
+      parentName = '';
+      parentSlackId = '';
+    }
+
     const body: SetParentBody = {
+      pax_name: name,
       slack_id: id,
-      invited_by: {
-        pax: invitedBy,
+      parent: {
+        type,
+        name: parentName,
+        slackId: parentSlackId,
       },
     };
-    return this.http.post(URL + 'set-parent', body);
+    await this.http.post(URL + 'set-pax-parent', body);
+    return this.loadAllData();
   }
 
-  async clear(name: string) {
-    // TODO: ensure we use whatever clearing mechanism @Stinger sets up
-    const {id} = await this.getPax(name) as Pax;
-    const body: SetParentBody = {
-      slack_id: id,
-      invited_by: null,
-    };
+  getOriginLabel(origin: PaxOrigin): string {
+    switch (origin) {
+      case PaxOrigin.AT_BD:
+        return 'EH\'ed at/during BD';
+      case PaxOrigin.DR_EH:
+        return 'EH\'ed from DR PAX';
+      case PaxOrigin.MOVED:
+        return 'Moved from DR';
+      case PaxOrigin.ONLINE:
+        return 'Found F3 online';
+      default:
+        return '';
+    }
+  }
 
-    return await this.http.post(URL + 'set-parent', body);
+  isPaxOrigin(text: string): boolean {
+    return Object.values(PaxOrigin).map(String).includes(text);
   }
 }
