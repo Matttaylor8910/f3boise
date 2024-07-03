@@ -48,12 +48,6 @@ export class FamilyTreePage implements OnInit {
       const name = this.utilService.normalizeName(pax_name);
       seenPax.add(pax_name);
 
-      if (pax_name === 'big sky') {
-        console.log(
-            pax_name,
-            parent.type === PaxOrigin.PAX ? parent.name : parent.type);
-      }
-
       // get the node for this pax, or make a new one
       // reset the name to be from the response
       const node = this.nodeMap.get(pax_name) ?? this.getNode(name);
