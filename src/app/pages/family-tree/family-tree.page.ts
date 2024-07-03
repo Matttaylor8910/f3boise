@@ -18,7 +18,6 @@ export class FamilyTreePage implements OnInit {
   toggled = new Map<string, Node>();
 
   parentless: Pax[] = [];
-  allPax: Pax[] = [];
 
   constructor(
       private readonly paxService: PaxService,
@@ -35,40 +34,53 @@ export class FamilyTreePage implements OnInit {
       }
     }
 
-    this.allPax = await this.paxService.getAllData();
+    // load all pax that have joined slack and build up a map
+    const allPax = await this.paxService.getAllData();
+    const paxMap = new Map<string, Pax>();
+    allPax.forEach(pax => paxMap.set(pax.name.toLowerCase(), pax));
+
+    // load all the tree relations we've stored to build out the tree
+    const tree = await this.paxService.loadPaxTree();
     const seenPax = new Set<string>;
-    for (const pax of this.allPax) {
-      if (pax.parent) {
-        // get the node for this pax, or make a new one
-        // reset the name to be from the response
-        const key = pax.name.toLowerCase();
-        if (seenPax.has(key)) {
-          console.log(`DUPE ${key}`);
-          continue;
-        }
-        seenPax.add(key);
 
-        const node = this.nodeMap.get(key) ?? this.getNode(pax.name);
-        node.name = pax.name;
-        node.image = pax.img_url ?? '';
+    for (const {pax_name, parent} of Object.values(tree)) {
+      const {img_url = ''} = paxMap.get(pax_name) || {} as Pax;
+      const name = this.utilService.normalizeName(pax_name);
+      seenPax.add(pax_name);
 
-        // create a node for the parent if there isn't one already
-        const parentKey = pax.parent.type === PaxOrigin.PAX ?
-            pax.parent.name.toLowerCase() :
-            pax.parent.type;
-        const parent = await this.paxService.getPax(parentKey);
-        node.parent = this.nodeMap.get(parentKey) ??
-            this.getNode(this.utilService.normalizeName(parentKey));
-        node.parent.image = parent?.img_url ?? '';
-        node.parent.childs.push(node);
+      if (pax_name === 'big sky') {
+        console.log(
+            pax_name,
+            parent.type === PaxOrigin.PAX ? parent.name : parent.type);
+      }
 
-        // persist each node to the nodeMap
-        this.nodeMap.set(key, node);
-        this.nodeMap.set(parentKey, node.parent);
-      } else {
+      // get the node for this pax, or make a new one
+      // reset the name to be from the response
+      const node = this.nodeMap.get(pax_name) ?? this.getNode(name);
+      node.name = name;
+      node.image = img_url;
+
+      // create a node for the parent if there isn't one already
+      const parentKey =
+          parent.type === PaxOrigin.PAX ? parent.name : parent.type;
+      node.parent = this.nodeMap.get(parentKey) ??
+          this.getNode(this.utilService.normalizeName(parentKey));
+      const {img_url: parentImage = ''} = paxMap.get(parentKey) ?? {} as Pax;
+      node.parent.image = parentImage;
+      node.parent.childs.push(node);
+
+      // persist each node to the nodeMap
+      this.nodeMap.set(pax_name, node);
+      this.nodeMap.set(parentKey, node.parent);
+    }
+
+    // generate a list of all pax with no parent set
+    for (const pax of allPax) {
+      if (!seenPax.has(pax.name.toLowerCase())) {
         this.parentless.push(pax);
       }
     }
+    this.parentless.sort((a, b) => a.name.localeCompare(b.name));
 
     // Add any parent-less nodes that aren't already in the tree
     for (const node of this.nodeMap.values()) {
@@ -112,7 +124,7 @@ export class FamilyTreePage implements OnInit {
         this.direction === 'horizontal' ? 'vertical' : 'horizontal';
   }
 
-  getNode(name: string): Node {
+  getNode(name = ''): Node {
     return {name, title: '', cssClass: '', image: '', childs: []};
   }
 

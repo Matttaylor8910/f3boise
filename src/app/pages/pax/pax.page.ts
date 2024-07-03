@@ -98,7 +98,7 @@ export class PaxPage {
         await this.backblastService.getBackblastsForPax(this.name, type);
 
     // get the name of the PAX who invited them out, see if this a pax name
-    const {parent} = (await this.paxService.getPax(this.name)) || {} as Pax;
+    const parent = await this.paxService.getParent(this.name);
     const parentIsPax = parent ? parent.type === PaxOrigin.PAX : false;
     const parentLabel = parent ?
         (parent.type === PaxOrigin.PAX ?
