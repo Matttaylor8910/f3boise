@@ -61,8 +61,8 @@ export class PaxService {
     return this.paxMap.get(name.toLowerCase());
   }
 
-  async getParent(name: string): Promise<Parent|undefined> {
-    if (this.parentMap.size === 0) await this.loadPaxTree();
+  async getParent(name: string, reload = false): Promise<Parent|undefined> {
+    if (this.parentMap.size === 0 || reload) await this.loadPaxTree();
     return this.parentMap.get(name.toLowerCase());
   }
 
