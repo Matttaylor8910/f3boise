@@ -2,6 +2,7 @@ import {Component} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment';
 import {BackblastService} from 'src/app/services/backblast.service';
+import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
 import {AoPaxStats, Backblast, BBType} from 'types';
 
@@ -57,6 +58,7 @@ export class AoPage {
       private readonly route: ActivatedRoute,
       private readonly router: Router,
       private readonly backblastService: BackblastService,
+      private readonly paxService: PaxService,
   ) {
     this.name = this.route.snapshot.params['name'];
     this.displayName = this.utilService.normalizeName(this.name);
@@ -100,7 +102,6 @@ export class AoPage {
         await this.backblastService.getAllData(this.bbType) :
         await this.backblastService.getBackblastsForAo(this.name, this.bbType);
 
-    this.recentBds = allData.slice(0, 20);
     if (allData.length === 0) {
       return;
     }
@@ -145,6 +146,7 @@ export class AoPage {
       for (const name of backblast.pax) {
         // update this HIM's stats
         const stats = statsMap.get(name) ?? this.newPaxStats(name, backblast);
+        stats.parent = await this.paxService.getParent(name);
         stats.lastBdDate = backblast.date;
         stats.bds++;
 
@@ -171,9 +173,17 @@ export class AoPage {
 
     // spin off some other stats
     this.aoStats = aoStats;
-    this.paxStats = Array.from(statsMap.values());
+    const paxStatsArray = Array.from(statsMap.values());
+    this.paxStats = location.href.includes('?parentless') ?
+        paxStatsArray.filter(pax => !pax.parent) :
+        paxStatsArray;
     this.calculatePaxBdsPerWeek();
     this.calculateQsCards();
+
+    // after everything renders, then set recent BDs for the grid
+    setTimeout(() => {
+      this.recentBds = allData.slice(0, 20);
+    }, 500);
   }
 
   calculatePaxBdsPerWeek() {

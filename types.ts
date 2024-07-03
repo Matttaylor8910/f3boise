@@ -33,6 +33,7 @@ export interface AoPaxStats {
   lastBdDate: string;
   firstQDate?: string;
   lastQDate?: string;
+  parent?: Parent|null;
 }
 
 export interface QLineUp {
