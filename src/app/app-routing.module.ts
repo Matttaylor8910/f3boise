@@ -52,8 +52,9 @@ const routes: Routes = [
   },
   {
     path: 'backblasts/:id',
-    loadChildren: () => import('./pages/backblast-detail/backblast-detail.module')
-                            .then( m => m.BackblastDetailPageModule)
+    loadChildren: () =>
+        import('./pages/backblast-detail/backblast-detail.module')
+            .then(m => m.BackblastDetailPageModule)
   },
   {
     path: 'calendar',
@@ -69,6 +70,11 @@ const routes: Routes = [
     path: 'family-tree',
     loadChildren: () => import('./pages/family-tree/family-tree.module')
                             .then(m => m.FamilyTreePageModule)
+  },
+  {
+    path: 'login',
+    loadChildren: () =>
+        import('./pages/login/login.module').then(m => m.LoginPageModule)
   },
 ];
 

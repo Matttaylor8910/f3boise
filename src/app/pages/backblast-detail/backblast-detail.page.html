@@ -4,6 +4,11 @@
       <ion-back-button></ion-back-button>
     </ion-buttons>
     <ion-title>{{ backblast?.title }}</ion-title>
+    <ion-buttons slot="end" *ngIf="backblast?.id as backblastId">
+      <ion-button (click)="favoritesService.addFavorite(backblastId)">
+        <ion-icon slot="icon-only" name="heart-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 

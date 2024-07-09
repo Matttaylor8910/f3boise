@@ -4,6 +4,16 @@
       <ion-back-button></ion-back-button>
     </ion-buttons>
     <ion-title>{{ displayName || 'Loading...' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button *ngIf="authService.currentUser | async as user; else login" (click)="authService.logOut()">
+        Log out
+      </ion-button>
+      <ng-template #login>
+        <ion-button href="login">
+          Log in
+        </ion-button>
+      </ng-template>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 

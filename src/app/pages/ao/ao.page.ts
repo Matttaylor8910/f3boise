@@ -1,6 +1,7 @@
 import {Component} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment';
+import {AuthService} from 'src/app/services/auth.service';
 import {BackblastService} from 'src/app/services/backblast.service';
 import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
@@ -54,6 +55,7 @@ export class AoPage {
   recentBds?: Backblast[];
 
   constructor(
+      public readonly authService: AuthService,
       public readonly utilService: UtilService,
       private readonly route: ActivatedRoute,
       private readonly router: Router,

@@ -98,3 +98,12 @@ export enum PaxOrigin {
   ONLINE = 'online',
   PAX = 'pax'
 }
+
+// Object stored at /users/{userId}
+export interface User {
+  email: string;
+  name?: string;
+  // only folks who authenticate with Google have these field
+  photoURL?: string;
+  phoneNumber?: string;
+}

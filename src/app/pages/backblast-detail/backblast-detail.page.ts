@@ -3,6 +3,7 @@ import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 import {ActivatedRoute} from '@angular/router';
 import {marked} from 'marked';
 import {BackblastService} from 'src/app/services/backblast.service';
+import {FavoritesService} from 'src/app/services/favorites.service';
 import {UtilService} from 'src/app/services/util.service';
 import {Backblast} from 'types';
 
@@ -17,6 +18,7 @@ export class BackblastDetailPage implements OnInit {
 
   constructor(
       public readonly utilService: UtilService,
+      public readonly favoritesService: FavoritesService,
       private readonly route: ActivatedRoute,
       private readonly backblastService: BackblastService,
       private readonly domSanitizer: DomSanitizer,
