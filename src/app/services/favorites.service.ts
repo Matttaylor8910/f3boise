@@ -4,6 +4,10 @@ import {Observable} from 'rxjs';
 
 import {AuthService} from './auth.service';
 
+interface Favorites {
+  [backblastId: string]: boolean;
+}
+
 @Injectable({providedIn: 'root'})
 export class FavoritesService {
   userId: string|null = null;
@@ -26,5 +30,12 @@ export class FavoritesService {
     this.afs.collection('favorites')
         .doc(this.userId)
         .set({[backblastId]: true}, {merge: true});
+  }
+
+  getMyFavorites(): null|Observable<Favorites|undefined> {
+    if (this.userId === null) return null;
+    return this.afs.collection<Favorites>('favorites')
+        .doc(this.userId)
+        .valueChanges();
   }
 }
