@@ -1,9 +1,11 @@
 import {Injectable} from '@angular/core';
 import {Parent, Pax, PaxOrigin} from 'types';
 
+import {BASE_URL} from '../../../constants';
+
 import {HttpService} from './http.service';
 
-const URL = 'https://f3boiseapi-cycjv.ondigitalocean.app/pax/';
+const URL = `${BASE_URL}/pax/`;
 
 interface PaxTreeNode {
   pax_name: string;

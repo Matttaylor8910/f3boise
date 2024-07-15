@@ -1,10 +1,12 @@
 import {Injectable} from '@angular/core';
 import {QLineUp} from 'types';
 
+import {BASE_URL} from '../../../constants';
+
 import {HttpService} from './http.service';
 import {UtilService} from './util.service';
 
-const URL = 'https://f3boiseapi-cycjv.ondigitalocean.app/q_line_up/list';
+const URL = `${BASE_URL}/q_line_up/list`;
 
 @Injectable({providedIn: 'root'})
 export class QService {

@@ -1,9 +1,11 @@
 import {Injectable} from '@angular/core';
 import {Workout} from 'types';
 
+import {BASE_URL} from '../../../constants';
+
 import {HttpService} from './http.service';
 
-const URL = 'https://f3boiseapi-cycjv.ondigitalocean.app/region/workouts';
+const URL = `${BASE_URL}/region/workouts`;
 
 const DAY_ORDER = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_MAP = {

@@ -1,10 +1,11 @@
 import {Injectable} from '@angular/core';
 import {Backblast, BBType} from 'types';
 
+import {BASE_URL} from '../../../constants';
+
 import {HttpService} from './http.service';
 import {UtilService} from './util.service';
 
-const BASE_URL = 'https://f3boiseapi-cycjv.ondigitalocean.app';
 const DD_START_DATE = '2021-01-01';  // const DD_START_DATE = '2023-07-09';
 
 @Injectable({providedIn: 'root'})
