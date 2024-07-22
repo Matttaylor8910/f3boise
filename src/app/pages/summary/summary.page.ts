@@ -1,7 +1,10 @@
 import {Component} from '@angular/core';
+import {ActivatedRoute} from '@angular/router';
 import * as moment from 'moment';
 import {BackblastService} from 'src/app/services/backblast.service';
 import {UtilService} from 'src/app/services/util.service';
+
+import {REGION} from '../../../../constants';
 
 interface MonthlyStats {
   // the display name of this month like January 2021
@@ -39,12 +42,16 @@ export class SummaryPage {
   constructor(
       public readonly utilService: UtilService,
       private readonly backblastService: BackblastService,
+      private readonly route: ActivatedRoute,
   ) {
     this.calculateStats();
   }
 
   async calculateStats() {
-    const allData = await this.backblastService.getAllData();
+    const region = this.route.snapshot.queryParamMap.get('region') as REGION;
+    const allData = Object.values(REGION).includes(region) ?
+        await this.backblastService.getBackblastsForAo(region) :
+        await this.backblastService.getAllData();
 
     const monthlyStats = new Map<string, MonthlyStats>();
     const uniquePax = new Set<string>();

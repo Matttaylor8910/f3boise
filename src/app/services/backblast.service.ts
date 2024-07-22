@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {Backblast, BBType} from 'types';
 
-import {BASE_URL} from '../../../constants';
+import {BASE_URL, HIGH_DESERT_AOS, REGION, SETTLERS_AOS} from '../../../constants';
 
 import {HttpService} from './http.service';
 import {UtilService} from './util.service';
@@ -51,7 +51,14 @@ export class BackblastService {
       Promise<Backblast[]> {
     const data = await this.getAllData(type);
     return data.filter(backblast => {
-      return backblast.ao.toLowerCase() === name.toLowerCase();
+      const backblastAo = backblast.ao.toLowerCase();
+
+      // check region names
+      if (name === REGION.HIGH_DESERT) return HIGH_DESERT_AOS.has(backblastAo);
+      if (name === REGION.SETTLERS) return SETTLERS_AOS.has(backblastAo);
+
+      // otherwise consider the ao name
+      return backblastAo === name.toLowerCase();
     });
   }
 
