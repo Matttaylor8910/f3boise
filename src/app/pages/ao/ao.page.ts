@@ -137,13 +137,11 @@ export class AoPage {
     const uniqueQs = new Set<string>();
     const uniquePax = new Set<string>();
     const aoStats = this.newAoStats();
-    const uniqueAOs = new Set<string>();
 
     for (const backblast of data) {
       // update AO stats for this beatdown
       aoStats.totalBeatdowns++;
       aoStats.totalPosts += backblast.pax.length;
-      uniqueAOs.add(backblast.ao);
 
       for (const name of backblast.pax) {
         // update this HIM's stats
