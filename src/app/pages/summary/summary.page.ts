@@ -17,6 +17,9 @@ interface MonthlyStats {
 
   // new guys to the region, showing up for the first time
   fngs: Set<string>;
+  fngAoMap: Map<string, string[]>;
+  fngsByAo: {name: string, fngs: string[]}[];
+  breakdownFngsByAo: boolean;
 
   // PAX that were missing last month that came back this month
   returnedPax: Set<string>;
@@ -37,6 +40,8 @@ interface MonthlyStats {
   styleUrls: ['./summary.page.scss'],
 })
 export class SummaryPage {
+  ao: string;
+  region: REGION;
   monthlyStats?: MonthlyStats[];
 
   constructor(
@@ -44,14 +49,23 @@ export class SummaryPage {
       private readonly backblastService: BackblastService,
       private readonly route: ActivatedRoute,
   ) {
+    this.region = this.route.snapshot.queryParamMap.get('region') as REGION;
+    this.ao = this.route.snapshot.queryParamMap.get('ao') as string;
     this.calculateStats();
   }
 
+  get title(): string {
+    let scope = 'Region';
+    if (this.ao) scope = this.utilService.normalizeName(this.ao);
+    if (this.region) scope = this.utilService.normalizeName(this.region);
+    return `${scope} Summary`;
+  }
+
   async calculateStats() {
-    const region = this.route.snapshot.queryParamMap.get('region') as REGION;
-    const allData = Object.values(REGION).includes(region) ?
-        await this.backblastService.getBackblastsForAo(region) :
-        await this.backblastService.getAllData();
+    const allData = Object.values(REGION).includes(this.region) ?
+        await this.backblastService.getBackblastsForAo(this.region) :
+        this.ao ? await this.backblastService.getBackblastsForAo(this.ao) :
+                  await this.backblastService.getAllData();
 
     const monthlyStats = new Map<string, MonthlyStats>();
     const uniquePax = new Set<string>();
@@ -69,13 +83,17 @@ export class SummaryPage {
         monthStats.allPax.add(name);
         if (!uniquePax.has(name)) {
           monthStats.fngs.add(name);
+          uniquePax.add(name);
+
+          // also store the fngs per ao
+          const aoFngs = monthStats.fngAoMap.get(backblast.ao) ?? [];
+          monthStats.fngAoMap.set(backblast.ao, [...aoFngs, name]);
         }
 
         // save their Q stats as well if applicable
         if (backblast.qs.includes(name)) {
           monthStats.qs.add(name);
         }
-        uniquePax.add(name);
       }
 
       monthlyStats.set(month, monthStats);
@@ -83,6 +101,11 @@ export class SummaryPage {
 
     let lastMonth: MonthlyStats;
     monthlyStats.forEach(thisMonth => {
+      // sort the fngs by ao
+      thisMonth.fngsByAo = Array.from(thisMonth.fngAoMap.entries())
+                               .map(([name, fngs]) => ({name, fngs}))
+                               .sort((a, b) => b.fngs.length - a.fngs.length);
+
       if (lastMonth) {
         // store the PAX that posted last month but didn't post this month
         thisMonth.missingPax = new Set([...lastMonth.allPax.values()].filter(
@@ -131,6 +154,9 @@ export class SummaryPage {
       allPax: new Set<string>(),
       qs: new Set<string>(),
       fngs: new Set<string>(),
+      fngAoMap: new Map<string, string[]>(),
+      fngsByAo: [],
+      breakdownFngsByAo: false,
       returnedPax: new Set<string>(),
       missingPax: new Set<string>(),
       totalPosts: 0,
