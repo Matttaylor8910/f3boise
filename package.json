@@ -61,5 +61,11 @@
     "karma-jasmine-html-reporter": "~2.0.0",
     "ts-node": "~8.3.0",
     "typescript": "~4.7.2"
+  },
+  "overrides": {
+    "ngx-org-chart": {
+      "@angular/common": "^14.3.0",
+      "@angular/core": "^14.3.0"
+    }
   }
 }
