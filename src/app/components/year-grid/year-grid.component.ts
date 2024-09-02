@@ -253,6 +253,8 @@ export class YearGridComponent implements OnInit {
         return '#8FFF5A';
       case 'Camels Back':
         return '#FFDD33 ';
+      case 'Coop':
+        return '#3C6F19 ';
       case 'Gem':
         return '#3498DB';
       case 'Goose Dynasty':
@@ -263,8 +265,6 @@ export class YearGridComponent implements OnInit {
         return '#9B59B6';
       case 'Rebel':
         return '#E0C248';
-      case 'Reid Merrill':
-        return '#3C6F19 ';
       case 'Reta Huskey':
         return '#E75293';
       case 'Rise':
