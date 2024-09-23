@@ -1,9 +1,10 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Router} from '@angular/router';
-import {count} from 'console';
 import * as moment from 'moment';
 import {UtilService} from 'src/app/services/util.service';
-import {Backblast} from 'types';
+
+import {AO} from '../../../../constants';
+import {Backblast} from '../../../../types';
 
 interface GridCell {
   date: string;
@@ -241,42 +242,50 @@ export class YearGridComponent implements OnInit {
   };
 
   private getColor(bd: Backblast): string {
-    switch (bd.ao) {
-      case 'Backyard':
+    switch (bd.ao.toLowerCase()) {
+      case AO.BACKYARD:
         return '#014235';
-      case 'Bellagio':
+      case AO.BELLAGIO:
         return '#16A085';
-      case 'Black Diamond':
-      case 'Black Ops':
+      case AO.BERNIE_FISHER:
+        return '#720374';
+      case AO.BLACK_DIAMOND:
+      case AO.BLACK_OPS:
         return '#000000';
-      case 'Bleach':
+      case AO.BLEACH:
         return '#8FFF5A';
-      case 'Camels Back':
+      case AO.CAMELS_BACK:
         return '#FFDD33 ';
-      case 'Coop':
+      case AO.CAPITOL:
+        return '#1e0697';
+      case AO.COOP:
         return '#3C6F19 ';
-      case 'Gem':
-        return '#3498DB';
-      case 'Goose Dynasty':
-        return '#A8AAAF';
-      case 'Iron Mountain':
-        return '#002F4D';
-      case 'Old Glory':
-        return '#9B59B6';
-      case 'Rebel':
-        return '#E0C248';
-      case 'Reta Huskey':
+      case AO.DARK_STRIDE:
         return '#E75293';
-      case 'Rise':
+      case AO.EMMETT_CITY_PARK:
+        return '#3067e6';
+      case AO.GEM:
+        return '#3498DB';
+      case AO.GOOSE_DYNASTY:
+        return '#A8AAAF';
+      case AO.IRON_MOUNTAIN:
+        return '#002F4D';
+      case AO.OLD_GLORY:
+        return '#9B59B6';
+      case AO.REBEL:
+        return '#E0C248';
+      case AO.RISE:
         return '#F39C12';
-      case 'Ruckership East':
+      case AO.RUCKERSHIP_EAST:
         return '#E67E22';
-      case 'Ruckership West':
+      case AO.RUCKERSHIP_WEST:
         return '#D35400';
-      case 'Tower':
+      case AO.TOWER:
         return '#9CD6F1';
-      case 'War Horse':
+      case AO.WAR_HORSE:
         return '#E74C3C';
+      case AO.WEST_CANYON_ELEMENTARY:
+        return '#7fd7ab';
       default:
         return this.randomHexColorCode();
     }

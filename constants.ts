@@ -15,6 +15,7 @@ export enum AO {
   BERNIE_FISHER = 'bernie fisher',
   BLEACH = 'bleach',
   CAMELS_BACK = 'camels back',
+  CAPITOL = 'capitol',
   GOOSE_DYNASTY = 'goose dynasty',
   REBEL = 'rebel',
   RISE = 'rise',
