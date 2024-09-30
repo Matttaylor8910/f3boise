@@ -44,6 +44,7 @@ export const HIGH_DESERT_AOS = new Set<string>([
   AO.BERNIE_FISHER,
   AO.BLEACH,
   AO.CAMELS_BACK,
+  AO.CAPITOL,
   AO.GOOSE_DYNASTY,
   AO.REBEL,
   AO.RISE,
