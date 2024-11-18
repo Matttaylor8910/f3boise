@@ -194,7 +194,14 @@ export class AoPage {
       } else {
         const startMoment = moment(stats.firstBdDate);
         const days = moment(stats.lastBdDate).diff(startMoment, 'days') + 1;
-        stats.bdsPerWeek = (stats.bds / days) * 7;
+
+        // ceiling the days / 7 to get the number of weeks in the range
+        // if we don't do this, the bds divided by the duration can make it look
+        // like the PAX were able to attend more BDs that were offered
+        // i.e. if you attend Tue/Thu that's 2 beatdowns in 3 days, we should
+        // show 2 BDs per week and not extrapolate the daily BD rate to the
+        // whole week making it (2/3)*7 -> 4.66
+        stats.bdsPerWeek = stats.bds / Math.ceil(days / 7);
       }
     });
   }
