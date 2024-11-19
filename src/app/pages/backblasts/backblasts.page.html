@@ -7,38 +7,56 @@
 <ion-content>
   <!-- Filter Rules Section -->
   <div class="filter-section">
-    <ion-button (click)="addFilterRule()">Add Filter</ion-button>
     <div *ngFor="let rule of filterState.rules; let i = index" class="filter-rule">
-      <ion-item>
-        <ion-label>Field</ion-label>
-        <ion-select [(ngModel)]="rule.field" (ionChange)="applyFilter()">
-          <ion-select-option value="qs">Qs</ion-select-option>
-          <ion-select-option value="pax">PAX</ion-select-option>
-          <ion-select-option value="ao">AO</ion-select-option>
-        </ion-select>
-      </ion-item>
+      <ion-grid>
+        <ion-row class="ion-align-items-center">
+          <!-- Field Dropdown -->
+          <ion-col size="auto">
+            <ion-select [(ngModel)]="rule.field" interface="popover">
+              <ion-select-option value="qs">Qs</ion-select-option>
+              <ion-select-option value="pax">PAX</ion-select-option>
+              <ion-select-option value="ao">AO</ion-select-option>
+            </ion-select>
+          </ion-col>
 
-      <ion-item>
-        <ion-label>Operator</ion-label>
-        <ion-select [(ngModel)]="rule.operator" (ionChange)="applyFilter()">
-          <ion-select-option *ngIf="rule.field !== 'ao'" value="includes">includes</ion-select-option>
-          <ion-select-option *ngIf="rule.field !== 'ao'" value="does not include">does not include</ion-select-option>
-          <ion-select-option *ngIf="rule.field === 'ao'" value="is">is</ion-select-option>
-          <ion-select-option *ngIf="rule.field === 'ao'" value="is not">is not</ion-select-option>
-        </ion-select>
-      </ion-item>
+          <!-- Operator Dropdown -->
+          <ion-col size="auto">
+            <ion-select [(ngModel)]="rule.operator" interface="popover">
+              <ion-select-option *ngIf="rule.field !== 'ao'" value="includes">includes</ion-select-option>
+              <ion-select-option *ngIf="rule.field !== 'ao'" value="does not include">does not include</ion-select-option>
+              <ion-select-option *ngIf="rule.field === 'ao'" value="is">is</ion-select-option>
+              <ion-select-option *ngIf="rule.field === 'ao'" value="is not">is not</ion-select-option>
+            </ion-select>
+          </ion-col>
 
-      <ion-item>
-        <ion-label>Value</ion-label>
-        <ion-input [(ngModel)]="rule.value" (ionChange)="applyFilter()"></ion-input>
-      </ion-item>
+          <!-- Value Input -->
+          <ion-col size="auto">
+            <ion-input
+              [(ngModel)]="rule.value"
+              placeholder="Enter value"
+            ></ion-input>
+          </ion-col>
 
-      <ion-button color="danger" (click)="removeFilterRule(i)">Remove</ion-button>
+          <!-- Remove Filter Button -->
+          <ion-col size="auto">
+            <ion-button fill="clear" color="medium" (click)="removeFilterRule(i)">
+              <ion-icon name="close-circle-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
     </div>
+
+    <ion-button (click)="addFilterRule()">Add Filter</ion-button>
+    <ion-button *ngIf="filterState.rules.length > 0" (click)="applyFilter()">Search</ion-button>
   </div>
 
   <!-- Backblast Grid -->
-  <app-backblast-grid [backblasts]="backblasts"></app-backblast-grid>
+  <app-backblast-grid
+    [title]="'Backblasts'"
+    [count]="filteredBackblasts?.length"
+    [backblasts]="backblasts"
+  ></app-backblast-grid>
 
   <div class="center-container">
     <h2 *ngIf="filteredBackblasts?.length && loading">

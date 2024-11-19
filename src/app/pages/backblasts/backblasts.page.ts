@@ -71,8 +71,15 @@ export class BackblastsPage implements OnInit {
     let filtered = this.allBackblasts ?? [];
 
     // Apply each filter rule
-    for (const rule of this.filterState.rules) {
-      filtered = filtered.filter((bb) => this.applyRule(bb, rule));
+    if (this.filterState.rules.length > 0) {
+      filtered = filtered.filter(bb => {
+        for (let i = 0; i < this.filterState.rules.length; i++) {
+          const rule = this.filterState.rules[i];
+          if (!this.applyRule(bb, rule)) return false;
+        }
+
+        return true;
+      });
     }
 
     this.filteredBackblasts = filtered;

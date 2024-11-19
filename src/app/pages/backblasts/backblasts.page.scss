@@ -16,3 +16,36 @@ ion-searchbar {
     display: none;
   }
 }
+
+
+
+//// CHATGPT CSS ////
+.filter-section {
+  padding: 16px;
+}
+
+.filter-rule {
+  margin: 8px;
+}
+
+.filter-rule ion-grid {
+  padding: 0;
+}
+
+.filter-rule ion-row {
+  --ion-grid-column-padding: 0;
+}
+
+.filter-rule ion-col {
+  flex: 0 0 auto;
+}
+
+.filter-rule ion-select,
+.filter-rule ion-input {
+  min-width: 120px;
+}
+
+.filter-rule ion-button {
+  padding: 0;
+  height: auto;
+}
