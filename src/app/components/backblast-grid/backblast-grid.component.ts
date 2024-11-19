@@ -1,5 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { Backblast } from 'types';
+import {Component, Input, OnInit} from '@angular/core';
+import {Backblast} from 'types';
 
 @Component({
   selector: 'app-backblast-grid',
@@ -7,9 +7,11 @@ import { Backblast } from 'types';
   styleUrls: ['./backblast-grid.component.scss'],
 })
 export class BackblastGridComponent implements OnInit {
+  @Input() title = 'Recent Backblasts';
+  @Input() count?: number|null;
   @Input() backblasts?: Backblast[];
 
-  constructor() { }
+  constructor() {}
 
   ngOnInit() {}
 
