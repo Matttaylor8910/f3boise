@@ -1,29 +1,44 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>Backblasts</ion-title>
-    <div slot="end">
-      <ion-searchbar
-        class="desktop-toolbar"
-        [(ngModel)]="filterText"
-        placeholder="Filter by PAX, Date, or AO"
-        (ionChange)="applyFilter()">
-      </ion-searchbar>
-    </div>
-  </ion-toolbar>
-  <ion-toolbar class="mobile-toolbar">
-    <ion-searchbar
-      [(ngModel)]="filterText"
-      placeholder="Filter by PAX"
-      (ionChange)="applyFilter()">
-    </ion-searchbar>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <!-- <app-year-grid [bds]="filteredBackblasts"></app-year-grid> -->
+  <!-- Filter Rules Section -->
+  <div class="filter-section">
+    <ion-button (click)="addFilterRule()">Add Filter</ion-button>
+    <div *ngFor="let rule of filterState.rules; let i = index" class="filter-rule">
+      <ion-item>
+        <ion-label>Field</ion-label>
+        <ion-select [(ngModel)]="rule.field" (ionChange)="applyFilter()">
+          <ion-select-option value="qs">Qs</ion-select-option>
+          <ion-select-option value="pax">PAX</ion-select-option>
+          <ion-select-option value="ao">AO</ion-select-option>
+        </ion-select>
+      </ion-item>
 
-  <app-backblast-grid [backblasts]="backblasts">
-      </app-backblast-grid>
+      <ion-item>
+        <ion-label>Operator</ion-label>
+        <ion-select [(ngModel)]="rule.operator" (ionChange)="applyFilter()">
+          <ion-select-option *ngIf="rule.field !== 'ao'" value="includes">includes</ion-select-option>
+          <ion-select-option *ngIf="rule.field !== 'ao'" value="does not include">does not include</ion-select-option>
+          <ion-select-option *ngIf="rule.field === 'ao'" value="is">is</ion-select-option>
+          <ion-select-option *ngIf="rule.field === 'ao'" value="is not">is not</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>Value</ion-label>
+        <ion-input [(ngModel)]="rule.value" (ionChange)="applyFilter()"></ion-input>
+      </ion-item>
+
+      <ion-button color="danger" (click)="removeFilterRule(i)">Remove</ion-button>
+    </div>
+  </div>
+
+  <!-- Backblast Grid -->
+  <app-backblast-grid [backblasts]="backblasts"></app-backblast-grid>
 
   <div class="center-container">
     <h2 *ngIf="filteredBackblasts?.length && loading">
@@ -33,7 +48,7 @@
       Load More
     </ion-button>
     <h2 *ngIf="filteredBackblasts?.length === 0">
-      No backblasts to show for "{{ filterText }}"
+      No backblasts to show for the selected filters
     </h2>
   </div>
 </ion-content>

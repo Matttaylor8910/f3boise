@@ -4,6 +4,17 @@ import {Backblast} from 'types';
 
 const SIZE = 48;
 
+interface FilterRule {
+  field: 'qs'|'pax'|'ao';
+  operator: 'includes'|'does not include'|'is'|'is not';
+  value: string;
+}
+
+interface FilterState {
+  rules: FilterRule[];
+}
+
+
 @Component({
   selector: 'app-backblasts',
   templateUrl: './backblasts.page.html',
@@ -15,11 +26,16 @@ export class BackblastsPage implements OnInit {
   backblasts?: Backblast[];
 
   loading = true;
-  filterText = '';
 
-  constructor(
-      private readonly backblastService: BackblastService,
-  ) {}
+  // Remove the old filterText
+  // filterText = '';
+
+  // Add filter state
+  filterState: FilterState = {
+    rules: [],
+  };
+
+  constructor(private readonly backblastService: BackblastService) {}
 
   get showLoadMore(): boolean {
     const moreBackblasts =
@@ -33,20 +49,80 @@ export class BackblastsPage implements OnInit {
     this.applyFilter();
   }
 
+  addFilterRule() {
+    this.filterState.rules.push({
+      field: 'pax',
+      operator: 'includes',
+      value: '',
+    });
+  }
+
+  removeFilterRule(index: number) {
+    this.filterState.rules.splice(index, 1);
+    this.applyFilter();
+  }
+
   applyFilter() {
     this.loading = true;
 
     delete this.backblasts;
-    const lowercase = this.filterText.toLowerCase();
-    this.filteredBackblasts = this.filterText.trim().length === 0 ?
-        this.allBackblasts :
-        this.allBackblasts?.filter(bb => {
-          return bb.date.includes(lowercase) ||
-              bb.ao.toLowerCase().includes(lowercase) ||
-              bb.pax.some(q => q.includes(lowercase));
-        });
+
+    // Start with all backblasts
+    let filtered = this.allBackblasts ?? [];
+
+    // Apply each filter rule
+    for (const rule of this.filterState.rules) {
+      filtered = filtered.filter((bb) => this.applyRule(bb, rule));
+    }
+
+    this.filteredBackblasts = filtered;
 
     this.loadMore();
+  }
+
+  applyRule(bb: Backblast, rule: FilterRule): boolean {
+    const value = rule.value.toLowerCase().trim();
+    if (!value) {
+      return true;
+    }
+
+    switch (rule.field) {
+      case 'qs':
+        return this.evaluateArrayField(bb.qs, rule.operator, value);
+      case 'pax':
+        return this.evaluateArrayField(bb.pax, rule.operator, value);
+      case 'ao':
+        return this.evaluateStringField(bb.ao, rule.operator, value);
+      default:
+        return true;
+    }
+  }
+
+  evaluateArrayField(fieldValues: string[], operator: string, value: string):
+      boolean {
+    const fieldValuesLower = fieldValues.map((v) => v.toLowerCase());
+    const includesValue = fieldValuesLower.includes(value);
+
+    if (operator === 'includes') {
+      return includesValue;
+    } else if (operator === 'does not include') {
+      return !includesValue;
+    } else {
+      return true;
+    }
+  }
+
+  evaluateStringField(fieldValue: string, operator: string, value: string):
+      boolean {
+    const fieldValueLower = fieldValue.toLowerCase();
+
+    if (operator === 'is') {
+      return fieldValueLower === value;
+    } else if (operator === 'is not') {
+      return fieldValueLower !== value;
+    } else {
+      return true;
+    }
   }
 
   loadMore() {
