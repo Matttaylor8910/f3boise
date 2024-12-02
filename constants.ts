@@ -24,10 +24,10 @@ export enum AO {
 
   // west
   BELLAGIO = 'bellagio',
+  BLACK_CANYON = 'black canyon',
   BLACK_DIAMOND = 'black diamond',
   COOP = 'coop',
   DARK_STRIDE = 'dark stride',
-  EMMETT_CITY_PARK = 'emmett city park',
   GEM = 'gem',
   IRON_MOUNTAIN = 'iron mountain',
   OLD_GLORY = 'old glory',
@@ -57,10 +57,10 @@ export const HIGH_DESERT_AOS = new Set<string>([
 
 export const SETTLERS_AOS = new Set<string>([
   AO.BELLAGIO,
+  AO.BLACK_CANYON,
   AO.BLACK_DIAMOND,
   AO.COOP,
   AO.DARK_STRIDE,
-  AO.EMMETT_CITY_PARK,
   AO.GEM,
   AO.IRON_MOUNTAIN,
   AO.OLD_GLORY,

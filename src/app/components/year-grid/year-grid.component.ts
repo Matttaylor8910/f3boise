@@ -249,6 +249,8 @@ export class YearGridComponent implements OnInit {
         return '#16A085';
       case AO.BERNIE_FISHER:
         return '#720374';
+      case AO.BLACK_CANYON:
+        return '#3067e6';
       case AO.BLACK_DIAMOND:
       case AO.BLACK_OPS:
         return '#000000';
@@ -262,8 +264,6 @@ export class YearGridComponent implements OnInit {
         return '#3C6F19 ';
       case AO.DARK_STRIDE:
         return '#E75293';
-      case AO.EMMETT_CITY_PARK:
-        return '#3067e6';
       case AO.GEM:
         return '#3498DB';
       case AO.GOOSE_DYNASTY:
