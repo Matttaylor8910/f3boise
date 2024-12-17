@@ -1,5 +1,7 @@
-import {NgModule} from '@angular/core';
+import {Component, NgModule} from '@angular/core';
 import {PreloadAllModules, RouterModule, Routes} from '@angular/router';
+
+import {LuckyGuard} from './guards/lucky.guard';
 
 const routes: Routes = [
   {
@@ -52,8 +54,9 @@ const routes: Routes = [
   },
   {
     path: 'backblasts/:id',
-    loadChildren: () => import('./pages/backblast-detail/backblast-detail.module')
-                            .then( m => m.BackblastDetailPageModule)
+    loadChildren: () =>
+        import('./pages/backblast-detail/backblast-detail.module')
+            .then(m => m.BackblastDetailPageModule)
   },
   {
     path: 'calendar',
@@ -70,6 +73,11 @@ const routes: Routes = [
     loadChildren: () => import('./pages/family-tree/family-tree.module')
                             .then(m => m.FamilyTreePageModule)
   },
+  {
+    path: 'lucky',
+    component: Component,
+    canActivate: [LuckyGuard],
+  }
 ];
 
 // fallback to home, must be the last route in this list

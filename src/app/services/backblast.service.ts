@@ -1,4 +1,5 @@
 import {Injectable} from '@angular/core';
+import {Router} from '@angular/router';
 import {Backblast, BBType} from 'types';
 
 import {BASE_URL, HIGH_DESERT_AOS, REGION, SETTLERS_AOS} from '../../../constants';
@@ -16,6 +17,7 @@ export class BackblastService {
   constructor(
       private readonly http: HttpService,
       private readonly utilService: UtilService,
+      private readonly router: Router,
   ) {
     this.loadAllData(BBType.BACKBLAST);
     this.loadAllData(BBType.DOUBLEDOWN);
@@ -76,6 +78,23 @@ export class BackblastService {
     const url = `${BASE_URL}/back_blasts/single/${id}`;
     const backblast = await this.http.get(url) as Backblast;
     return backblast;
+  }
+
+  async goToRandomBackblast() {
+    // get and shuffle all backblasts
+    const all = await this.getAllData();
+    this.utilService.shuffleArray(all);
+
+    // then find the first that has a moleskine and route there
+    let randomId = '';
+    for (const backblast of all) {
+      const single = await this.getBackblast(backblast.id);
+      if (single.moleskine && !single.ao.includes('Ruck')) {
+        randomId = single.id;
+        break;
+      }
+    }
+    this.router.navigateByUrl(`/backblasts/${randomId}`);
   }
 
   private getRoute(type: BBType) {

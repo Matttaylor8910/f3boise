@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute} from '@angular/router';
 import {marked} from 'marked';
 import {BackblastService} from 'src/app/services/backblast.service';
 import {UtilService} from 'src/app/services/util.service';
@@ -18,7 +18,6 @@ export class BackblastDetailPage implements OnInit {
   constructor(
       public readonly utilService: UtilService,
       private readonly route: ActivatedRoute,
-      private readonly router: Router,
       private readonly backblastService: BackblastService,
       private readonly domSanitizer: DomSanitizer,
   ) {
@@ -42,20 +41,7 @@ export class BackblastDetailPage implements OnInit {
     return this.utilService.normalizeName(this.backblast?.ao);
   }
 
-  async goToRandomBackblast() {
-    // get and shuffle all backblasts
-    const all = await this.backblastService.getAllData();
-    this.utilService.shuffleArray(all);
-
-    // then find the first that has a moleskine and route there
-    let randomId = '';
-    for (const backblast of all) {
-      const single = await this.backblastService.getBackblast(backblast.id);
-      if (single.moleskine && !single.ao.includes('Ruck')) {
-        randomId = single.id;
-        break;
-      }
-    }
-    this.router.navigateByUrl(`/backblasts/${randomId}`);
+  goToRandomBackblast() {
+    this.backblastService.goToRandomBackblast();
   }
 }
