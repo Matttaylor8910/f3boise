@@ -7,7 +7,7 @@ import {BASE_URL, HIGH_DESERT_AOS, REGION, SETTLERS_AOS} from '../../../constant
 import {HttpService} from './http.service';
 import {UtilService} from './util.service';
 
-const DD_START_DATE = '2021-01-01';  // const DD_START_DATE = '2023-07-09';
+const DD_START_DATE = '2024-10-05';
 
 @Injectable({providedIn: 'root'})
 export class BackblastService {
