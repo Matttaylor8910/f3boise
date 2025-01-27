@@ -12,11 +12,11 @@ export enum REGION {
 export enum AO {
   // east
   BACKYARD = 'backyard',
-  BERNIE_FISHER = 'bernie fisher',
   BLEACH = 'bleach',
   CAMELS_BACK = 'camels back',
   CAPITOL = 'capitol',
   GOOSE_DYNASTY = 'goose dynasty',
+  INTERCEPTOR = 'interceptor',
   REBEL = 'rebel',
   RISE = 'rise',
   RUCKERSHIP_EAST = 'ruckership east',
@@ -41,11 +41,11 @@ export enum AO {
 
 export const HIGH_DESERT_AOS = new Set<string>([
   AO.BACKYARD,
-  AO.BERNIE_FISHER,
   AO.BLEACH,
   AO.CAMELS_BACK,
   AO.CAPITOL,
   AO.GOOSE_DYNASTY,
+  AO.INTERCEPTOR,
   AO.REBEL,
   AO.RISE,
   AO.RUCKERSHIP_EAST,
