@@ -1,0 +1,35 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Exicon</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Search bar -->
+  <ion-searchbar
+    (ionInput)="filterList($event)"
+    placeholder="Search"
+  ></ion-searchbar>
+
+  <!-- Simple responsive table using Ionic Grid -->
+  <ion-grid>
+    <ion-row class="header-row">
+      <ion-col size="3"><strong>Title</strong></ion-col>
+      <ion-col size="6"><strong>Description</strong></ion-col>
+      <ion-col size="3"><strong>Categories</strong></ion-col>
+    </ion-row>
+    <ion-row *ngFor="let exercise of filteredExercises">
+      <ion-col size="3">
+        {{ exercise.title }}
+      </ion-col>
+      <ion-col size="6">
+        {{ exercise.description }}
+      </ion-col>
+      <ion-col size="3">
+        <ion-chip *ngFor="let cat of exercise.categories" color="primary">
+          {{ cat.label }}
+        </ion-chip>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>

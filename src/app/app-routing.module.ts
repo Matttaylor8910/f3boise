@@ -77,6 +77,10 @@ const routes: Routes = [
     path: 'lucky',
     component: Component,
     canActivate: [LuckyGuard],
+  },
+  {
+    path: 'exicon',
+    loadChildren: () => import('./pages/exicon/exicon.module').then( m => m.ExiconPageModule)
   }
 ];
 
