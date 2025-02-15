@@ -5,20 +5,18 @@
 </ion-header>
 
 <ion-content>
-  <!-- Search bar -->
   <ion-searchbar
     (ionInput)="filterList($event)"
     placeholder="Search"
   ></ion-searchbar>
 
-  <!-- Simple responsive table using Ionic Grid -->
   <ion-grid>
     <ion-row class="header-row">
       <ion-col size="3"><strong>Title</strong></ion-col>
       <ion-col size="6"><strong>Description</strong></ion-col>
       <ion-col size="3"><strong>Categories</strong></ion-col>
     </ion-row>
-    <ion-row *ngFor="let exercise of filteredExercises">
+    <ion-row *ngFor="let exercise of displayedExercises">
       <ion-col size="3">
         {{ exercise.title }}
       </ion-col>
@@ -32,4 +30,16 @@
       </ion-col>
     </ion-row>
   </ion-grid>
+
+  <!-- Infinite Scroll -->
+  <ion-infinite-scroll
+    threshold="100px"
+    (ionInfinite)="loadMore($event)"
+  >
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Loading more..."
+    ></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
 </ion-content>
