@@ -2,15 +2,16 @@
   <ion-toolbar>
     <ion-title>Exicon</ion-title>
   </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      mode="ios"
+      (ionInput)="onSearch($event)"
+      placeholder="Search"
+    ></ion-searchbar>
+  </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <!-- Search bar -->
-  <ion-searchbar
-    (ionInput)="onSearch($event)"
-    placeholder="Search"
-  ></ion-searchbar>
-
   <!-- Active category filters -->
   <div *ngIf="selectedCategories.length > 0">
     <ion-chip *ngFor="let category of selectedCategories">
