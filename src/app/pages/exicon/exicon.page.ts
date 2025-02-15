@@ -63,11 +63,12 @@ export class ExiconPage implements OnInit {
   currentIndex = 0;
 
   ngOnInit() {
-    this.allExercises = exiconData.blogPosts.sort((a, b) => {
-      return a.title.localeCompare(b.title);
-    });
+    const exercises = this.deduplicateExercises(exiconData.blogPosts);
+    const sorted = exercises.sort((a, b) => a.title.localeCompare(b.title));
+    this.allExercises = sorted;
     this.applyAllFilters();
   }
+
 
   // Called whenever the user types in the search bar
   onSearch(event: any) {
@@ -140,5 +141,43 @@ export class ExiconPage implements OnInit {
     if (this.currentIndex >= this.filteredExercises.length) {
       event.target.disabled = true;
     }
+  }
+
+  private deduplicateExercises(posts: ExiconBlogPost[]): ExiconBlogPost[] {
+    const map = new Map<string, ExiconBlogPost>();
+
+    for (const post of posts) {
+      const key = post.title.toLowerCase();
+      const existing = map.get(key);
+
+      if (!existing) {
+        map.set(key, post);
+      } else {
+        // Pick whichever has the longer description
+        if ((post.description?.length || 0) >
+            (existing.description?.length || 0)) {
+          // Combine categories
+          post.categories =
+              this.mergeCategories(existing.categories, post.categories);
+          map.set(key, post);
+        } else {
+          existing.categories =
+              this.mergeCategories(existing.categories, post.categories);
+        }
+      }
+    }
+    return Array.from(map.values());
+  }
+
+  private mergeCategories(c1: ExiconCategory[], c2: ExiconCategory[]):
+      ExiconCategory[] {
+    const merged = [...c1];
+    for (const cat of c2) {
+      if (!merged.some(
+              x => x.label.toLowerCase() === cat.label.toLowerCase())) {
+        merged.push(cat);
+      }
+    }
+    return merged;
   }
 }
