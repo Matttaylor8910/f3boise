@@ -13,7 +13,7 @@
 
 <ion-content>
   <!-- Active category filters -->
-  <div *ngIf="selectedCategories.length > 0">
+  <div class="filters" *ngIf="selectedCategories.length > 0">
     <ion-chip *ngFor="let category of selectedCategories">
       <!-- <ion-icon name="pin" color="primary"></ion-icon> -->
       <ion-label>{{ category }}</ion-label>
@@ -22,7 +22,7 @@
   </div>
 
   <!-- Table -->
-  <ion-grid>
+  <ion-grid class="desktop">
     <ion-row class="header-row">
       <ion-col size="3"><strong>Title</strong></ion-col>
       <ion-col size="6"><strong>Description</strong></ion-col>
@@ -46,6 +46,24 @@
       </ion-col>
     </ion-row>
   </ion-grid>
+
+  <ion-list class="mobile">
+    <ion-item lines="none" *ngFor="let exercise of displayedExercises">
+      <ion-label class="ion-text-wrap">
+        <h2>{{ exercise.title }}</h2>
+        <p>{{ exercise.description }}</p>
+        <div>
+          <ion-chip
+            *ngFor="let cat of exercise.categories"
+            (click)="addCategory(cat.label)"
+            color="primary"
+          >
+            {{ cat.label }}
+          </ion-chip>
+        </div>
+      </ion-label>
+    </ion-item>
+  </ion-list>
 
   <!-- Infinite Scroll -->
   <ion-infinite-scroll

@@ -1,0 +1,50 @@
+ion-content {
+  --padding-start: 16px;
+  --padding-end: 16px;
+
+  .filters {
+    margin-top: 12px;
+  }
+
+  .desktop {
+    display: none;
+    padding: 16px;
+  }
+
+  .mobile {
+    display: initial;
+
+    ion-item {
+      --padding-start: 8px;
+      --padding-end: 8px;
+      margin: 4px 0;
+    }
+
+    ion-chip {
+      margin: 2px;
+    }
+
+    ion-label h2 {
+      font-size: 1rem;
+      margin-bottom: 0.2rem;
+      font-weight: bold;
+    }
+
+    ion-label p {
+      font-size: 0.9rem;
+      margin-bottom: 0.4rem;
+    }
+  }
+}
+
+// For screens >= 768px: true table layout
+@media (min-width: 768px) {
+  ion-content {
+    .desktop {
+      display: initial;
+    }
+    .mobile {
+      display: none;
+    }
+  }
+}
