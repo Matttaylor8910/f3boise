@@ -5,11 +5,22 @@
 </ion-header>
 
 <ion-content>
+  <!-- Search bar -->
   <ion-searchbar
-    (ionInput)="filterList($event)"
+    (ionInput)="onSearch($event)"
     placeholder="Search"
   ></ion-searchbar>
 
+  <!-- Active category filters -->
+  <div *ngIf="selectedCategories.length > 0">
+    <ion-chip *ngFor="let category of selectedCategories">
+      <!-- <ion-icon name="pin" color="primary"></ion-icon> -->
+      <ion-label>{{ category }}</ion-label>
+      <ion-icon name="close" (click)="removeCategory(category)"></ion-icon>
+    </ion-chip>
+  </div>
+
+  <!-- Table -->
   <ion-grid>
     <ion-row class="header-row">
       <ion-col size="3"><strong>Title</strong></ion-col>
@@ -24,7 +35,11 @@
         {{ exercise.description }}
       </ion-col>
       <ion-col size="3">
-        <ion-chip *ngFor="let cat of exercise.categories" color="primary">
+        <ion-chip
+          color="primary"
+          *ngFor="let cat of exercise.categories"
+          (click)="addCategory(cat.label)"
+        >
           {{ cat.label }}
         </ion-chip>
       </ion-col>
@@ -41,5 +56,4 @@
       loadingText="Loading more..."
     ></ion-infinite-scroll-content>
   </ion-infinite-scroll>
-
 </ion-content>

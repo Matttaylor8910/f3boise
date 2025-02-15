@@ -1,4 +1,6 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
+import {IonInfiniteScroll} from '@ionic/angular';
+
 const exiconData = require('../../../assets/exicon.json') as ExiconData;
 
 export interface ExiconCategory {
@@ -42,60 +44,99 @@ export interface ExiconData {
   blogPosts: ExiconBlogPost[];
 }
 
-
 @Component({
   selector: 'app-exicon',
   templateUrl: './exicon.page.html',
   styleUrls: ['./exicon.page.scss'],
 })
 export class ExiconPage implements OnInit {
-  private allExercises: any[] = [];
-  public filteredExercises: any[] = [];
-  public displayedExercises: any[] = [];
+  @ViewChild(IonInfiniteScroll) infiniteScroll: IonInfiniteScroll|undefined;
 
-  private pageSize = 50;
-  private currentIndex = 0;
+  allExercises: any[] = [];        // Full data
+  filteredExercises: any[] = [];   // After applying search + category filters
+  displayedExercises: any[] = [];  // The current chunk shown in the table
+
+  selectedCategories: string[] = [];
+  searchQuery = '';
+
+  pageSize = 50;
+  currentIndex = 0;
 
   ngOnInit() {
     this.allExercises = exiconData.blogPosts.sort((a, b) => {
       return a.title.localeCompare(b.title);
     });
-    this.filteredExercises = [...this.allExercises];
-    this.loadInitial();
+    this.applyAllFilters();
   }
 
-  loadInitial() {
-    this.currentIndex = 0;
-    this.displayedExercises =
-        this.filteredExercises.slice(this.currentIndex, this.pageSize);
-    this.currentIndex = this.pageSize;
+  // Called whenever the user types in the search bar
+  onSearch(event: any) {
+    this.searchQuery = (event.target.value || '').toLowerCase().trim();
+    this.applyAllFilters();
   }
 
-  filterList(event: any) {
-    const query = event.target.value?.toLowerCase() || '';
-    if (!query) {
-      this.filteredExercises = [...this.allExercises];
-    } else {
-      this.filteredExercises = this.allExercises.filter(
-          ex => ex.title.toLowerCase().includes(query) ||
-              ex.description.toLowerCase().includes(query) ||
-              ex.categories.some(
-                  (c: any) => c.label.toLowerCase().includes(query)));
+  addCategory(label: string) {
+    // Add the clicked category label to our filters if not already selected
+    if (!this.selectedCategories.includes(label)) {
+      this.selectedCategories.push(label);
     }
-    this.loadInitial();
+    this.applyAllFilters();
   }
 
-  loadMore(event: any) {
-    // Load next chunk
+  removeCategory(label: string) {
+    this.selectedCategories =
+        this.selectedCategories.filter(cat => cat !== label);
+    this.applyAllFilters();
+  }
+
+  // Consolidated function to apply text + category filters,
+  // then reset the infinite scroll to show the first chunk.
+  applyAllFilters() {
+    // 1. Filter by search text
+    let temp = this.searchQuery ?
+        this.allExercises.filter(
+            ex => ex.title.toLowerCase().includes(this.searchQuery) ||
+                ex.description.toLowerCase().includes(this.searchQuery) ||
+                ex.categories.some(
+                    (c: any) =>
+                        c.label.toLowerCase().includes(this.searchQuery))) :
+        [...this.allExercises];
+
+    // 2. Filter by selected categories
+    if (this.selectedCategories.length > 0) {
+      temp = temp.filter(
+          exercise => exercise.categories.some(
+              (c: any) => this.selectedCategories.includes(c.label)));
+    }
+
+    this.filteredExercises = temp;
+    this.resetAndLoad();
+  }
+
+  // Reset and load first chunk
+  resetAndLoad() {
+    if (this.infiniteScroll) {
+      this.infiniteScroll.disabled = false;
+    }
+    this.displayedExercises = [];
+    this.currentIndex = 0;
+    this.loadNextChunk();
+  }
+
+  // Load the next chunk of exercises
+  loadNextChunk() {
     const nextChunk = this.filteredExercises.slice(
         this.currentIndex, this.currentIndex + this.pageSize);
     this.displayedExercises = [...this.displayedExercises, ...nextChunk];
     this.currentIndex += this.pageSize;
+  }
 
-    // Complete infinite scroll
+  // Triggered by Ion Infinite Scroll
+  loadMore(event: any) {
+    this.loadNextChunk();
     event.target.complete();
 
-    // If we've loaded all items, disable the infinite scroll
+    // Disable the infinite scroll if we've loaded everything
     if (this.currentIndex >= this.filteredExercises.length) {
       event.target.disabled = true;
     }
