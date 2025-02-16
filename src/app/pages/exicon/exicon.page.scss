@@ -1,14 +1,26 @@
-ion-content {
-  --padding-start: 16px;
-  --padding-end: 16px;
+.filters {
+  padding: 0 12px;
+  margin-top: -12px;
+  overflow-x: scroll;
+  white-space: nowrap;
+}
 
-  .filters {
-    margin-top: 12px;
-  }
+ion-content {
+  --padding-start: 12px;
+  --padding-end: 12px;
 
   .desktop {
     display: none;
-    padding: 16px;
+
+    ion-row {
+      border-bottom: 1px solid #efefef;
+    }
+
+    ion-col {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+    }
   }
 
   .mobile {
@@ -18,11 +30,6 @@ ion-content {
       --padding-start: 8px;
       --padding-end: 8px;
       margin: 4px 0;
-    }
-
-    ion-chip {
-      margin: 2px;
-      display: inline-block;
     }
 
     ion-label h2 {
@@ -35,6 +42,14 @@ ion-content {
       font-size: 0.9rem;
       margin-bottom: 0.4rem;
     }
+  }
+
+  ion-chip {
+    margin: 2px;
+    display: inline-block;
+    text-transform: capitalize;
+    line-height: 18px;
+    padding: 8px 12px;
   }
 }
 

@@ -9,17 +9,17 @@
       placeholder="Search"
     ></ion-searchbar>
   </ion-toolbar>
+  <ion-toolbar *ngIf="selectedCategories.length > 0">
+    <div class="filters">
+      <ion-chip *ngFor="let category of selectedCategories">
+        <ion-label>{{ category }}</ion-label>
+        <ion-icon name="close" (click)="removeCategory(category)"></ion-icon>
+      </ion-chip>
+    </div>
+  </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <!-- Active category filters -->
-  <div class="filters" *ngIf="selectedCategories.length > 0">
-    <ion-chip *ngFor="let category of selectedCategories">
-      <!-- <ion-icon name="pin" color="primary"></ion-icon> -->
-      <ion-label>{{ category }}</ion-label>
-      <ion-icon name="close" (click)="removeCategory(category)"></ion-icon>
-    </ion-chip>
-  </div>
 
   <!-- Table -->
   <ion-grid class="desktop">
@@ -48,7 +48,7 @@
   </ion-grid>
 
   <ion-list class="mobile">
-    <ion-item lines="none" *ngFor="let exercise of displayedExercises">
+    <ion-item *ngFor="let exercise of displayedExercises">
       <ion-label class="ion-text-wrap">
         <h2>{{ exercise.title }}</h2>
         <p>{{ exercise.description }}</p>
