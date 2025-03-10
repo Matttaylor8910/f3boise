@@ -256,7 +256,7 @@ export class YearGridComponent implements OnInit {
         return '#8FFF5A';
       case AO.CAMELS_BACK:
         return '#FFDD33 ';
-      case AO.CAPITOL:
+      case AO.LIBERTY:
         return '#1e0697';
       case AO.COOP:
         return '#3C6F19 ';

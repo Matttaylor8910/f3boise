@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {Router} from '@angular/router';
 import {Backblast, BBType} from 'types';
 
-import {BASE_URL, HIGH_DESERT_AOS, REGION, SETTLERS_AOS} from '../../../constants';
+import {BASE_URL, CITY_OF_TREES_AOS, HIGH_DESERT_AOS, REGION, SETTLERS_AOS} from '../../../constants';
 
 import {HttpService} from './http.service';
 import {UtilService} from './util.service';
@@ -55,12 +55,16 @@ export class BackblastService {
     return data.filter(backblast => {
       const backblastAo = backblast.ao.toLowerCase();
 
-      // check region names
-      if (name === REGION.HIGH_DESERT) return HIGH_DESERT_AOS.has(backblastAo);
-      if (name === REGION.SETTLERS) return SETTLERS_AOS.has(backblastAo);
-
-      // otherwise consider the ao name
-      return backblastAo === name.toLowerCase();
+      switch (name) {
+        case REGION.CITY_OF_TREES:
+          return CITY_OF_TREES_AOS.has(backblastAo);
+        case REGION.HIGH_DESERT:
+          return HIGH_DESERT_AOS.has(backblastAo);
+        case REGION.SETTLERS:
+          return SETTLERS_AOS.has(backblastAo);
+        default:
+          return backblastAo === name.toLowerCase();
+      }
     });
   }
 
