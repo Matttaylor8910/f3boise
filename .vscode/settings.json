@@ -13,5 +13,6 @@
     "**README**": true,
   },
   "editor.defaultFormatter": "xaver.clang-format",
-  "files.trimTrailingWhitespace": true
+  "files.trimTrailingWhitespace": true,
+  "window.autoDetectColorScheme": true
 }

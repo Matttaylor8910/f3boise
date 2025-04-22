@@ -80,7 +80,13 @@ const routes: Routes = [
   },
   {
     path: 'exicon',
-    loadChildren: () => import('./pages/exicon/exicon.module').then( m => m.ExiconPageModule)
+    loadChildren: () =>
+        import('./pages/exicon/exicon.module').then(m => m.ExiconPageModule)
+  },
+  {
+    path: 'survivor',
+    loadChildren: () => import('./pages/survivor/survivor.module')
+                            .then(m => m.SurvivorPageModule)
   }
 ];
 
