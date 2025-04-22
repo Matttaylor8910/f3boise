@@ -108,10 +108,10 @@ export class SurvivorGridComponent implements OnChanges, OnInit {
       console.log('Workout:', workout.name, 'Days:', workoutDays);
       workoutDays.forEach(day => {
         const dayIndex = this.dayNames.indexOf(day);
-        const key = `${workout.id}-${dayIndex}`;
+        const key = `${workout.name}-${
+            dayIndex}`;  // Use name instead of id for matching
         console.log(
-            'Adding workout:',
-            {key, id: workout.id, name: workout.name, day, dayIndex});
+            'Adding workout:', {key, name: workout.name, day, dayIndex});
         aosByDay.set(key, {ao: workout.name, id: workout.id, day: dayIndex});
       });
     });
@@ -131,30 +131,12 @@ export class SurvivorGridComponent implements OnChanges, OnInit {
     const endDate = new Date('2025-12-31');
     this.weekDates = this.getWeekDates(startDate, endDate);
 
-    // Create grid data
+    // Create grid data with empty Q slots
     this.gridData = sortedAosByDay.map(({ao, id, day}) => {
       const weekData = this.weekDates.map(weekStart => {
-        // Get the specific day in this week by adding the dayOfWeek number
         const targetDate = new Date(weekStart);
         targetDate.setDate(targetDate.getDate() + day);
-
-        // Find Q for this specific day
-        const qForDay = this.qLineUps.find(q => {
-          // Parse the date string correctly
-          const [year, month, day] = q.date.split('-').map(Number);
-          const qDate =
-              new Date(year, month - 1, day);  // month is 0-based in JS Date
-
-          const matches = q.ao === id && this.isSameDay(qDate, targetDate);
-          if (matches) {
-            console.log(
-                'Found Q match:',
-                {ao, id, qAo: q.ao, qDate, targetDate, qs: q.qs});
-          }
-          return matches;
-        });
-
-        return {date: targetDate.toISOString(), q: qForDay?.qs?.[0] || null};
+        return {date: targetDate.toISOString(), q: null};
       });
 
       return {
@@ -164,6 +146,42 @@ export class SurvivorGridComponent implements OnChanges, OnInit {
         dayOfWeek: day,
         weekData
       };
+    });
+
+    // Process Q lineups and place them in the grid
+    this.qLineUps.forEach(q => {
+      if (!q.qs || q.qs.length === 0) return;  // Skip empty Q slots
+
+      // Parse the date
+      const qDate = new Date(q.date);
+      console.log(
+          'Processing Q:',
+          {ao: q.ao, date: q.date, parsedDate: qDate, qs: q.qs});
+
+      // Find the row that matches this Q's AO
+      const rowIndex = this.gridData.findIndex(
+          row => this.utilService.normalizeName(row.ao) ===
+              this.utilService.normalizeName(q.ao));
+
+      if (rowIndex === -1) {
+        console.log('No matching row found for AO:', q.ao);
+        return;
+      }
+
+      // Find the week that matches this Q's date
+      const weekIndex = this.gridData[rowIndex].weekData.findIndex(
+          week => this.isSameDay(new Date(week.date), qDate));
+
+      if (weekIndex === -1) {
+        console.log('No matching week found for date:', q.date);
+        return;
+      }
+
+      // Place the Q
+      console.log(
+          'Placing Q:',
+          {ao: q.ao, date: q.date, rowIndex, weekIndex, q: q.qs[0]});
+      this.gridData[rowIndex].weekData[weekIndex].q = q.qs[0];
     });
 
     console.log('Final grid data:', this.gridData);
