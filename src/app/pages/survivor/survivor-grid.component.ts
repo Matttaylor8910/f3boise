@@ -97,7 +97,8 @@ export class SurvivorGridComponent implements OnChanges, OnInit {
   }
 
   private processQLineUps() {
-    console.log('Processing Q lineups:', this.qLineUps);
+    console.log('Starting processQLineUps');
+    console.log('Q lineups:', this.qLineUps);
     console.log('Workouts:', this.workouts);
 
     // Get AO + day of week combinations from workouts
@@ -105,14 +106,15 @@ export class SurvivorGridComponent implements OnChanges, OnInit {
 
     this.workouts.forEach(workout => {
       const workoutDays = Object.keys(workout.workout_dates);
-      console.log('Workout:', workout.name, 'Days:', workoutDays);
+      console.log(
+          'Processing workout:',
+          {name: workout.name, id: workout.id, days: workoutDays});
+
       workoutDays.forEach(day => {
         const dayIndex = this.dayNames.indexOf(day);
-        const key = `${workout.name}-${
-            dayIndex}`;  // Use name instead of id for matching
-        console.log(
-            'Adding workout:', {key, name: workout.name, day, dayIndex});
-        aosByDay.set(key, {ao: workout.name, id: workout.id, day: dayIndex});
+        aosByDay.set(
+            `${workout.name}-${dayIndex}`,
+            {ao: workout.name, id: workout.id, day: dayIndex});
       });
     });
 
@@ -123,8 +125,6 @@ export class SurvivorGridComponent implements OnChanges, OnInit {
       }
       return a.ao.localeCompare(b.ao);
     });
-
-    console.log('Sorted AOs by day:', sortedAosByDay);
 
     // Get unique weeks starting from first Sunday
     const startDate = new Date('2025-05-04');  // First Sunday
@@ -148,53 +148,41 @@ export class SurvivorGridComponent implements OnChanges, OnInit {
       };
     });
 
-    // Process Q lineups and place them in the grid
+    // Now process each Q lineup
     this.qLineUps.forEach(q => {
-      if (!q.qs || q.qs.length === 0) return;  // Skip empty Q slots
+      if (!q.qs || q.qs.length === 0) {
+        return;
+      }
 
-      // Parse the date
-      const qDate = new Date(q.date);
-      console.log(
-          'Processing Q:',
-          {ao: q.ao, date: q.date, parsedDate: qDate, qs: q.qs});
+      console.log('Processing Q lineup:', {ao: q.ao, date: q.date, qs: q.qs});
 
-      // Find the row that matches this Q's AO
-      const rowIndex = this.gridData.findIndex(
-          row => this.utilService.normalizeName(row.ao) ===
+      // Find the matching row
+      const row = this.gridData.find(
+          r => this.utilService.normalizeName(r.ao) ===
               this.utilService.normalizeName(q.ao));
 
-      if (rowIndex === -1) {
-        console.log('No matching row found for AO:', q.ao);
+      if (!row) {
         return;
       }
 
-      // Find the week that matches this Q's date
-      const weekIndex = this.gridData[rowIndex].weekData.findIndex(
-          week => this.isSameDay(new Date(week.date), qDate));
+      // Find the matching date in the row's weekData
+      const qDate = new Date(q.date);
+      const cellIndex = row.weekData.findIndex(
+          cell => this.isSameDay(new Date(cell.date), qDate));
 
-      if (weekIndex === -1) {
-        console.log('No matching week found for date:', q.date);
+      if (cellIndex === -1) {
         return;
       }
 
-      // Place the Q
-      console.log(
-          'Placing Q:',
-          {ao: q.ao, date: q.date, rowIndex, weekIndex, q: q.qs[0]});
-      this.gridData[rowIndex].weekData[weekIndex].q = q.qs[0];
+      // Set the Q
+      row.weekData[cellIndex].q = q.qs[0];
     });
-
-    console.log('Final grid data:', this.gridData);
   }
 
   private isSameDay(date1: Date, date2: Date): boolean {
     const matches = date1.getFullYear() === date2.getFullYear() &&
         date1.getMonth() === date2.getMonth() &&
         date1.getDate() === date2.getDate();
-
-    if (matches) {
-      console.log('Date match:', {date1, date2});
-    }
     return matches;
   }
 
