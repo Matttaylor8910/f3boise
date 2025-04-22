@@ -1,11 +1,13 @@
 import {Component, Input, OnChanges, OnInit} from '@angular/core';
 import {QLineUp, Workout} from 'types';
 
+import {UtilService} from '../../services/util.service';
 import {WorkoutService} from '../../services/workout.service';
 
 interface GridData {
   aoWithDay: string;  // e.g. "Bellagio (Tue)"
   ao: string;         // e.g. "Bellagio"
+  id: string;         // e.g. "bellagio" - used for matching with Q data
   dayOfWeek: number;  // 0-6, where 0 is Sunday
   weekData: {
     date: string; q: string | null;  // Single Q name or null
@@ -77,7 +79,9 @@ export class SurvivorGridComponent implements OnChanges, OnInit {
 
   private readonly dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  constructor(private readonly workoutService: WorkoutService) {}
+  constructor(
+      private readonly workoutService: WorkoutService,
+      private readonly utilService: UtilService) {}
 
   async ngOnInit() {
     this.workouts = await this.workoutService.getAllData();
@@ -93,15 +97,22 @@ export class SurvivorGridComponent implements OnChanges, OnInit {
   }
 
   private processQLineUps() {
+    console.log('Processing Q lineups:', this.qLineUps);
+    console.log('Workouts:', this.workouts);
+
     // Get AO + day of week combinations from workouts
-    const aosByDay = new Map<string, {ao: string, day: number}>();
+    const aosByDay = new Map<string, {ao: string, id: string, day: number}>();
 
     this.workouts.forEach(workout => {
       const workoutDays = Object.keys(workout.workout_dates);
+      console.log('Workout:', workout.name, 'Days:', workoutDays);
       workoutDays.forEach(day => {
         const dayIndex = this.dayNames.indexOf(day);
-        const key = `${workout.name}-${dayIndex}`;
-        aosByDay.set(key, {ao: workout.name, day: dayIndex});
+        const key = `${workout.id}-${dayIndex}`;
+        console.log(
+            'Adding workout:',
+            {key, id: workout.id, name: workout.name, day, dayIndex});
+        aosByDay.set(key, {ao: workout.name, id: workout.id, day: dayIndex});
       });
     });
 
@@ -113,26 +124,34 @@ export class SurvivorGridComponent implements OnChanges, OnInit {
       return a.ao.localeCompare(b.ao);
     });
 
-    // Get unique weeks starting from first Monday
-    const startDate = new Date('2025-05-05');  // First Monday
+    console.log('Sorted AOs by day:', sortedAosByDay);
+
+    // Get unique weeks starting from first Sunday
+    const startDate = new Date('2025-05-04');  // First Sunday
     const endDate = new Date('2025-12-31');
     this.weekDates = this.getWeekDates(startDate, endDate);
 
     // Create grid data
-    this.gridData = sortedAosByDay.map(({ao, day}) => {
+    this.gridData = sortedAosByDay.map(({ao, id, day}) => {
       const weekData = this.weekDates.map(weekStart => {
-        // Get the specific day in this week
+        // Get the specific day in this week by adding the dayOfWeek number
         const targetDate = new Date(weekStart);
-        targetDate.setDate(
-            targetDate.getDate() + ((7 + day - weekStart.getDay()) % 7));
+        targetDate.setDate(targetDate.getDate() + day);
 
         // Find Q for this specific day
         const qForDay = this.qLineUps.find(q => {
-          const qDate = new Date(q.date);
-          return q.ao.toLowerCase() === ao.toLowerCase() &&
-              qDate.getFullYear() === targetDate.getFullYear() &&
-              qDate.getMonth() === targetDate.getMonth() &&
-              qDate.getDate() === targetDate.getDate();
+          // Parse the date string correctly
+          const [year, month, day] = q.date.split('-').map(Number);
+          const qDate =
+              new Date(year, month - 1, day);  // month is 0-based in JS Date
+
+          const matches = q.ao === id && this.isSameDay(qDate, targetDate);
+          if (matches) {
+            console.log(
+                'Found Q match:',
+                {ao, id, qAo: q.ao, qDate, targetDate, qs: q.qs});
+          }
+          return matches;
         });
 
         return {date: targetDate.toISOString(), q: qForDay?.qs?.[0] || null};
@@ -141,10 +160,24 @@ export class SurvivorGridComponent implements OnChanges, OnInit {
       return {
         aoWithDay: `${ao} (${this.dayNames[day]})`,
         ao,
+        id,
         dayOfWeek: day,
         weekData
       };
     });
+
+    console.log('Final grid data:', this.gridData);
+  }
+
+  private isSameDay(date1: Date, date2: Date): boolean {
+    const matches = date1.getFullYear() === date2.getFullYear() &&
+        date1.getMonth() === date2.getMonth() &&
+        date1.getDate() === date2.getDate();
+
+    if (matches) {
+      console.log('Date match:', {date1, date2});
+    }
+    return matches;
   }
 
   private getWeekDates(start: Date, end: Date): Date[] {
