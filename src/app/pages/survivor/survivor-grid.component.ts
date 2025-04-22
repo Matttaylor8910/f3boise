@@ -7,10 +7,11 @@ import {WorkoutService} from '../../services/workout.service';
 interface GridData {
   aoWithDay: string;  // e.g. "Bellagio (Tue)"
   ao: string;         // e.g. "Bellagio"
-  id: string;         // e.g. "bellagio" - used for matching with Q data
+  id: string;         // e.g. "bellagio"
   dayOfWeek: number;  // 0-6, where 0 is Sunday
   weekData: {
-    date: string; q: string | null;  // Single Q name or null
+    date: string,
+    q: string|null,  // Q name(s) or null
   }[];
 }
 
@@ -103,6 +104,7 @@ export class SurvivorGridComponent implements OnChanges, OnInit {
 
     this.workouts.forEach(workout => {
       const workoutDays = Object.keys(workout.workout_dates);
+
       workoutDays.forEach(day => {
         const dayIndex = this.dayNames.indexOf(day);
         aosByDay.set(
@@ -119,18 +121,16 @@ export class SurvivorGridComponent implements OnChanges, OnInit {
       return a.ao.localeCompare(b.ao);
     });
 
-    // Get unique weeks starting from first Monday
-    const startDate = new Date('2025-05-05');  // First Monday
+    // Get unique weeks starting from first Sunday
+    const startDate = new Date('2025-05-04');  // First Sunday
     const endDate = new Date('2025-12-31');
     this.weekDates = this.getWeekDates(startDate, endDate);
 
     // Create grid data with empty Q slots
     this.gridData = sortedAosByDay.map(({ao, id, day}) => {
-      const weekData = this.weekDates.map(mondayDate => {
-        // Calculate the target date for this AO's day of week
-        const targetDate = new Date(mondayDate);
-        const daysToAdd = (day - 1 + 7) % 7;  // Relative to Monday (1)
-        targetDate.setDate(targetDate.getDate() + daysToAdd);
+      const weekData = this.weekDates.map(weekStart => {
+        const targetDate = new Date(weekStart);
+        targetDate.setDate(targetDate.getDate() + day);
         return {date: targetDate.toISOString(), q: null};
       });
 
@@ -143,27 +143,41 @@ export class SurvivorGridComponent implements OnChanges, OnInit {
       };
     });
 
-    // Process Q lineups and place them in the grid
+    // Now process each Q lineup
     this.qLineUps.forEach(q => {
-      if (!q.qs || q.qs.length === 0) return;
+      if (!q.qs || q.qs.length === 0) {
+        return;
+      }
 
       // Find the matching row
       const row = this.gridData.find(
           r => this.utilService.normalizeName(r.ao) ===
               this.utilService.normalizeName(q.ao));
 
-      if (!row) return;
+      if (!row) {
+        return;
+      }
 
       // Find the matching date in the row's weekData
       const qDate = new Date(q.date);
       const cellIndex = row.weekData.findIndex(
           cell => this.isSameDay(new Date(cell.date), qDate));
 
-      if (cellIndex === -1) return;
+      if (cellIndex === -1) {
+        return;
+      }
 
       // Set the Q
-      row.weekData[cellIndex].q = q.qs[0];
+      row.weekData[cellIndex].q =
+          q.qs.map(q => this.utilService.normalizeName(q)).join(', ');
     });
+  }
+
+  private isSameDay(date1: Date, date2: Date): boolean {
+    const matches = date1.getFullYear() === date2.getFullYear() &&
+        date1.getMonth() === date2.getMonth() &&
+        date1.getDate() === date2.getDate();
+    return matches;
   }
 
   private getWeekDates(start: Date, end: Date): Date[] {
@@ -172,15 +186,9 @@ export class SurvivorGridComponent implements OnChanges, OnInit {
 
     while (current <= end) {
       dates.push(new Date(current));
-      current.setDate(current.getDate() + 7);  // Add one week
+      current.setDate(current.getDate() + 7);
     }
 
     return dates;
-  }
-
-  private isSameDay(date1: Date, date2: Date): boolean {
-    return date1.getFullYear() === date2.getFullYear() &&
-        date1.getMonth() === date2.getMonth() &&
-        date1.getDate() === date2.getDate();
   }
 }
