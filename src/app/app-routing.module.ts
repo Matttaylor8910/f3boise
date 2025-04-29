@@ -14,6 +14,10 @@ const routes: Routes = [
     loadChildren: () => import('./pages/ao/ao.module').then(m => m.AoPageModule)
   },
   {
+    path: 'region/:region',
+    loadChildren: () => import('./pages/ao/ao.module').then(m => m.AoPageModule)
+  },
+  {
     path: 'dd/:name',
     loadChildren: () => import('./pages/ao/ao.module').then(m => m.AoPageModule)
   },
