@@ -14,7 +14,7 @@ const routes: Routes = [
     loadChildren: () => import('./pages/ao/ao.module').then(m => m.AoPageModule)
   },
   {
-    path: 'region/:region',
+    path: 'region/:name',
     loadChildren: () => import('./pages/ao/ao.module').then(m => m.AoPageModule)
   },
   {
@@ -84,7 +84,8 @@ const routes: Routes = [
   },
   {
     path: 'exicon',
-    loadChildren: () => import('./pages/exicon/exicon.module').then( m => m.ExiconPageModule)
+    loadChildren: () =>
+        import('./pages/exicon/exicon.module').then(m => m.ExiconPageModule)
   }
 ];
 
