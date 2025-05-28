@@ -28,6 +28,23 @@
 
       a {
         margin: 4px 4px 0 0;
+        position: relative;
+
+        &:hover::after {
+          content: attr(data-tooltip);
+          position: absolute;
+          bottom: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          padding: 4px 8px;
+          background: var(--ion-color-dark);
+          color: white;
+          border-radius: 4px;
+          font-size: 12px;
+          white-space: nowrap;
+          z-index: 1000;
+          margin-bottom: 4px;
+        }
       }
     }
   }
@@ -51,23 +68,45 @@
   }
 }
 
-.milestone-groups {
-  margin: 8px 0;
+.milestone-group {
   display: flex;
   align-items: center;
 
   .milestone-label {
     display: inline-block;
-    background: var(--ion-color-primary);
-    color: white;
+    background: #bfe3ff;
     padding: 2px 8px;
     border-radius: 4px;
-    font-size: 0.9em;
-    margin-bottom: 4px;
-    margin-right: 8px;
+    margin: 4px;
+    font-weight: bold;
   }
 
   .pax-avatars {
-    margin-right: 20px;
+    margin-right: 8px;
   }
+}
+
+.vq-groups {
+  margin: 8px 0;
+}
+
+.vq-entry {
+  display: flex;
+  align-items: center;
+  margin: 8px 0;
+
+  .vq-details {
+    margin-left: 8px;
+    font-size: 0.9em;
+  }
+}
+
+.first-vq-badge {
+  display: inline-block;
+  background: var(--ion-color-success);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  margin-left: 8px;
 }

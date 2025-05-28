@@ -34,10 +34,14 @@ interface MonthlyStats {
   totalBeatdowns: number;
 
   // PAX that hit milestones this month, grouped by milestone
-  milestonePax: {milestone: number, pax: string[]}[];
+  milestonePax: {milestone: number, pax: string[], paxNames: string}[];
 
   // Total number of PAX who hit milestones this month
   totalMilestonePax: number;
+
+  // VQ tracking
+  vqs: {name: string, ao: string, isFirstVQ: boolean}[];
+  totalVQs: number;
 }
 
 @Component({
@@ -76,6 +80,8 @@ export class SummaryPage {
     const monthlyStats = new Map<string, MonthlyStats>();
     const uniquePax = new Set<string>();
     const paxTotalBeatdowns = new Map<string, number>();
+    const paxQCount = new Map<string, number>();
+    const paxVQedAos = new Map<string, Set<string>>();
 
     for (const backblast of allData.reverse()) {
       const month = moment(backblast.date).format('MMMM YYYY');
@@ -103,8 +109,11 @@ export class SummaryPage {
           if (milestoneGroup) {
             milestoneGroup.pax.push(name);
           } else {
-            monthStats.milestonePax.push(
-                {milestone: newMilestone, pax: [name]});
+            monthStats.milestonePax.push({
+              milestone: newMilestone,
+              pax: [name],
+              paxNames: this.utilService.normalizeName(name)
+            });
           }
         }
 
@@ -117,9 +126,24 @@ export class SummaryPage {
           monthStats.fngAoMap.set(backblast.ao, [...aoFngs, name]);
         }
 
-        // save their Q stats as well if applicable
+        // Track Q stats
         if (backblast.qs.includes(name)) {
           monthStats.qs.add(name);
+
+          // Track Q count and VQs
+          const qCount = paxQCount.get(name) ?? 0;
+          paxQCount.set(name, qCount + 1);
+
+          // If this is their second Q, it's a VQ
+          if (qCount === 1) {
+            const vqedAos = paxVQedAos.get(name) ?? new Set<string>();
+            const isFirstVQ = !vqedAos.has(backblast.ao);
+            vqedAos.add(backblast.ao);
+            paxVQedAos.set(name, vqedAos);
+
+            monthStats.vqs.push({name, ao: backblast.ao, isFirstVQ});
+            monthStats.totalVQs++;
+          }
         }
       }
 
@@ -136,9 +160,18 @@ export class SummaryPage {
       // Sort milestone PAX by milestone (descending)
       thisMonth.milestonePax.sort((a, b) => b.milestone - a.milestone);
 
-      // Calculate total milestone PAX
-      thisMonth.totalMilestonePax = thisMonth.milestonePax.reduce(
-          (sum, group) => sum + group.pax.length, 0);
+      // Calculate total milestone PAX and add normalized names
+      thisMonth.totalMilestonePax =
+          thisMonth.milestonePax.reduce((sum, group) => {
+            // Add normalized names for this group
+            group.paxNames =
+                group.pax.map(name => this.utilService.normalizeName(name))
+                    .join(', ');
+            return sum + group.pax.length;
+          }, 0);
+
+      // Sort VQs by AO name
+      thisMonth.vqs.sort((a, b) => a.ao.localeCompare(b.ao));
 
       if (lastMonth) {
         // store the PAX that posted last month but didn't post this month
@@ -197,6 +230,8 @@ export class SummaryPage {
       totalBeatdowns: 0,
       milestonePax: [],
       totalMilestonePax: 0,
+      vqs: [],
+      totalVQs: 0,
     };
   }
 }
