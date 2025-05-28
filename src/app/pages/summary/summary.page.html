@@ -93,6 +93,25 @@
             </a>
           </div>
         </ng-container>
+
+        <!-- Milestone Achievements -->
+        <ng-container *ngIf="month.milestonePax.length > 0">
+          <strong>{{ month.totalMilestonePax }} PAX hit milestones this month</strong>
+          <div class="milestone-groups">
+            <ng-container *ngFor="let group of month.milestonePax">
+              <span class="milestone-label">{{ group.milestone }}</span>
+              <div class="pax-avatars">
+                <a
+                  *ngFor="let name of group.pax"
+                  [title]="utilService.normalizeName(name)"
+                  routerLink="/pax/{{name}}"
+                >
+                  <app-pax-avatar [size]="30" [name]="name"></app-pax-avatar>
+                </a>
+              </div>
+            </ng-container>
+          </div>
+        </ng-container>
       </ion-card-content>
     </ion-card>
   </div>

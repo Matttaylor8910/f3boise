@@ -32,6 +32,12 @@ interface MonthlyStats {
 
   // The total number of posts for the month
   totalBeatdowns: number;
+
+  // PAX that hit milestones this month, grouped by milestone
+  milestonePax: {milestone: number, pax: string[]}[];
+
+  // Total number of PAX who hit milestones this month
+  totalMilestonePax: number;
 }
 
 @Component({
@@ -69,6 +75,7 @@ export class SummaryPage {
 
     const monthlyStats = new Map<string, MonthlyStats>();
     const uniquePax = new Set<string>();
+    const paxTotalBeatdowns = new Map<string, number>();
 
     for (const backblast of allData.reverse()) {
       const month = moment(backblast.date).format('MMMM YYYY');
@@ -81,6 +88,26 @@ export class SummaryPage {
       for (const name of backblast.pax) {
         // keep track of all PAX and new FNGs
         monthStats.allPax.add(name);
+
+        // Track total beatdowns for this PAX
+        const currentTotal = paxTotalBeatdowns.get(name) ?? 0;
+        const newTotal = currentTotal + 1;
+        paxTotalBeatdowns.set(name, newTotal);
+
+        // Check if this PAX hit a milestone this month
+        const previousMilestone = Math.floor(currentTotal / 100) * 100;
+        const newMilestone = Math.floor(newTotal / 100) * 100;
+        if (newMilestone > previousMilestone) {
+          const milestoneGroup =
+              monthStats.milestonePax.find(g => g.milestone === newMilestone);
+          if (milestoneGroup) {
+            milestoneGroup.pax.push(name);
+          } else {
+            monthStats.milestonePax.push(
+                {milestone: newMilestone, pax: [name]});
+          }
+        }
+
         if (!uniquePax.has(name)) {
           monthStats.fngs.add(name);
           uniquePax.add(name);
@@ -105,6 +132,13 @@ export class SummaryPage {
       thisMonth.fngsByAo = Array.from(thisMonth.fngAoMap.entries())
                                .map(([name, fngs]) => ({name, fngs}))
                                .sort((a, b) => b.fngs.length - a.fngs.length);
+
+      // Sort milestone PAX by milestone (descending)
+      thisMonth.milestonePax.sort((a, b) => b.milestone - a.milestone);
+
+      // Calculate total milestone PAX
+      thisMonth.totalMilestonePax = thisMonth.milestonePax.reduce(
+          (sum, group) => sum + group.pax.length, 0);
 
       if (lastMonth) {
         // store the PAX that posted last month but didn't post this month
@@ -161,6 +195,8 @@ export class SummaryPage {
       missingPax: new Set<string>(),
       totalPosts: 0,
       totalBeatdowns: 0,
+      milestonePax: [],
+      totalMilestonePax: 0,
     };
   }
 }
