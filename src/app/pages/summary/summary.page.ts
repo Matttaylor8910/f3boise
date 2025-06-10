@@ -44,6 +44,31 @@ interface MonthlyStats {
   totalVQs: number;
 }
 
+interface DateRangeStats {
+  // PAX that posted at least once in this period
+  allPax: Set<string>;
+  qs: Set<string>;
+  fngs: Set<string>;
+  returnedPax: Set<string>;
+  missingPax: Set<string>;
+  totalPosts: number;
+  totalBeatdowns: number;
+  milestonePax: {milestone: number, pax: string[], paxNames: string}[];
+  totalMilestonePax: number;
+  vqs:
+      {name: string,
+       ao: string,
+       normalizedName: string,
+       normalizedAo: string}[];
+  totalVQs: number;
+  // Add normalized names for display
+  normalizedFngs: string[];
+  normalizedReturnedPax: string[];
+  normalizedMissingPax: string[];
+  fngsByAo: {name: string, fngs: string[]}[];
+  breakdownFngsByAo: boolean;
+}
+
 @Component({
   selector: 'app-summary',
   templateUrl: './summary.page.html',
@@ -53,6 +78,10 @@ export class SummaryPage {
   ao: string;
   region: REGION;
   monthlyStats?: MonthlyStats[];
+  dateRangeStats?: DateRangeStats;
+  startDate?: string;
+  endDate?: string;
+  showDateRange = false;
 
   constructor(
       public readonly utilService: UtilService,
@@ -61,6 +90,11 @@ export class SummaryPage {
   ) {
     this.region = this.route.snapshot.queryParamMap.get('region') as REGION;
     this.ao = this.route.snapshot.queryParamMap.get('ao') as string;
+    this.startDate =
+        this.route.snapshot.queryParamMap.get('startDate') ?? undefined;
+    this.endDate =
+        this.route.snapshot.queryParamMap.get('endDate') ?? undefined;
+    this.showDateRange = !!(this.startDate && this.endDate);
     this.calculateStats();
   }
 
@@ -68,7 +102,12 @@ export class SummaryPage {
     let scope = 'Region';
     if (this.ao) scope = this.utilService.normalizeName(this.ao);
     if (this.region) scope = this.utilService.normalizeName(this.region);
-    return `${scope} Summary`;
+    let dateRange = '';
+    if (this.startDate && this.endDate) {
+      dateRange = ` (${moment(this.startDate).format('MM/DD')} - ${
+          moment(this.endDate).format('MM/DD')})`;
+    }
+    return `${scope} Summary${dateRange}`;
   }
 
   async calculateStats() {
@@ -77,6 +116,217 @@ export class SummaryPage {
         this.ao ? await this.backblastService.getBackblastsForAo(this.ao) :
                   await this.backblastService.getAllData();
 
+    if (this.showDateRange && this.startDate && this.endDate) {
+      const startMoment = moment(this.startDate);
+      const endMoment = moment(this.endDate);
+
+      // Build PAX history from all data
+      interface PaxHistory {
+        firstPost: moment.Moment;
+        firstQ: moment.Moment|null;
+        totalPostsBefore: number;
+        totalQsBefore: number;
+        totalPostsInRange: number;
+        totalQsInRange: number;
+        aosFng: Set<string>;  // AOs where FNG in range
+      }
+      const paxHistory = new Map<string, PaxHistory>();
+      const aoFngMap = new Map<string, string[]>();
+
+      // First pass: build full history
+      for (const bb of allData) {
+        const date = moment(bb.date);
+        for (const name of bb.pax) {
+          let hist = paxHistory.get(name);
+          if (!hist) {
+            hist = {
+              firstPost: date,
+              firstQ: null,
+              totalPostsBefore: 0,
+              totalQsBefore: 0,
+              totalPostsInRange: 0,
+              totalQsInRange: 0,
+              aosFng: new Set<string>(),
+            };
+            paxHistory.set(name, hist);
+          }
+          // Update first post
+          if (date.isBefore(hist.firstPost)) hist.firstPost = date;
+        }
+        for (const name of bb.qs) {
+          let hist = paxHistory.get(name);
+          if (!hist) {
+            hist = {
+              firstPost: date,
+              firstQ: date,
+              totalPostsBefore: 0,
+              totalQsBefore: 0,
+              totalPostsInRange: 0,
+              totalQsInRange: 0,
+              aosFng: new Set<string>(),
+            };
+            paxHistory.set(name, hist);
+          }
+          // Update first Q
+          if (!hist.firstQ || date.isBefore(hist.firstQ)) hist.firstQ = date;
+        }
+      }
+
+      // Second pass: count posts/Qs before and in range, and collect FNG AOs
+      for (const bb of allData) {
+        const date = moment(bb.date);
+        for (const name of bb.pax) {
+          const hist = paxHistory.get(name)!;
+          if (date.isBefore(startMoment)) {
+            hist.totalPostsBefore++;
+            if (bb.qs.includes(name)) hist.totalQsBefore++;
+          } else if (
+              date.isSameOrAfter(startMoment) &&
+              date.isSameOrBefore(endMoment)) {
+            hist.totalPostsInRange++;
+            if (bb.qs.includes(name)) hist.totalQsInRange++;
+            // FNG by AO
+            if (hist.firstPost.isSame(date, 'day')) {
+              const aoFngs = aoFngMap.get(bb.ao) ?? [];
+              if (!aoFngs.includes(name)) {
+                aoFngs.push(name);
+                aoFngMap.set(bb.ao, aoFngs);
+              }
+              hist.aosFng.add(bb.ao);
+            }
+          }
+        }
+      }
+
+      // Now, build the stats for the range
+      const allPax = new Set<string>();
+      const qs = new Set<string>();
+      const fngs = new Set<string>();
+      const vqs: {
+        name: string,
+        ao: string,
+        normalizedName: string,
+        normalizedAo: string
+      }[] = [];
+      const milestones: {milestone: number, pax: string[], paxNames: string}[] =
+          [];
+      let totalPosts = 0;
+      let totalBeatdowns = 0;
+      let totalVQs = 0;
+      let totalMilestonePax = 0;
+
+      // For milestone grouping
+      const milestoneMap = new Map<number, string[]>();
+
+      for (const [name, hist] of paxHistory.entries()) {
+        // FNG: first post in range
+        if (hist.firstPost.isSameOrAfter(startMoment) &&
+            hist.firstPost.isSameOrBefore(endMoment)) {
+          fngs.add(name);
+        }
+        // VQ: first Q in range
+        if (hist.firstQ && hist.firstQ.isSameOrAfter(startMoment) &&
+            hist.firstQ.isSameOrBefore(endMoment)) {
+          // Find the AO for their first Q
+          const firstQAo = allData
+                               .find(
+                                   bb => moment(bb.date).isSame(hist.firstQ!) &&
+                                       bb.qs.includes(name))
+                               ?.ao ||
+              '';
+          vqs.push({
+            name,
+            ao: firstQAo,
+            normalizedName: this.utilService.normalizeName(name),
+            normalizedAo: this.utilService.normalizeName(firstQAo)
+          });
+          totalVQs++;
+        }
+        // Milestones: check if they cross a 100s boundary in the range
+        const before = hist.totalPostsBefore;
+        const after = before + hist.totalPostsInRange;
+        for (let m = Math.floor((before + 1) / 100) * 100; m <= after;
+             m += 100) {
+          if (m > before && m <= after) {
+            if (!milestoneMap.has(m)) milestoneMap.set(m, []);
+            milestoneMap.get(m)!.push(name);
+            totalMilestonePax++;
+          }
+        }
+        // All PAX and Qs in range
+        if (hist.totalPostsInRange > 0) allPax.add(name);
+        if (hist.totalQsInRange > 0) qs.add(name);
+      }
+
+      // Build milestone groups
+      for (const [milestone, paxArr] of milestoneMap.entries()) {
+        milestones.push({
+          milestone,
+          pax: paxArr,
+          paxNames:
+              paxArr.map(n => this.utilService.normalizeName(n)).join(', ')
+        });
+      }
+      milestones.sort((a, b) => b.milestone - a.milestone);
+
+      // Count posts and beatdowns in range
+      for (const bb of allData) {
+        const date = moment(bb.date);
+        if (date.isSameOrAfter(startMoment) && date.isSameOrBefore(endMoment)) {
+          totalPosts += bb.pax.length;
+          totalBeatdowns++;
+        }
+      }
+
+      // FNGs by AO
+      const fngsByAo = Array.from(aoFngMap.entries())
+                           .map(([name, fngs]) => ({name, fngs}))
+                           .sort((a, b) => b.fngs.length - a.fngs.length);
+
+      // Returned and missing PAX
+      const baselinePax = new Set<string>();
+      for (const [name, hist] of paxHistory.entries()) {
+        if (hist.totalPostsBefore > 0) baselinePax.add(name);
+      }
+      const returnedPax = new Set([...allPax].filter(
+          name => !fngs.has(name) && !baselinePax.has(name)));
+      const missingPax =
+          new Set([...baselinePax].filter(name => !allPax.has(name)));
+
+      // Pre-calculate normalized names for display
+      const normalizedFngs =
+          Array.from(fngs).map(name => this.utilService.normalizeName(name));
+      const normalizedReturnedPax =
+          Array.from(returnedPax)
+              .map(name => this.utilService.normalizeName(name));
+      const normalizedMissingPax =
+          Array.from(missingPax)
+              .map(name => this.utilService.normalizeName(name));
+
+      this.dateRangeStats = {
+        allPax,
+        qs,
+        fngs,
+        returnedPax,
+        missingPax,
+        totalPosts,
+        totalBeatdowns,
+        milestonePax: milestones,
+        totalMilestonePax,
+        vqs,
+        totalVQs,
+        normalizedFngs,
+        normalizedReturnedPax,
+        normalizedMissingPax,
+        // For card UI:
+        fngsByAo,
+        breakdownFngsByAo: false,
+      } as any;
+      this.monthlyStats = undefined;
+      return;
+    }
+
+    // Original monthly stats calculation
     const monthlyStats = new Map<string, MonthlyStats>();
     const uniquePax = new Set<string>();
     const paxTotalBeatdowns = new Map<string, number>();
@@ -231,6 +481,49 @@ export class SummaryPage {
 
     this.utilService.copyToClipboard(
         string, 'Copied the deails to the clipboard');
+  }
+
+  copyDateRangeCard() {
+    if (!this.dateRangeStats) return;
+    const start = this.startDate ? moment(this.startDate).format('MM/DD') : '';
+    const end = this.endDate ? moment(this.endDate).format('MM/DD') : '';
+    let string = `We had ${this.dateRangeStats.allPax.size} PAX from ${
+        start} to ${end}, ${
+        this.dateRangeStats.qs.size} of which Qd at least one BD, and we had ${
+        this.dateRangeStats.returnedPax
+            .size} PAX come back out in this period that didn't post before!\n\n`;
+
+    // Add milestone information if there are any
+    if (this.dateRangeStats.milestonePax.length > 0) {
+      string += `Milestone Achievements in this period:\n`;
+      this.dateRangeStats.milestonePax.forEach(group => {
+        string += `${group.paxNames} hit ${group.milestone} posts!\n`;
+      });
+      string += '\n';
+    }
+
+    // Add VQ information if there are any
+    if (this.dateRangeStats.vqs.length > 0) {
+      string += `VQ Achievements in this period:\n`;
+      this.dateRangeStats.vqs.forEach(vq => {
+        string += `${vq.normalizedName} VQ'd at ${vq.normalizedAo}\n`;
+      });
+      string += '\n';
+    }
+
+    const fngs = this.dateRangeStats.normalizedFngs;
+    string += `We had ${
+        fngs.length} FNGs in this period! If you met one of these HIMs, keep encouraging them to come out and push them towards joining slack as we see more stickiness that way!\n${
+        fngs.join('\n')}\n\n`;
+
+    const missing = this.dateRangeStats.normalizedMissingPax;
+    string += `We had ${
+        missing
+            .length} PAX drop off in this period that came out at least once before. If you know one of the HIMs below, maybe give em a shout to encourage them to come join us in the gloom again:\n${
+        missing.join('\n')}`;
+
+    this.utilService.copyToClipboard(
+        string, 'Copied the details to the clipboard');
   }
 
   private newMonthlyStats(displayName: string): MonthlyStats {

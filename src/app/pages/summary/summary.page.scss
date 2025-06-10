@@ -110,3 +110,39 @@
   font-size: 0.8em;
   margin-left: 8px;
 }
+
+.date-range-controls {
+  padding: 16px;
+  background: var(--ion-color-light);
+  margin-bottom: 16px;
+
+  .date-inputs {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+
+    ion-item {
+      flex: 1;
+    }
+  }
+}
+
+.date-range-stats {
+  padding: 16px;
+
+  ion-card {
+    margin: 0;
+
+    ion-card-content {
+      h3 {
+        margin-top: 16px;
+        margin-bottom: 8px;
+        color: var(--ion-color-primary);
+      }
+
+      p {
+        margin: 4px 0;
+      }
+    }
+  }
+}
