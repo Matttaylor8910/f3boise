@@ -19,24 +19,24 @@
 
   <!-- Custom Range Controls and Card -->
   <div [class.hidden]="selectedTab !== 'range'">
-    <div class="date-range-controls">
+    <div class="date-range-controls pretty-card">
       <div class="date-inputs">
-        <ion-item lines="none">
-          <ion-label position="stacked">Start Date</ion-label>
-          <input type="date"
+        <div class="date-input-group">
+          <label for="startDate" class="date-label">Start Date</label>
+          <input id="startDate" type="date"
                  [ngModel]="startDate"
                  (ngModelChange)="startDate = $event; onDateChange()"
                  [max]="endDate || undefined"
-                 style="width: 100%;" />
-        </ion-item>
-        <ion-item lines="none">
-          <ion-label position="stacked">End Date</ion-label>
-          <input type="date"
+                 class="pretty-date-input" />
+        </div>
+        <div class="date-input-group">
+          <label for="endDate" class="date-label">End Date</label>
+          <input id="endDate" type="date"
                  [ngModel]="endDate"
                  (ngModelChange)="endDate = $event; onDateChange()"
                  [min]="startDate || undefined"
-                 style="width: 100%;" />
-        </ion-item>
+                 class="pretty-date-input" />
+        </div>
       </div>
     </div>
     <div class="center-container" *ngIf="selectedTab === 'range' && !isValidDateRange()">
