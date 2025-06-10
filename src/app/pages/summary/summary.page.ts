@@ -40,7 +40,7 @@ interface MonthlyStats {
   totalMilestonePax: number;
 
   // VQ tracking
-  vqs: {name: string, ao: string, isFirstVQ: boolean}[];
+  vqs: {name: string, ao: string}[];
   totalVQs: number;
 }
 
@@ -137,11 +137,10 @@ export class SummaryPage {
           // If this is their second Q, it's a VQ
           if (qCount === 1) {
             const vqedAos = paxVQedAos.get(name) ?? new Set<string>();
-            const isFirstVQ = !vqedAos.has(backblast.ao);
             vqedAos.add(backblast.ao);
             paxVQedAos.set(name, vqedAos);
 
-            monthStats.vqs.push({name, ao: backblast.ao, isFirstVQ});
+            monthStats.vqs.push({name, ao: backblast.ao});
             monthStats.totalVQs++;
           }
         }
@@ -197,6 +196,25 @@ export class SummaryPage {
         thisMonth.qs.size} of which Qd at least one BD, and we had ${
         thisMonth.returnedPax.size} PAX come back out in ${
         thisName} that didn't post in ${prevName}!\n\n`;
+
+    // Add milestone information if there are any
+    if (thisMonth.milestonePax.length > 0) {
+      string += `Milestone Achievements in ${thisName}:\n`;
+      thisMonth.milestonePax.forEach(group => {
+        string += `${group.paxNames} hit ${group.milestone} posts!\n`;
+      });
+      string += '\n';
+    }
+
+    // Add VQ information if there are any
+    if (thisMonth.vqs.length > 0) {
+      string += `VQ Achievements in ${thisName}:\n`;
+      thisMonth.vqs.forEach(vq => {
+        string +=
+            `${this.utilService.normalizeName(vq.name)} VQ'd at ${vq.ao}\n`;
+      });
+      string += '\n';
+    }
 
     const fngs =
         Array.from(thisMonth.fngs.values()).map(this.utilService.normalizeName);
