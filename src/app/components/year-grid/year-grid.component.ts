@@ -284,7 +284,7 @@ export class YearGridComponent implements OnInit {
         return '#9CD6F1';
       case AO.WAR_HORSE:
         return '#E74C3C';
-      case AO.WEST_CANYON_ELEMENTARY:
+      case AO.DUCK_HUNT:
         return '#7fd7ab';
       default:
         return this.randomHexColorCode();

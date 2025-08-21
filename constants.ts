@@ -1,13 +1,10 @@
-// old url here
-// export const BASE_URL = 'https://f3boiseapi-cycjv.ondigitalocean.app';
-
-// new url here
 export const BASE_URL = 'https://f3-scraper-rs.fly.dev';
 
 export enum REGION {
   CITY_OF_TREES = 'city-of-trees',
   HIGH_DESERT = 'high-desert',
   SETTLERS = 'settlers',
+  CANYON = 'canyon',
 }
 
 export enum AO {
@@ -31,10 +28,12 @@ export enum AO {
   COOP = 'coop',
   DARK_STRIDE = 'dark stride',
   GEM = 'gem',
-  IRON_MOUNTAIN = 'iron mountain',
   OLD_GLORY = 'old glory',
+
+  // canyon
+  DUCK_HUNT = 'duck hunt',
+  IRON_MOUNTAIN = 'iron mountain',
   WAR_HORSE = 'war horse',
-  WEST_CANYON_ELEMENTARY = 'west canyon elementary',
 
   // region agnostic
   BLACK_OPS = 'black ops',
@@ -50,7 +49,7 @@ export const CITY_OF_TREES_AOS = new Set<string>([
   AO.LIBERTY,
   AO.RISE,
 
-  // include in both
+  // include in all
   AO.BLACK_OPS,
 ]);
 
@@ -61,7 +60,7 @@ export const HIGH_DESERT_AOS = new Set<string>([
   AO.REBEL,
   AO.TOWER,
 
-  // include in both
+  // include in all
   AO.BLACK_OPS,
 ]);
 
@@ -72,11 +71,17 @@ export const SETTLERS_AOS = new Set<string>([
   AO.COOP,
   AO.DARK_STRIDE,
   AO.GEM,
-  AO.IRON_MOUNTAIN,
   AO.OLD_GLORY,
-  AO.WAR_HORSE,
-  AO.WEST_CANYON_ELEMENTARY,
 
-  // include in both
+  // include in all
+  AO.BLACK_OPS,
+]);
+
+export const CANYON_AOS = new Set<string>([
+  AO.DUCK_HUNT,
+  AO.IRON_MOUNTAIN,
+  AO.WAR_HORSE,
+
+  // include in all
   AO.BLACK_OPS,
 ]);
