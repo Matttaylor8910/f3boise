@@ -262,6 +262,8 @@ export class YearGridComponent implements OnInit {
         return '#3C6F19 ';
       case AO.DARK_STRIDE:
         return '#E75293';
+      case AO.DUCK_HUNT:
+        return '#7fd7ab';
       case AO.GEM:
         return '#3498DB';
       case AO.GOOSE_DYNASTY:
@@ -280,12 +282,12 @@ export class YearGridComponent implements OnInit {
         return '#E67E22';
       case AO.RUCKERSHIP_WEST:
         return '#D35400';
+      case AO.SENTINELS:
+        return '#686363';
       case AO.TOWER:
         return '#9CD6F1';
       case AO.WAR_HORSE:
         return '#E74C3C';
-      case AO.DUCK_HUNT:
-        return '#7fd7ab';
       default:
         return this.randomHexColorCode();
     }

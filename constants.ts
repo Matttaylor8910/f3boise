@@ -29,6 +29,7 @@ export enum AO {
   DARK_STRIDE = 'dark stride',
   GEM = 'gem',
   OLD_GLORY = 'old glory',
+  SENTINELS = 'sentinels',
 
   // canyon
   DUCK_HUNT = 'duck hunt',
@@ -72,6 +73,7 @@ export const SETTLERS_AOS = new Set<string>([
   AO.DARK_STRIDE,
   AO.GEM,
   AO.OLD_GLORY,
+  AO.SENTINELS,
 
   // include in all
   AO.BLACK_OPS,
