@@ -66,13 +66,13 @@
                 {{ stats.avgPaxAsQ | number:'0.0-2' }}
               </span>
             </ion-item>
-            <ion-item *ngIf="stats.bestie">
+            <ion-item *ngIf="stats.bestie" button (click)="showTopBesties()">
               <ion-label class="ion-text-wrap">
-                <h2>Bestie</h2>
+                <h2>Bestie <ion-icon name="information-circle-outline" size="small" class="bestie-info-icon"></ion-icon></h2>
               </ion-label>
               <span slot="end">
                 {{ stats.bestieCount }} {{ stats.bestieCount === 1 ? 'BD' : 'BDs' }} with
-                <a routerLink="/pax/{{stats.bestie}}">{{ utilService.normalizeName(stats.bestie) }}</a>
+                <a routerLink="/pax/{{stats.bestie}}" (click)="$event.stopPropagation()">{{ utilService.normalizeName(stats.bestie) }}</a>
               </span>
             </ion-item>
             <ion-item *ngIf="stats.paxTally">

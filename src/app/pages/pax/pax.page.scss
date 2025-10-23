@@ -32,6 +32,12 @@
   align-items: center;
 }
 
+.bestie-info-icon {
+  margin-left: 4px;
+  color: var(--ion-color-primary);
+  vertical-align: text-top;
+}
+
 @media (max-width: 1200px) {
   .stats-container .card-container {
     min-width: 50%;

@@ -293,4 +293,51 @@ export class PaxPage {
     await this.paxService.setParent(this.name, parent);
     this.calculatePaxStats(this.statsType);
   }
+
+  async showTopBesties() {
+    if (!this.allBds) return;
+
+    // Calculate besties from all BDs
+    const besties = new Map<string, number>();
+    for (const post of this.allBds) {
+      post.pax.forEach(pax => {
+        if (this.name.toLowerCase() !== pax.toLowerCase()) {
+          const count = besties.get(pax) ?? 0;
+          besties.set(pax, count + 1);
+        }
+      });
+    }
+
+    // Sort besties and get top 10
+    const sortedBesties = Array.from(besties.entries())
+                              .sort(([, a], [, b]) => b - a)
+                              .slice(0, 10);
+
+    // Create action sheet buttons for each bestie
+    const buttons: ActionSheetButton[] =
+        sortedBesties.map(([name, count]) => ({
+                            text: `${this.utilService.normalizeName(name)} (${
+                                count} ${count === 1 ? 'BD' : 'BDs'})`,
+                            role: name,
+                            icon: 'person-sharp'
+                          }));
+
+    // Add cancel button
+    buttons.push({text: 'Close', role: 'cancel', icon: 'close-sharp'});
+
+    // Create and present the action sheet
+    const header =
+        `${this.utilService.normalizeName(this.name)}'s Top 10 Besties`;
+    const sheet = await this.actionSheetController.create({header, buttons});
+    await sheet.present();
+
+    // Handle selection - navigate to pax page if a bestie is selected
+    sheet.onWillDismiss().then(({role}) => {
+      if (role && role !== 'cancel' &&
+          sortedBesties.some(([name]) => name === role)) {
+        // Navigate to the selected pax page
+        window.location.href = `/pax/${role}`;
+      }
+    });
+  }
 }
