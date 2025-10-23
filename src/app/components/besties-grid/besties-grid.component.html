@@ -1,0 +1,34 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ utilService.normalizeName(paxName) }}'s Top {{ besties.length }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="close()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="besties-grid-content">
+
+  <div class="besties-grid">
+    <div
+      class="bestie-card"
+      *ngFor="let bestie of besties; let i = index"
+      (click)="navigateToPax(bestie.name)"
+    >
+      <div class="bestie-rank">{{ i + 1 }}</div>
+      <div class="bestie-image-container">
+        <app-pax-avatar
+        [name]="bestie.name"
+        [size]="100"
+        class="bestie-avatar">
+      </app-pax-avatar>
+      </div>
+      <div class="bestie-info">
+        <div class="bestie-name">{{ utilService.normalizeName(bestie.name) }}</div>
+        <div class="bestie-count">{{ bestie.count }} {{ bestie.count === 1 ? 'BD' : 'BDs' }}</div>
+      </div>
+    </div>
+  </div>
+</ion-content>

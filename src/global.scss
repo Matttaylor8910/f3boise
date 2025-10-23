@@ -308,3 +308,13 @@ ion-icon[name="logo-instagram"] {
     width: 100%;
   }
 }
+
+// Besties Grid Modal Styles
+.besties-modal {
+  --width: 95vw;
+  --max-width: 1000px;
+  --height: 85vh;
+  --max-height: 800px;
+  --border-radius: 16px;
+  --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}

@@ -1,6 +1,7 @@
 import {Component} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
-import {ActionSheetButton, ActionSheetController} from '@ionic/angular';
+import {ActionSheetButton, ActionSheetController, ModalController} from '@ionic/angular';
+import {BestiesGridComponent} from 'src/app/components/besties-grid/besties-grid.component';
 import {BackblastService} from 'src/app/services/backblast.service';
 import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
@@ -55,6 +56,7 @@ export class PaxPage {
       private readonly backblastService: BackblastService,
       private readonly paxService: PaxService,
       private readonly actionSheetController: ActionSheetController,
+      private readonly modalController: ModalController,
   ) {
     this.name = this.route.snapshot.params['name'];
 
@@ -311,33 +313,19 @@ export class PaxPage {
     // Sort besties and get top 10
     const sortedBesties = Array.from(besties.entries())
                               .sort(([, a], [, b]) => b - a)
-                              .slice(0, 10);
+                              .slice(0, 10)
+                              .map(([name, count]) => ({name, count}));
 
-    // Create action sheet buttons for each bestie
-    const buttons: ActionSheetButton[] =
-        sortedBesties.map(([name, count]) => ({
-                            text: `${this.utilService.normalizeName(name)} (${
-                                count} ${count === 1 ? 'BD' : 'BDs'})`,
-                            role: name,
-                            icon: 'person-sharp'
-                          }));
-
-    // Add cancel button
-    buttons.push({text: 'Close', role: 'cancel', icon: 'close-sharp'});
-
-    // Create and present the action sheet
-    const header =
-        `${this.utilService.normalizeName(this.name)}'s Top 10 Besties`;
-    const sheet = await this.actionSheetController.create({header, buttons});
-    await sheet.present();
-
-    // Handle selection - navigate to pax page if a bestie is selected
-    sheet.onWillDismiss().then(({role}) => {
-      if (role && role !== 'cancel' &&
-          sortedBesties.some(([name]) => name === role)) {
-        // Navigate to the selected pax page
-        window.location.href = `/pax/${role}`;
-      }
+    // Create and present the modal
+    const modal = await this.modalController.create({
+      component: BestiesGridComponent,
+      componentProps: {besties: sortedBesties, paxName: this.name},
+      cssClass: 'besties-modal',
+      showBackdrop: true,
+      backdropDismiss: true,
+      presentingElement: await this.modalController.getTop()
     });
+
+    await modal.present();
   }
 }
