@@ -1,4 +1,5 @@
 import {Component, Input} from '@angular/core';
+import {Router} from '@angular/router';
 import {ModalController} from '@ionic/angular';
 import {UtilService} from 'src/app/services/util.service';
 
@@ -18,12 +19,13 @@ export class BestiesGridComponent {
 
   constructor(
       private readonly modalController: ModalController,
+      private readonly router: Router,
       public readonly utilService: UtilService,
   ) {}
 
   async navigateToPax(name: string) {
     await this.modalController.dismiss();
-    window.location.href = `/pax/${name}`;
+    this.router.navigate(['/pax', name]);
   }
 
   close() {
