@@ -28,6 +28,7 @@ interface PaxStats {
   bestieCount?: number;
   paxTally?: number;
   avgPaxAsQ?: number;
+  topBesties?: {name: string; count: number}[];
 }
 
 interface AoStats {
@@ -159,6 +160,10 @@ export class PaxPage {
     const sorted = Array.from(besties.entries()).sort(([, a], [, b]) => b - a);
     const [[bestie, bestieCount]] = sorted;
 
+    // Store top 10 besties for the modal
+    const topBesties =
+        sorted.slice(0, 10).map(([name, count]) => ({name, count}));
+
     // grab some fields off the first beatdown
     const {date, ao, pax} = data[data.length - 1];
 
@@ -183,6 +188,7 @@ export class PaxPage {
       bestieCount,
       paxTally: sorted.length,
       avgPaxAsQ: qCount === 0 ? 0 : totalPaxAsQ / qCount,
+      topBesties,
     };
   }
 
@@ -297,29 +303,12 @@ export class PaxPage {
   }
 
   async showTopBesties() {
-    if (!this.allBds) return;
+    if (!this.stats?.topBesties) return;
 
-    // Calculate besties from all BDs
-    const besties = new Map<string, number>();
-    for (const post of this.allBds) {
-      post.pax.forEach(pax => {
-        if (this.name.toLowerCase() !== pax.toLowerCase()) {
-          const count = besties.get(pax) ?? 0;
-          besties.set(pax, count + 1);
-        }
-      });
-    }
-
-    // Sort besties and get top 10
-    const sortedBesties = Array.from(besties.entries())
-                              .sort(([, a], [, b]) => b - a)
-                              .slice(0, 10)
-                              .map(([name, count]) => ({name, count}));
-
-    // Create and present the modal
+    // Create and present the modal using pre-calculated top besties
     const modal = await this.modalController.create({
       component: BestiesGridComponent,
-      componentProps: {besties: sortedBesties, paxName: this.name},
+      componentProps: {besties: this.stats.topBesties, paxName: this.name},
       cssClass: 'besties-modal',
       showBackdrop: true,
       backdropDismiss: true,
