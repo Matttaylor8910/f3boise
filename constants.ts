@@ -27,6 +27,7 @@ export enum AO {
   BLACK_DIAMOND = 'black diamond',
   COOP = 'coop',
   DARK_STRIDE = 'dark stride',
+  EMMETT_GEM_ISLAND = 'emmett gem island',
   GEM = 'gem',
   OLD_GLORY = 'old glory',
   SENTINELS = 'sentinels',
@@ -34,6 +35,8 @@ export enum AO {
   // canyon
   DUCK_HUNT = 'duck hunt',
   IRON_MOUNTAIN = 'iron mountain',
+  LIBERTY_PARK = 'liberty park',
+  THE_EDGE = 'the edge',
   WAR_HORSE = 'war horse',
 
   // region agnostic
@@ -71,6 +74,7 @@ export const SETTLERS_AOS = new Set<string>([
   AO.BLACK_DIAMOND,
   AO.COOP,
   AO.DARK_STRIDE,
+  AO.EMMETT_GEM_ISLAND,
   AO.GEM,
   AO.OLD_GLORY,
   AO.SENTINELS,
@@ -82,6 +86,8 @@ export const SETTLERS_AOS = new Set<string>([
 export const CANYON_AOS = new Set<string>([
   AO.DUCK_HUNT,
   AO.IRON_MOUNTAIN,
+  AO.LIBERTY_PARK,
+  AO.THE_EDGE,
   AO.WAR_HORSE,
 
   // include in all

@@ -264,6 +264,8 @@ export class YearGridComponent implements OnInit {
         return '#E75293';
       case AO.DUCK_HUNT:
         return '#7fd7ab';
+      case AO.EMMETT_GEM_ISLAND:
+        return '#17A2B8';
       case AO.GEM:
         return '#3498DB';
       case AO.GOOSE_DYNASTY:
@@ -272,6 +274,8 @@ export class YearGridComponent implements OnInit {
         return '#720374';
       case AO.IRON_MOUNTAIN:
         return '#002F4D';
+      case AO.LIBERTY_PARK:
+        return '#DC143C';
       case AO.OLD_GLORY:
         return '#9B59B6';
       case AO.REBEL:
@@ -286,6 +290,8 @@ export class YearGridComponent implements OnInit {
         return '#686363';
       case AO.TOWER:
         return '#9CD6F1';
+      case AO.THE_EDGE:
+        return '#2C3E50';
       case AO.WAR_HORSE:
         return '#E74C3C';
       default:
