@@ -3,18 +3,12 @@
   background: var(--ion-background-color, #fff);
 }
 
-.filter-row {
+.filter-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
   justify-content: center;
-}
-
-.preset-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
 
   ion-button {
     --border-radius: 8px;
@@ -45,12 +39,7 @@
   }
 }
 
-.custom-range-section {
-  display: flex;
-  align-items: center;
-}
-
-.custom-range-button {
+.filter-buttons .custom-range-button {
   --border-radius: 8px;
   --border-width: 1.5px;
   --border-color: #e0e0e0;
@@ -77,10 +66,13 @@
   }
 }
 
-.custom-range-chip {
+.filter-buttons .custom-range-chip {
   --background: rgba(66, 140, 255, 0.1);
   --color: #428cff;
+  display: flex;
+  justify-content: center;
   border: 1px solid rgba(66, 140, 255, 0.3);
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   margin: 0;
@@ -114,39 +106,35 @@
 }
 
 @media (max-width: 768px) {
-  .filter-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .preset-buttons {
+  .filter-buttons {
     width: 100%;
 
-    ion-button {
+    ion-button,
+    .custom-range-button {
       flex: 1;
       min-width: calc(50% - 4px);
       font-size: 0.9em;
       --padding-start: 12px;
       --padding-end: 12px;
     }
-  }
 
-  .custom-range-section {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .custom-range-chip {
-    width: 100%;
-    justify-content: center;
+    .custom-range-chip {
+      flex: 1;
+      min-width: calc(50% - 4px);
+    }
   }
 }
 
 @media (max-width: 480px) {
-  .preset-buttons {
-    ion-button {
+  .filter-buttons {
+    ion-button,
+    .custom-range-button {
       min-width: 100%;
       font-size: 0.85em;
+    }
+
+    .custom-range-chip {
+      min-width: 100%;
     }
   }
 }
