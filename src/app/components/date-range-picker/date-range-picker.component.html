@@ -1,0 +1,33 @@
+<div class="date-range-picker-container">
+  <!-- Preset buttons and custom range chip -->
+  <div class="filter-row">
+    <div class="preset-buttons">
+      <ion-button
+        *ngFor="let preset of presets"
+        [class.active]="selectedPreset === preset.value && !hasCustomRange"
+        fill="outline"
+        (click)="onPresetSelect(preset.value)">
+        {{ preset.label }}
+      </ion-button>
+    </div>
+
+    <!-- Custom date range button/chip -->
+    <div class="custom-range-section">
+      <ion-chip
+        *ngIf="hasCustomRange"
+        class="custom-range-chip"
+        (click)="openCustomDatePicker($event)">
+        <ion-label>{{ customRangeLabel }}</ion-label>
+        <ion-icon name="close-circle" (click)="clearCustomRange(); $event.stopPropagation()"></ion-icon>
+      </ion-chip>
+      <ion-button
+        *ngIf="!hasCustomRange"
+        fill="outline"
+        class="custom-range-button"
+        (click)="openCustomDatePicker($event)">
+        <ion-icon name="calendar-outline" slot="start"></ion-icon>
+        Custom Range
+      </ion-button>
+    </div>
+  </div>
+</div>

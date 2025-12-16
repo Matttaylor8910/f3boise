@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, OnChanges} from '@angular/core';
 import {UtilService} from 'src/app/services/util.service';
 import {AoPaxStats} from 'types';
 
@@ -7,7 +7,7 @@ import {AoPaxStats} from 'types';
   templateUrl: './pax-list-item.component.html',
   styleUrls: ['./pax-list-item.component.scss'],
 })
-export class PaxListItemComponent {
+export class PaxListItemComponent implements OnChanges {
   @Input() pax!: AoPaxStats;
   @Input() subtext!: string;
   @Input() metric!: string;
@@ -16,8 +16,15 @@ export class PaxListItemComponent {
 
   limit = 10;
   smallLimit = 3;
+  normalizedName = '';
 
   constructor(
-      public readonly utilService: UtilService,
+      private readonly utilService: UtilService,
   ) {}
+
+  ngOnChanges() {
+    if (this.pax?.name) {
+      this.normalizedName = this.utilService.normalizeName(this.pax.name);
+    }
+  }
 }

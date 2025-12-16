@@ -1,0 +1,57 @@
+.custom-date-popover {
+  padding: 16px;
+  min-width: 280px;
+}
+
+.popover-header {
+  margin-bottom: 16px;
+}
+
+.popover-header h3 {
+  margin: 0;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+
+.popover-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.date-input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-label {
+  font-size: 0.9em;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #666;
+}
+
+.date-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 0.95em;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #428cff;
+}
+
+.popover-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}

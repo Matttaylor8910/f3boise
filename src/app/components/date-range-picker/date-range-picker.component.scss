@@ -1,0 +1,157 @@
+.date-range-picker-container {
+  padding: 16px;
+  background: var(--ion-background-color, #fff);
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.preset-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  ion-button {
+    --border-radius: 8px;
+    --border-width: 1.5px;
+    --border-color: #e0e0e0;
+    --color: #666;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --padding-top: 10px;
+    --padding-bottom: 10px;
+    font-weight: 500;
+    text-transform: none;
+    transition: all 0.2s ease;
+    margin: 0;
+
+    &:hover {
+      --border-color: #428cff;
+      --color: #428cff;
+      transform: translateY(-1px);
+    }
+
+    &.active {
+      --border-color: #ee6059;
+      --color: #ee6059;
+      --background: rgba(238, 96, 89, 0.1);
+      font-weight: 600;
+    }
+  }
+}
+
+.custom-range-section {
+  display: flex;
+  align-items: center;
+}
+
+.custom-range-button {
+  --border-radius: 8px;
+  --border-width: 1.5px;
+  --border-color: #e0e0e0;
+  --color: #666;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  font-weight: 500;
+  text-transform: none;
+  transition: all 0.2s ease;
+  margin: 0;
+
+  &:hover {
+    --border-color: #428cff;
+    --color: #428cff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(66, 140, 255, 0.15);
+  }
+
+  ion-icon {
+    font-size: 1em;
+    margin-right: 4px;
+  }
+}
+
+.custom-range-chip {
+  --background: rgba(66, 140, 255, 0.1);
+  --color: #428cff;
+  border: 1px solid rgba(66, 140, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0;
+  height: 36px;
+  font-size: 0.9em;
+  font-weight: 500;
+
+  &:hover {
+    --background: rgba(66, 140, 255, 0.15);
+    border-color: rgba(66, 140, 255, 0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(66, 140, 255, 0.2);
+  }
+
+  ion-label {
+    padding: 0 8px;
+    white-space: nowrap;
+  }
+
+  ion-icon {
+    font-size: 1.1em;
+    color: #428cff;
+    margin-left: 4px;
+    cursor: pointer;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #ee6059;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .preset-buttons {
+    width: 100%;
+
+    ion-button {
+      flex: 1;
+      min-width: calc(50% - 4px);
+      font-size: 0.9em;
+      --padding-start: 12px;
+      --padding-end: 12px;
+    }
+  }
+
+  .custom-range-section {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .custom-range-chip {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .preset-buttons {
+    ion-button {
+      min-width: 100%;
+      font-size: 0.85em;
+    }
+  }
+}
+
+// Popover styles
+::ng-deep .custom-date-range-popover {
+  --width: 320px;
+}

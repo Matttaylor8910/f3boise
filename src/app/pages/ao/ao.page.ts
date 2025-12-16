@@ -1,6 +1,7 @@
 import {Component} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment';
+import {DateRange} from 'src/app/components/date-range-picker/date-range-picker.component';
 import {BackblastService} from 'src/app/services/backblast.service';
 import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
@@ -16,12 +17,6 @@ interface AoStats {
 
 const LIMIT = 10;
 
-enum TimeRange {
-  ALL_TIME = 'All Time',
-  DAYS_90 = '90 Days',
-  DAYS_30 = '30 Days',
-}
-
 @Component({
   selector: 'app-ao',
   templateUrl: './ao.page.html',
@@ -32,10 +27,7 @@ export class AoPage {
   displayName: string;
   limit = LIMIT;
 
-  thisMonth = moment().format('MMMM');
-  thisYear = moment().format('YYYY');
-  timeRanges = [...Object.values(TimeRange), this.thisMonth];
-  selectedRange = this.timeRanges[0];
+  selectedRange: DateRange = {startDate: null, endDate: null};
 
   aoStats?: AoStats;
   paxStats?: AoPaxStats[];
@@ -53,6 +45,12 @@ export class AoPage {
 
   recentBds?: Backblast[];
 
+  // Precomputed properties instead of getters
+  all = false;
+  bbShort = '';
+  bbSingular = '';
+  bbPlural = '';
+
   constructor(
       public readonly utilService: UtilService,
       private readonly route: ActivatedRoute,
@@ -64,26 +62,25 @@ export class AoPage {
     this.displayName = this.utilService.normalizeName(this.name);
     this.bbType =
         location.href.includes('/dd/') ? BBType.DOUBLEDOWN : BBType.BACKBLAST;
+    this.updateBBProperties();
+    this.all = this.name === 'all';
+  }
+
+  private updateBBProperties() {
+    this.bbShort = this.bbType === BBType.BACKBLAST ? 'BD' : 'DD';
+    this.bbSingular =
+        this.bbType === BBType.BACKBLAST ? 'beatdown' : 'double down';
+    this.bbPlural =
+        this.bbType === BBType.BACKBLAST ? 'beatdowns' : 'double downs';
   }
 
   ionViewDidEnter() {
     this.calculateStats(this.selectedRange);
   }
 
-  get all(): boolean {
-    return this.name === 'all';
-  }
-
-  get bbShort(): string {
-    return this.bbType === BBType.BACKBLAST ? 'BD' : 'DD';
-  }
-
-  get bbSingular(): string {
-    return this.bbType === BBType.BACKBLAST ? 'beatdown' : 'double down';
-  }
-
-  get bbPlural(): string {
-    return this.bbType === BBType.BACKBLAST ? 'beatdowns' : 'double downs';
+  onDateRangeChange(range: DateRange) {
+    this.selectedRange = range;
+    this.calculateStats(range);
   }
 
   goToPaxPage(name: string) {
@@ -91,12 +88,13 @@ export class AoPage {
     this.router.navigateByUrl(`/pax/${name}`);
   }
 
-  async calculateStats(range: string) {
+  async calculateStats(range: DateRange) {
     // reset the data if the range changed
-    if (range !== this.selectedRange) {
+    const rangeChanged = range.startDate !== this.selectedRange.startDate ||
+        range.endDate !== this.selectedRange.endDate;
+    if (rangeChanged) {
       this.reset();
     }
-    this.selectedRange = range as TimeRange;
 
     const allData = this.all ?
         await this.backblastService.getAllData(this.bbType) :
@@ -108,26 +106,23 @@ export class AoPage {
 
     // sort the data by date ascending
     const data: Backblast[] = [];
-    const now = moment();
     for (const backblast of allData) {
-      // handle filtering down the days
-      if (range !== TimeRange.ALL_TIME) {
-        const days = now.diff(moment(backblast.date), 'days');
-        switch (range) {
-          case TimeRange.DAYS_30:
-            if (days > 30) continue;
-            break;
-          case (TimeRange.DAYS_90):
-            if (days > 90) continue;
-            break;
-          default:
-            // the last case is this month, filter to just this month
-            const thisMoment = moment(backblast.date);
-            const month = thisMoment.format('MMMM');
-            const year = thisMoment.format('YYYY');
-            if (month !== this.thisMonth || year !== this.thisYear) {
-              continue;
-            }
+      // handle filtering by date range
+      if (range.startDate || range.endDate) {
+        const backblastDate = moment(backblast.date);
+
+        if (range.startDate) {
+          const startDate = moment(range.startDate);
+          if (backblastDate.isBefore(startDate, 'day')) {
+            continue;
+          }
+        }
+
+        if (range.endDate) {
+          const endDate = moment(range.endDate);
+          if (backblastDate.isAfter(endDate, 'day')) {
+            continue;
+          }
         }
       }
       data.unshift(backblast);
@@ -207,13 +202,20 @@ export class AoPage {
   }
 
   calculateQsCards() {
-    const noQs = [];
+    const noQs: AoPaxStats[] = [];
     const hasQd = [];
     for (const pax of this.paxStats ?? []) {
       if (pax.qs > 0) {
         hasQd.push(pax);
       } else {
-        noQs.push(pax);
+        // Precompute relative date for noQs items
+        const paxWithDate: AoPaxStats = {
+          ...pax,
+          lastBdRelativeDate: pax.lastBdDate ?
+              this.utilService.getRelativeDate(pax.lastBdDate) :
+              undefined,
+        };
+        noQs.push(paxWithDate);
       }
     }
 

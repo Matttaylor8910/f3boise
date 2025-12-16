@@ -34,6 +34,7 @@ export interface AoPaxStats {
   firstQDate?: string;
   lastQDate?: string;
   parent?: Parent|null;
+  lastBdRelativeDate?: string;
 }
 
 export interface QLineUp {

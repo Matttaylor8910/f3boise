@@ -9,6 +9,8 @@ import {ActionsPopoverComponent} from './actions-popover/actions-popover.compone
 import {BackblastCardComponent} from './backblast-card/backblast-card.component';
 import {BackblastGridComponent} from './backblast-grid/backblast-grid.component';
 import {BestiesGridComponent} from './besties-grid/besties-grid.component';
+import {CustomDateRangePopoverComponent} from './custom-date-range-popover/custom-date-range-popover.component';
+import {DateRangePickerComponent} from './date-range-picker/date-range-picker.component';
 import {HeaderComponent} from './header/header.component';
 import {PaxAvatarComponent} from './pax-avatar/pax-avatar.component';
 import {PaxChipComponent} from './pax-chip/pax-chip.component';
@@ -24,6 +26,8 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     BackblastCardComponent,
     BackblastGridComponent,
     BestiesGridComponent,
+    CustomDateRangePopoverComponent,
+    DateRangePickerComponent,
     HeaderComponent,
     PaxAvatarComponent,
     PaxChipComponent,
@@ -44,6 +48,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     BackblastCardComponent,
     BackblastGridComponent,
     BestiesGridComponent,
+    DateRangePickerComponent,
     HeaderComponent,
     PaxAvatarComponent,
     PaxChipComponent,

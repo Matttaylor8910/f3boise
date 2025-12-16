@@ -1,0 +1,30 @@
+<div class="custom-date-popover">
+  <div class="popover-header">
+    <h3>Select Date Range</h3>
+  </div>
+  <div class="popover-content">
+    <div class="date-input-group">
+      <label for="popoverStartDate" class="date-label">Start Date</label>
+      <input
+        id="popoverStartDate"
+        type="date"
+        [(ngModel)]="startDate"
+        [max]="endDate || today"
+        class="date-input" />
+    </div>
+    <div class="date-input-group">
+      <label for="popoverEndDate" class="date-label">End Date</label>
+      <input
+        id="popoverEndDate"
+        type="date"
+        [(ngModel)]="endDate"
+        [min]="startDate"
+        [max]="today"
+        class="date-input" />
+    </div>
+  </div>
+  <div class="popover-actions">
+    <ion-button fill="clear" (click)="clear()">Clear</ion-button>
+    <ion-button (click)="apply()" [disabled]="!startDate || !endDate">Apply</ion-button>
+  </div>
+</div>
