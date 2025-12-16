@@ -1,0 +1,30 @@
+:root {
+  --user-menu-popover-width: 280px;
+}
+
+ion-list {
+  margin: 0;
+  padding: 0;
+  min-width: var(--user-menu-popover-width);
+  width: 100%;
+}
+
+ion-item {
+  --min-height: 48px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+
+  ion-label {
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    margin: 0;
+    flex: 1;
+  }
+}
+
+// Force popover width using ::ng-deep
+::ng-deep .user-menu-popover {
+  --width: var(--user-menu-popover-width) !important;
+  --min-width: var(--user-menu-popover-width) !important;
+}

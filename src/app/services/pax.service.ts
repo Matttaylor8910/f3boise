@@ -63,6 +63,13 @@ export class PaxService {
     return this.paxMap.get(name.toLowerCase());
   }
 
+  async getPaxByEmail(email: string): Promise<Pax|undefined> {
+    if (!this.allData) await this.getAllData();
+    return this.allData?.find(
+        pax =>
+            pax.email?.toLowerCase()?.trim() === email.toLowerCase()?.trim());
+  }
+
   async getParent(name: string, reload = false): Promise<Parent|undefined> {
     if (this.parentMap.size === 0 || reload) await this.loadPaxTree();
     return this.parentMap.get(name.toLowerCase());

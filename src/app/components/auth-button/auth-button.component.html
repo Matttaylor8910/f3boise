@@ -1,0 +1,17 @@
+<ng-container *ngIf="!user; else loggedIn">
+  <ion-button
+    class="login-button"
+    color="primary"
+    (click)="openLoginModal()">
+    Log in
+  </ion-button>
+</ng-container>
+
+<ng-template #loggedIn>
+  <div class="user-info" (click)="showUserMenu($event)">
+    <ion-avatar class="user-avatar">
+      <img [src]="photoURL || '/assets/f3.jpg'" [alt]="displayName" />
+    </ion-avatar>
+    <span class="user-name">{{ displayName }}</span>
+  </div>
+</ng-template>

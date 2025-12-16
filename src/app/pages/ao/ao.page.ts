@@ -1,7 +1,9 @@
 import {Component} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
+import {ToastController} from '@ionic/angular';
 import * as moment from 'moment';
 import {DateRange} from 'src/app/components/date-range-picker/date-range-picker.component';
+import {AuthService} from 'src/app/services/auth.service';
 import {BackblastService} from 'src/app/services/backblast.service';
 import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
@@ -57,6 +59,8 @@ export class AoPage {
       private readonly router: Router,
       private readonly backblastService: BackblastService,
       private readonly paxService: PaxService,
+      private readonly authService: AuthService,
+      private readonly toastController: ToastController,
   ) {
     this.name = this.route.snapshot.params['name'];
     this.displayName = this.utilService.normalizeName(this.name);
@@ -74,8 +78,39 @@ export class AoPage {
         this.bbType === BBType.BACKBLAST ? 'beatdowns' : 'double downs';
   }
 
-  ionViewDidEnter() {
+  async ionViewDidEnter() {
+    // Check if this is an email link sign-in
+    await this.handleEmailLinkSignIn();
     this.calculateStats(this.selectedRange);
+  }
+
+  private async handleEmailLinkSignIn() {
+    if (this.authService.isSignInWithEmailLink()) {
+      try {
+        await this.authService.signInWithEmailLink();
+        const toast = await this.toastController.create({
+          message: 'Successfully signed in!',
+          duration: 3000,
+          color: 'success',
+          position: 'top',
+        });
+        await toast.present();
+        // Clean up the URL by removing the query parameters
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: {},
+          replaceUrl: true,
+        });
+      } catch (error: any) {
+        const toast = await this.toastController.create({
+          message: error.message || 'Failed to sign in. Please try again.',
+          duration: 5000,
+          color: 'danger',
+          position: 'top',
+        });
+        await toast.present();
+      }
+    }
   }
 
   onDateRangeChange(range: DateRange) {

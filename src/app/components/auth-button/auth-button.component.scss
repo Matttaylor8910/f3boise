@@ -1,0 +1,32 @@
+.login-button {
+  --background: #333;
+  --color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 20px;
+  background-color: #eee;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #ddd;
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .user-name {
+    font-size: 16px;
+    color: #333;
+    font-weight: 500;
+  }
+}

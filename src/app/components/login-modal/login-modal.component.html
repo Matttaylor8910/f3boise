@@ -1,0 +1,39 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Sign In</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="login-content">
+    <h2>Sign in with email link</h2>
+    <p>Enter your email address and we'll send you a sign-in link.</p>
+
+    <ion-item>
+      <ion-label position="stacked">Email</ion-label>
+      <ion-input
+        type="email"
+        [(ngModel)]="email"
+        placeholder="your.email@example.com"
+        [disabled]="isLoading">
+      </ion-input>
+    </ion-item>
+
+    <ion-button
+      expand="block"
+      (click)="sendLoginLink()"
+      [disabled]="isLoading || !email">
+      <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+      <span *ngIf="!isLoading">Send Sign-In Link</span>
+    </ion-button>
+
+    <p class="help-text">
+      You'll receive an email with a link to sign in. No password required!
+    </p>
+  </div>
+</ion-content>

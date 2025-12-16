@@ -3,6 +3,7 @@ import {NgModule} from '@angular/core';
 import {ScreenTrackingService, UserTrackingService} from '@angular/fire/analytics';
 import {AngularFireModule} from '@angular/fire/compat';
 import {AngularFireAnalyticsModule} from '@angular/fire/compat/analytics';
+import {AngularFireAuthModule} from '@angular/fire/compat/auth';
 import {BrowserModule} from '@angular/platform-browser';
 import {RouteReuseStrategy} from '@angular/router';
 import {AnimationController, IonicModule, IonicRouteStrategy} from '@ionic/angular';
@@ -24,6 +25,7 @@ import {AppComponent} from './app.component';
     HttpClientModule,
     AngularFireModule.initializeApp(environment.firebase),
     AngularFireAnalyticsModule,
+    AngularFireAuthModule,
     NgxOrgChartModule,
   ],
   providers: [
