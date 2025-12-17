@@ -1,0 +1,72 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Add Participant</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="add-participant-content">
+    <p>Search for a PAX to add to this challenge.</p>
+
+    <ion-item>
+      <ion-label position="stacked">Search PAX</ion-label>
+      <ion-input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ionInput)="onSearchChange()"
+        placeholder="Type to search..."
+        [disabled]="isLoading">
+      </ion-input>
+    </ion-item>
+
+    <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+
+    <div *ngIf="!isLoading" class="pax-list">
+      <div *ngIf="displayedPax.length === 0 && !isLoading" class="empty-state">
+        <p>{{ searchQuery ? 'No PAX found matching your search.' : 'No PAX available.' }}</p>
+      </div>
+
+      <ion-list *ngIf="displayedPax.length > 0">
+        <ion-item
+          *ngFor="let pax of displayedPax; trackBy: trackByPax"
+          [class.already-participant]="isAlreadyParticipant(pax)"
+          [class.adding]="addingParticipantId === pax.id">
+          <app-pax-avatar slot="start" [name]="pax.name" [size]="40"></app-pax-avatar>
+          <ion-label>
+            <h2>{{ pax.normalizedName }}</h2>
+            <p *ngIf="pax.email">{{ pax.email }}</p>
+          </ion-label>
+          <ion-button
+            slot="end"
+            fill="clear"
+            size="small"
+            (click)="addParticipant(pax)"
+            [disabled]="isAlreadyParticipant(pax) || isAdding">
+            <ion-spinner *ngIf="addingParticipantId === pax.id" name="crescent"></ion-spinner>
+            <ion-icon *ngIf="addingParticipantId !== pax.id && !isAlreadyParticipant(pax)" name="add-circle-outline"></ion-icon>
+            <span *ngIf="isAlreadyParticipant(pax)">Added</span>
+          </ion-button>
+        </ion-item>
+      </ion-list>
+
+      <ion-infinite-scroll
+        *ngIf="displayedPax.length < filteredPax.length"
+        threshold="100px"
+        (ionInfinite)="loadMore($event)">
+        <ion-infinite-scroll-content
+          loadingSpinner="bubbles"
+          loadingText="Loading more...">
+        </ion-infinite-scroll-content>
+      </ion-infinite-scroll>
+
+      <div *ngIf="displayedPax.length > 0 && displayedPax.length < filteredPax.length" class="results-count">
+        Showing {{ displayedPax.length }} of {{ filteredPax.length }} PAX
+      </div>
+    </div>
+  </div>
+</ion-content>

@@ -6,6 +6,7 @@ import {IonicModule} from '@ionic/angular';
 
 import {ActionsPopoverPageComponent} from './actions-popover/actions-popover-page.component';
 import {ActionsPopoverComponent} from './actions-popover/actions-popover.component';
+import {AddParticipantModalComponent} from './add-participant-modal/add-participant-modal.component';
 import {AuthButtonComponent} from './auth-button/auth-button.component';
 import {BackblastCardComponent} from './backblast-card/backblast-card.component';
 import {BackblastGridComponent} from './backblast-grid/backblast-grid.component';
@@ -29,6 +30,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
   declarations: [
     ActionsPopoverComponent,
     ActionsPopoverPageComponent,
+    AddParticipantModalComponent,
     AuthButtonComponent,
     BackblastCardComponent,
     BackblastGridComponent,
@@ -57,6 +59,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
   exports: [
     ActionsPopoverComponent,
     ActionsPopoverPageComponent,
+    AddParticipantModalComponent,
     AuthButtonComponent,
     BackblastCardComponent,
     BackblastGridComponent,

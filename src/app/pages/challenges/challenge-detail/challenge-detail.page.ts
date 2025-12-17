@@ -6,6 +6,7 @@ import {combineLatest, Subscription} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
 import {Backblast, Challenge, ChallengeLeaderboardEntry, ChallengeMetric, ChallengeParticipant,} from 'types';
 
+import {AddParticipantModalComponent} from '../../../components/add-participant-modal/add-participant-modal.component';
 import {CreateChallengeModalComponent} from '../../../components/create-challenge-modal/create-challenge-modal.component';
 import {LoginModalComponent} from '../../../components/login-modal/login-modal.component';
 import {AuthService} from '../../../services/auth.service';
@@ -234,6 +235,11 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
       const bValue = b[sortBy] || 0;
       return bValue - aValue;  // Descending order
     });
+  }
+
+  trackByLeaderboardEntry(index: number, entry: ChallengeLeaderboardEntry):
+      string {
+    return entry.userId;
   }
 
   getPaxNameForUser(userId: string, allPax: any[]): string|undefined {
@@ -549,6 +555,28 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
         this.performJoin();
       }, 500);
     }
+  }
+
+  async openAddParticipantModal() {
+    if (!this.challenge || !this.isOwner()) {
+      return;
+    }
+
+    const existingParticipantIds = this.participants.map(p => p.userId);
+
+    const modal = await this.modalController.create({
+      component: AddParticipantModalComponent,
+      componentProps: {
+        challengeId: this.challengeId,
+        existingParticipantIds,
+      },
+      cssClass: 'add-participant-modal',
+    });
+
+    await modal.present();
+
+    const {data} = await modal.onDidDismiss();
+    // Participants will automatically update via the subscription
   }
 
   goBack() {

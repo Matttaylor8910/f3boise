@@ -76,7 +76,17 @@
 
     <!-- Leaderboard -->
     <div class="leaderboard-section">
-      <h2>Leaderboard</h2>
+      <div class="leaderboard-header">
+        <h2>Leaderboard</h2>
+        <ion-button
+          *ngIf="isOwner()"
+          fill="clear"
+          size="small"
+          (click)="openAddParticipantModal()">
+          <ion-icon slot="start" name="person-add-outline"></ion-icon>
+          Add PAX
+        </ion-button>
+      </div>
       <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
 
       <div *ngIf="!isLoading && leaderboard.length === 0" class="empty-leaderboard">
@@ -96,7 +106,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let entry of leaderboard; let i = index"
+            <tr *ngFor="let entry of leaderboard; let i = index; trackBy: trackByLeaderboardEntry"
                 [class.current-user]="user && (entry.userId === user.email || entry.userId === user.uid)">
               <td class="rank">{{ i + 1 }}</td>
               <td class="name">
