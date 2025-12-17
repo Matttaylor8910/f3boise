@@ -1,0 +1,11 @@
+ion-avatar {
+  &.clickable {
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+
+    &:hover {
+      transform: scale(1.1);
+      opacity: 0.8;
+    }
+  }
+}

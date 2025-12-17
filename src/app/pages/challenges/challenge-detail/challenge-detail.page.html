@@ -1,0 +1,117 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/challenges"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ challenge?.name || 'Challenge' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        *ngIf="challenge && isOwner()"
+        fill="clear"
+        (click)="editChallenge()">
+        <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="challenge-detail-container" *ngIf="challenge">
+    <!-- Challenge Details -->
+    <ion-card class="details-card">
+      <ion-card-header>
+        <div class="card-header-row">
+          <div class="card-title-section">
+            <ion-card-title>{{ challenge.name }}</ion-card-title>
+            <ion-card-subtitle>{{ getDateRange() }}</ion-card-subtitle>
+          </div>
+          <ion-chip *ngIf="participants.length > 0" class="participants-chip">
+            <ion-icon name="people-outline"></ion-icon>
+            <ion-label>{{ participants.length }}</ion-label>
+          </ion-chip>
+        </div>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="description">{{ challenge.description }}</p>
+        <div class="challenge-details">
+          <div class="detail-item">
+            <ion-icon name="stats-chart-outline"></ion-icon>
+            <span><strong>Tracking:</strong> {{ getMetricsList() }}</span>
+          </div>
+          <div class="detail-item">
+            <ion-icon name="swap-vertical-outline"></ion-icon>
+            <span><strong>Sort by:</strong> {{ getSortByLabel() }}</span>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Join Challenge CTA -->
+    <div class="join-section" *ngIf="!isParticipant">
+      <ion-button
+        expand="block"
+        (click)="joinChallenge()"
+        [disabled]="isLoading || isJoining">
+        <ion-spinner *ngIf="isJoining" name="crescent"></ion-spinner>
+        <ion-icon *ngIf="!isJoining" slot="start" name="person-add-outline"></ion-icon>
+        <span *ngIf="!isJoining">{{ user ? 'Join Challenge' : 'Sign in to Join Challenge' }}</span>
+        <span *ngIf="isJoining">Joining...</span>
+      </ion-button>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="leaderboard-section">
+      <h2>Leaderboard</h2>
+      <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+
+      <div *ngIf="!isLoading && leaderboard.length === 0" class="empty-leaderboard">
+        <p>No participants yet. Be the first to join!</p>
+      </div>
+
+      <div *ngIf="!isLoading && leaderboard.length > 0" class="leaderboard-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Name</th>
+              <th *ngIf="challenge.metrics.bds"># of BDs</th>
+              <th *ngIf="challenge.metrics.uniqueAos">Unique AOs</th>
+              <th *ngIf="challenge.metrics.qs"># of Qs</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let entry of leaderboard; let i = index"
+                [class.current-user]="user && (entry.userId === user.email || entry.userId === user.uid)">
+              <td class="rank">{{ i + 1 }}</td>
+              <td class="name">
+                <div class="pax-cell" *ngIf="entry.paxName; else userIdDisplay">
+                  <app-pax-avatar [name]="entry.paxName" [size]="32" [clickable]="true"></app-pax-avatar>
+                  <app-pax-name [name]="entry.paxName"></app-pax-name>
+                </div>
+                <ng-template #userIdDisplay>
+                  {{ entry.userId }}
+                </ng-template>
+              </td>
+              <td *ngIf="challenge.metrics.bds" class="metric">{{ entry.bds }}</td>
+              <td *ngIf="challenge.metrics.uniqueAos" class="metric">{{ entry.uniqueAos }}</td>
+              <td *ngIf="challenge.metrics.qs" class="metric">{{ entry.qs }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="challengeLoading" class="loading-state">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Loading challenge...</p>
+  </div>
+
+  <div *ngIf="!challengeLoading && !challenge" class="error-state">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    <h3>Challenge not found</h3>
+    <ion-button (click)="goBack()">
+      Back to Challenges
+    </ion-button>
+  </div>
+</ion-content>

@@ -31,21 +31,17 @@
     </div>
 
     <div *ngIf="!isLoading && challenges.length > 0" class="challenges-list">
-      <ion-card *ngFor="let challenge of challenges" class="challenge-card">
+      <ion-card *ngFor="let challenge of challenges" class="challenge-card" (click)="goToChallenge(challenge)">
         <ion-card-header>
           <div class="card-header-row">
             <div class="card-title-section">
               <ion-card-title>{{ challenge.name }}</ion-card-title>
               <ion-card-subtitle>{{ getDateRange(challenge) }}</ion-card-subtitle>
             </div>
-            <ion-button
-              *ngIf="isOwner(challenge)"
-              fill="clear"
-              size="small"
-              (click)="editChallenge(challenge)"
-              class="edit-button">
-              <ion-icon slot="icon-only" name="create-outline"></ion-icon>
-            </ion-button>
+            <ion-chip *ngIf="getParticipantCount(challenge.id)" class="participants-chip">
+              <ion-icon name="people-outline"></ion-icon>
+              <ion-label>{{ getParticipantCount(challenge.id) }}</ion-label>
+            </ion-chip>
           </div>
         </ion-card-header>
         <ion-card-content>

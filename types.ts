@@ -117,3 +117,19 @@ export interface Challenge {
   createdBy: string;  // User email or UID
   createdAt: any;     // Firestore timestamp
 }
+
+export interface ChallengeParticipant {
+  id?: string;
+  challengeId: string;
+  userId: string;    // User email or UID
+  paxName?: string;  // PAX name if available
+  joinedAt: any;     // Firestore timestamp
+}
+
+export interface ChallengeLeaderboardEntry {
+  userId: string;
+  paxName?: string;
+  bds: number;
+  uniqueAos: number;
+  qs: number;
+}

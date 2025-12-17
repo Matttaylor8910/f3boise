@@ -1,4 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Router} from '@angular/router';
 import {ModalController} from '@ionic/angular';
 import * as moment from 'moment';
 import {Subscription} from 'rxjs';
@@ -16,15 +17,18 @@ import {ChallengesService} from '../../services/challenges.service';
 })
 export class ChallengesPage implements OnInit, OnDestroy {
   challenges: Challenge[] = [];
+  participantCounts: Map<string, number> = new Map();
   isLoading = false;
   user: any = null;
   private authSubscription?: Subscription;
   private challengesSubscription?: Subscription;
+  private participantSubscriptions: Subscription[] = [];
 
   constructor(
       private readonly challengesService: ChallengesService,
       private readonly authService: AuthService,
       private readonly modalController: ModalController,
+      private readonly router: Router,
   ) {}
 
   ngOnInit() {
@@ -40,6 +44,7 @@ export class ChallengesPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.authSubscription?.unsubscribe();
     this.challengesSubscription?.unsubscribe();
+    this.participantSubscriptions.forEach(sub => sub.unsubscribe());
   }
 
   loadChallenges() {
@@ -48,6 +53,7 @@ export class ChallengesPage implements OnInit, OnDestroy {
         this.challengesService.getChallenges().subscribe({
           next: (challenges) => {
             this.challenges = challenges;
+            this.loadParticipantCounts(challenges);
             this.isLoading = false;
           },
           error: (error) => {
@@ -55,6 +61,29 @@ export class ChallengesPage implements OnInit, OnDestroy {
             this.isLoading = false;
           },
         });
+  }
+
+  loadParticipantCounts(challenges: Challenge[]) {
+    // Unsubscribe from previous participant subscriptions
+    this.participantSubscriptions.forEach(sub => sub.unsubscribe());
+    this.participantSubscriptions = [];
+
+    // Subscribe to participant counts for each challenge
+    challenges.forEach(challenge => {
+      if (challenge.id) {
+        const sub = this.challengesService.getParticipants(challenge.id)
+                        .subscribe(participants => {
+                          this.participantCounts.set(
+                              challenge.id!, participants.length);
+                        });
+        this.participantSubscriptions.push(sub);
+      }
+    });
+  }
+
+  getParticipantCount(challengeId?: string): number {
+    if (!challengeId) return 0;
+    return this.participantCounts.get(challengeId) || 0;
   }
 
   async createChallenge() {
@@ -142,6 +171,12 @@ export class ChallengesPage implements OnInit, OnDestroy {
     const {data} = await modal.onDidDismiss();
     if (data?.updated || data?.created) {
       // Challenges will automatically update via the subscription
+    }
+  }
+
+  goToChallenge(challenge: Challenge) {
+    if (challenge.id) {
+      this.router.navigateByUrl(`/challenges/${challenge.id}`);
     }
   }
 }
