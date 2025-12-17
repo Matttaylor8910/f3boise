@@ -17,6 +17,18 @@
       {{ button.label }}
     </ion-button>
 
+    <!-- PAX Stats button - only show when authenticated on static pages -->
+    <ion-button
+      *ngIf="showPaxStatsButton"
+      color="light"
+      fill="clear"
+      class="nav-button"
+      [class.active]="isActive({url: '/ao/all'})"
+      (click)="navToUrl({url: '/ao/all'})"
+    >
+      PAX [STATS]
+    </ion-button>
+
     <!-- on small displays, show a menu button -->
     <ion-button
       color="light"
@@ -36,5 +48,13 @@
     (click)="navToUrl(button)"
   >
     {{ button.label }}
+  </div>
+  <!-- PAX Stats menu item - only show when authenticated on static pages -->
+  <div
+    *ngIf="showPaxStatsButton"
+    class="menu-item"
+    (click)="navToUrl({url: '/ao/all'})"
+  >
+    PAX [STATS]
   </div>
 </div>

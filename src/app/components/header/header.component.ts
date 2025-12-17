@@ -1,12 +1,14 @@
-import {Component, OnInit} from '@angular/core';
-import {Router} from '@angular/router';
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {NavigationExtras, Router} from '@angular/router';
+import {Subscription} from 'rxjs';
+import {AuthService} from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit, OnDestroy {
   showMenu = false;
   buttons = [
     {label: 'Home', url: '/'},
@@ -17,15 +19,38 @@ export class HeaderComponent {
   // Routes that should hide sidebar toggle on mobile
   private staticPages = ['/', '/fng', '/workouts'];
   hideSidebarToggle = false;
+  isAuthenticated = false;
+  showPaxStatsButton = false;
+  private authSubscription?: Subscription;
 
   constructor(
-      private readonly router: Router,
+      public readonly router: Router,
+      private readonly authService: AuthService,
   ) {
     this.checkIfShouldHide();
     // Subscribe to route changes
     this.router.events.subscribe(() => {
       this.checkIfShouldHide();
+      this.updatePaxStatsButton();
     });
+  }
+
+  ngOnInit() {
+    // Subscribe to authentication state
+    this.authSubscription = this.authService.authState$.subscribe(user => {
+      this.isAuthenticated = !!user;
+      this.updatePaxStatsButton();
+    });
+  }
+
+  ngOnDestroy() {
+    this.authSubscription?.unsubscribe();
+  }
+
+  private updatePaxStatsButton() {
+    const currentUrl = this.router.url.split('?')[0];
+    this.showPaxStatsButton =
+        this.isAuthenticated && this.staticPages.includes(currentUrl);
   }
 
   private checkIfShouldHide() {
@@ -40,7 +65,12 @@ export class HeaderComponent {
 
   navToUrl(button: {url: string}) {
     this.showMenu = false;
-    this.router.navigateByUrl(button.url);
+
+    // If navigating to /ao/all from the header, replace history to make it root
+    const navigationExtras: NavigationExtras =
+        button.url === '/ao/all' ? {replaceUrl: true} : {};
+
+    this.router.navigateByUrl(button.url, navigationExtras);
   }
 
   isActive(button: {url: string}) {
