@@ -36,4 +36,31 @@
     text-align: center;
     color: var(--ion-color-medium);
   }
+
+  .spam-folder-note {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 24px;
+    padding: 12px 16px;
+    background-color: rgba(var(--ion-color-warning-rgb), 0.1);
+    border-left: 4px solid var(--ion-color-warning);
+    border-radius: 4px;
+
+    ion-icon {
+      font-size: 24px;
+      color: var(--ion-color-warning);
+      flex-shrink: 0;
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--ion-color-dark);
+
+      strong {
+        color: var(--ion-color-dark);
+      }
+    }
+  }
 }
