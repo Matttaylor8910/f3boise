@@ -10,6 +10,7 @@ import {AuthButtonComponent} from './auth-button/auth-button.component';
 import {BackblastCardComponent} from './backblast-card/backblast-card.component';
 import {BackblastGridComponent} from './backblast-grid/backblast-grid.component';
 import {BestiesGridComponent} from './besties-grid/besties-grid.component';
+import {CreateChallengeModalComponent} from './create-challenge-modal/create-challenge-modal.component';
 import {CustomDateRangePopoverComponent} from './custom-date-range-popover/custom-date-range-popover.component';
 import {DateRangePickerComponent} from './date-range-picker/date-range-picker.component';
 import {HeaderComponent} from './header/header.component';
@@ -32,6 +33,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     BackblastCardComponent,
     BackblastGridComponent,
     BestiesGridComponent,
+    CreateChallengeModalComponent,
     CustomDateRangePopoverComponent,
     DateRangePickerComponent,
     HeaderComponent,
@@ -59,6 +61,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     BackblastCardComponent,
     BackblastGridComponent,
     BestiesGridComponent,
+    CreateChallengeModalComponent,
     DateRangePickerComponent,
     HeaderComponent,
     LoginModalComponent,

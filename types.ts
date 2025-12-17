@@ -99,3 +99,21 @@ export enum PaxOrigin {
   ONLINE = 'online',
   PAX = 'pax'
 }
+
+export enum ChallengeMetric {
+  BDS = 'bds',
+  UNIQUE_AOS = 'uniqueAos',
+  QS = 'qs'
+}
+
+export interface Challenge {
+  id?: string;
+  name: string;
+  description: string;
+  startDate: string;  // YYYY-MM-DD format
+  endDate: string;    // YYYY-MM-DD format
+  metrics: {bds: boolean; uniqueAos: boolean; qs: boolean;};
+  sortBy: ChallengeMetric;
+  createdBy: string;  // User email or UID
+  createdAt: any;     // Firestore timestamp
+}

@@ -1,4 +1,112 @@
 .challenges-container {
   padding: 20px;
-  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+
+  .header-section {
+    margin-bottom: 24px;
+
+    h2 {
+      margin: 0 0 8px 0;
+      font-size: 28px;
+      font-weight: 600;
+    }
+
+    .sign-in-prompt {
+      color: var(--ion-color-medium);
+      margin: 0;
+
+      a {
+        color: var(--ion-color-primary);
+        cursor: pointer;
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--ion-color-medium);
+
+    ion-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: 20px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+    }
+  }
+
+  .challenges-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .challenge-card {
+    margin: 0;
+
+    .card-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 100%;
+
+      .card-title-section {
+        flex: 1;
+      }
+
+      .edit-button {
+        margin: 0;
+        --padding-start: 8px;
+        --padding-end: 8px;
+        color: var(--ion-color-primary);
+      }
+    }
+
+    .description {
+      margin: 0 0 16px 0;
+      color: var(--ion-color-dark);
+      line-height: 1.5;
+      white-space: pre-line;
+    }
+
+    .challenge-details {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--ion-color-light);
+
+      .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--ion-color-medium);
+        font-size: 14px;
+
+        ion-icon {
+          font-size: 18px;
+        }
+
+        strong {
+          color: var(--ion-color-dark);
+        }
+      }
+    }
+  }
+}
+
+ion-spinner {
+  display: block;
+  margin: 40px auto;
 }
