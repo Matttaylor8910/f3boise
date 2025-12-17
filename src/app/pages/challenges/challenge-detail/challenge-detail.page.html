@@ -77,6 +77,7 @@
               <th *ngIf="challenge.metrics.bds"># of BDs</th>
               <th *ngIf="challenge.metrics.uniqueAos">Unique AOs</th>
               <th *ngIf="challenge.metrics.qs"># of Qs</th>
+              <th *ngIf="isOwner() || (user && isParticipant)" class="actions-column">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -95,6 +96,17 @@
               <td *ngIf="challenge.metrics.bds" class="metric">{{ entry.bds }}</td>
               <td *ngIf="challenge.metrics.uniqueAos" class="metric">{{ entry.uniqueAos }}</td>
               <td *ngIf="challenge.metrics.qs" class="metric">{{ entry.qs }}</td>
+              <td *ngIf="isOwner() || (user && (entry.userId === user.email || entry.userId === user.uid))" class="actions">
+                <ion-button
+                  fill="clear"
+                  size="small"
+                  color="danger"
+                  (click)="removeParticipant(entry.userId)"
+                  [disabled]="removingParticipant === entry.userId">
+                  <ion-spinner *ngIf="removingParticipant === entry.userId" name="crescent"></ion-spinner>
+                  <ion-icon *ngIf="removingParticipant !== entry.userId" slot="icon-only" name="close-circle-outline"></ion-icon>
+                </ion-button>
+              </td>
             </tr>
           </tbody>
         </table>

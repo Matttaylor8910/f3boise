@@ -110,6 +110,11 @@
           &:not(:first-child):not(:nth-child(2)) {
             text-align: center;
           }
+
+          &.actions-column {
+            text-align: center;
+            width: 80px;
+          }
         }
       }
 
@@ -165,6 +170,17 @@
             text-align: center;
             font-weight: 600;
             color: var(--ion-color-primary);
+          }
+
+          &.actions {
+            text-align: center;
+            padding: 8px;
+
+            ion-button {
+              --padding-start: 4px;
+              --padding-end: 4px;
+              margin: 0;
+            }
           }
         }
       }

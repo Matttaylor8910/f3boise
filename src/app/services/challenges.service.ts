@@ -154,4 +154,42 @@ export class ChallengesService {
             })),
         );
   }
+
+  /**
+   * Withdraw from a challenge (remove participant)
+   * @param challengeId The challenge ID
+   * @param userId The user ID
+   * @returns Promise that resolves when withdrawal is complete
+   */
+  async withdrawFromChallenge(challengeId: string, userId: string):
+      Promise<void> {
+    await this.removeParticipant(challengeId, userId);
+  }
+
+  /**
+   * Remove a participant from a challenge (can be called by creator or the
+   * participant themselves)
+   * @param challengeId The challenge ID
+   * @param userId The user ID of the participant to remove
+   * @returns Promise that resolves when removal is complete
+   */
+  async removeParticipant(challengeId: string, userId: string): Promise<void> {
+    // Find the participant document
+    const participantQuery =
+        await this.firestore
+            .collection<ChallengeParticipant>(
+                this.PARTICIPANTS_COLLECTION,
+                ref => ref.where('challengeId', '==', challengeId)
+                           .where('userId', '==', userId)
+                           .limit(1))
+            .get()
+            .toPromise();
+
+    if (participantQuery && !participantQuery.empty) {
+      const participantDoc = participantQuery.docs[0];
+      await participantDoc.ref.delete();
+    } else {
+      throw new Error('Participant not found');
+    }
+  }
 }

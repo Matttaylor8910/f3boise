@@ -25,6 +25,8 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   leaderboard: ChallengeLeaderboardEntry[] = [];
   isLoading = false;
   isJoining = false;
+  isWithdrawing = false;
+  removingParticipant: string|null = null;
   challengeLoading = true;
   user: any = null;
   isParticipant = false;
@@ -259,6 +261,74 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
       );
     } finally {
       this.isJoining = false;
+    }
+  }
+
+  async withdrawFromChallenge() {
+    if (!this.user || !this.challenge) {
+      return;
+    }
+
+    if (this.isWithdrawing) return;
+
+    this.isWithdrawing = true;
+
+    try {
+      const userId = this.user.email || this.user.uid;
+      if (!userId) {
+        throw new Error('User ID not available');
+      }
+
+      await this.challengesService.withdrawFromChallenge(
+          this.challengeId, userId);
+      await this.showToast(
+          'Successfully withdrew from the challenge', 'success');
+      // The participant list will update automatically via subscription
+    } catch (error: any) {
+      console.error('Error withdrawing from challenge:', error);
+      await this.showToast(
+          error.message ||
+              'Failed to withdraw from challenge. Please try again.',
+          'danger',
+      );
+    } finally {
+      this.isWithdrawing = false;
+    }
+  }
+
+  async removeParticipant(userId: string) {
+    if (!this.user || !this.challenge) {
+      return;
+    }
+
+    const currentUserId = this.user.email || this.user.uid;
+    const isRemovingSelf = userId === currentUserId;
+    const isOwnerRemoving = this.isOwner();
+
+    // Only allow if removing self or if owner is removing someone else
+    if (!isRemovingSelf && !isOwnerRemoving) {
+      return;
+    }
+
+    if (this.removingParticipant === userId) return;
+
+    this.removingParticipant = userId;
+
+    try {
+      await this.challengesService.removeParticipant(this.challengeId, userId);
+      const message = isRemovingSelf ?
+          'Successfully withdrew from the challenge' :
+          'Participant removed successfully';
+      await this.showToast(message, 'success');
+      // The participant list will update automatically via subscription
+    } catch (error: any) {
+      console.error('Error removing participant:', error);
+      await this.showToast(
+          error.message || 'Failed to remove participant. Please try again.',
+          'danger',
+      );
+    } finally {
+      this.removingParticipant = null;
     }
   }
 

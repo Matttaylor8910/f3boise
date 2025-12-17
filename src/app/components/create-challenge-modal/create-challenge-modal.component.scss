@@ -1,7 +1,6 @@
 .create-challenge-content {
   max-width: 600px;
   margin: 0 auto;
-  padding: 16px;
 
   h2 {
     margin-top: 0;
@@ -19,10 +18,12 @@
 
   ion-item {
     margin-bottom: 8px;
+    --border-color: transparent;
   }
 
   .date-input {
     width: 100%;
+    margin-top: 8px;
     padding: 8px;
     border: 1px solid var(--ion-color-medium);
     border-radius: 4px;
@@ -65,6 +66,6 @@
 
 ion-radio-group {
   ion-item {
-    margin-bottom: 8px;
+    // todo: add spacing next to the label
   }
 }
