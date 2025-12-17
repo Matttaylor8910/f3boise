@@ -27,6 +27,7 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   isJoining = false;
   isWithdrawing = false;
   removingParticipant: string|null = null;
+  isDeleting = false;
   challengeLoading = true;
   user: any = null;
   isParticipant = false;
@@ -83,6 +84,22 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
             .subscribe(participants => {
               this.participants = participants;
               this.checkParticipation();
+
+              // Check access for private challenges after participants load
+              if (this.challenge?.isPrivate) {
+                const currentUserId = this.user?.email || this.user?.uid;
+                const hasAccess = this.isOwner() ||
+                    (currentUserId &&
+                     participants.some(p => p.userId === currentUserId));
+                if (!hasAccess) {
+                  this.showToast(
+                      'You do not have access to this private challenge',
+                      'danger');
+                  this.router.navigateByUrl('/challenges');
+                  return;
+                }
+              }
+
               if (this.challenge) {
                 this.loadLeaderboard();
               }
@@ -356,6 +373,67 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
     } finally {
       this.removingParticipant = null;
     }
+  }
+
+  async deleteChallenge() {
+    if (!this.user || !this.challenge || !this.isOwner()) {
+      return;
+    }
+
+    if (this.isDeleting) return;
+
+    // Show confirmation dialog
+    const confirmed = await this.showDeleteConfirmation();
+    if (!confirmed) {
+      return;
+    }
+
+    this.isDeleting = true;
+
+    try {
+      await this.challengesService.deleteChallenge(this.challengeId);
+      await this.showToast('Challenge deleted successfully', 'success');
+      // Navigate back to challenges list
+      this.router.navigateByUrl('/challenges');
+    } catch (error: any) {
+      console.error('Error deleting challenge:', error);
+      await this.showToast(
+          error.message || 'Failed to delete challenge. Please try again.',
+          'danger',
+      );
+    } finally {
+      this.isDeleting = false;
+    }
+  }
+
+  private async showDeleteConfirmation(): Promise<boolean> {
+    return new Promise(async resolve => {
+      const alert = await this.alertController.create({
+        header: 'Delete Challenge?',
+        message: `Are you sure you want to delete "${
+            this.challenge
+                ?.name}"? This action cannot be undone. All participant data will be permanently removed.`,
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
+            handler: () => {
+              resolve(false);
+            },
+          },
+          {
+            text: 'Delete',
+            role: 'destructive',
+            cssClass: 'alert-button-destructive',
+            handler: () => {
+              resolve(true);
+            },
+          },
+        ],
+      });
+
+      await alert.present();
+    });
   }
 
   private async showRemoveConfirmation(

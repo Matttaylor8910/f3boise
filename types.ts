@@ -114,8 +114,9 @@ export interface Challenge {
   endDate: string;    // YYYY-MM-DD format
   metrics: {bds: boolean; uniqueAos: boolean; qs: boolean;};
   sortBy: ChallengeMetric;
-  createdBy: string;  // User email or UID
-  createdAt: any;     // Firestore timestamp
+  createdBy: string;   // User email or UID
+  createdAt: any;      // Firestore timestamp
+  isPrivate: boolean;  // Whether the challenge is private (default: false)
 }
 
 export interface ChallengeParticipant {

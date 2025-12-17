@@ -55,6 +55,19 @@
       </ion-item>
     </div>
 
+    <div class="privacy-section">
+      <ion-item>
+        <ion-label>
+          <h3>Privacy</h3>
+          <p>Private challenges are only visible to you and participants</p>
+        </ion-label>
+        <ion-toggle
+          [(ngModel)]="isPrivate"
+          [disabled]="isLoading">
+        </ion-toggle>
+      </ion-item>
+    </div>
+
     <div class="metrics-section">
       <h3>Metrics to Track</h3>
       <p class="section-description">Select which metrics should be tracked in the leaderboard:</p>

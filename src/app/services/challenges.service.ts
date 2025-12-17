@@ -75,6 +75,30 @@ export class ChallengesService {
   }
 
   /**
+   * Delete a challenge and all its participants
+   * @param id The challenge ID
+   * @returns Promise that resolves when deletion is complete
+   */
+  async deleteChallenge(id: string): Promise<void> {
+    // Delete all participants first
+    const participantsQuery = await this.firestore
+                                  .collection<ChallengeParticipant>(
+                                      this.PARTICIPANTS_COLLECTION,
+                                      ref => ref.where('challengeId', '==', id))
+                                  .get()
+                                  .toPromise();
+
+    if (participantsQuery && !participantsQuery.empty) {
+      const deletePromises =
+          participantsQuery.docs.map(doc => doc.ref.delete());
+      await Promise.all(deletePromises);
+    }
+
+    // Delete the challenge
+    await this.firestore.collection(this.COLLECTION_NAME).doc(id).delete();
+  }
+
+  /**
    * Join a challenge
    * @param challengeId The challenge ID
    * @param userId The user ID (email or UID)

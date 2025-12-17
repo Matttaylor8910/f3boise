@@ -11,6 +11,15 @@
         (click)="editChallenge()">
         <ion-icon slot="icon-only" name="create-outline"></ion-icon>
       </ion-button>
+      <ion-button
+        *ngIf="challenge && isOwner()"
+        fill="clear"
+        color="danger"
+        (click)="deleteChallenge()"
+        [disabled]="isDeleting">
+        <ion-spinner *ngIf="isDeleting" name="crescent"></ion-spinner>
+        <ion-icon *ngIf="!isDeleting" slot="icon-only" name="trash-outline"></ion-icon>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -22,7 +31,13 @@
       <ion-card-header>
         <div class="card-header-row">
           <div class="card-title-section">
-            <ion-card-title>{{ challenge.name }}</ion-card-title>
+            <div class="title-row">
+              <ion-card-title>{{ challenge.name }}</ion-card-title>
+              <ion-chip *ngIf="challenge.isPrivate" color="medium" class="private-chip">
+                <ion-icon name="lock-closed-outline"></ion-icon>
+                <ion-label>Private</ion-label>
+              </ion-chip>
+            </div>
             <ion-card-subtitle>{{ getDateRange() }}</ion-card-subtitle>
           </div>
           <ion-chip *ngIf="participants.length > 0" class="participants-chip">

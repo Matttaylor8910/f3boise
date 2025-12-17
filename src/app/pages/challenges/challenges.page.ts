@@ -52,8 +52,16 @@ export class ChallengesPage implements OnInit, OnDestroy {
     this.challengesSubscription =
         this.challengesService.getChallenges().subscribe({
           next: (challenges) => {
-            this.challenges = challenges;
-            this.loadParticipantCounts(challenges);
+            // Filter out private challenges that the user doesn't own
+            const filteredChallenges = challenges.filter(challenge => {
+              if (!challenge.isPrivate) {
+                return true;  // Show all public challenges
+              }
+              // For private challenges, only show if user is the owner
+              return this.isOwner(challenge);
+            });
+            this.challenges = filteredChallenges;
+            this.loadParticipantCounts(filteredChallenges);
             this.isLoading = false;
           },
           error: (error) => {

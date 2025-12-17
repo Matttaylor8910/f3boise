@@ -26,13 +26,32 @@
 
       .card-title-section {
         flex: 1;
-      }
 
-      .participants-chip {
-        position: absolute;
-        top: 0;
-        right: 0;
-        margin: 0;
+        .title-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-bottom: 4px;
+
+          .private-chip {
+            margin: 0;
+            font-size: 12px;
+            height: 24px;
+
+            ion-icon {
+              font-size: 14px;
+              margin-right: 4px;
+            }
+          }
+        }
+
+        .participants-chip {
+          position: absolute;
+          top: 0;
+          right: 0;
+          margin: 0;
+        }
       }
     }
 

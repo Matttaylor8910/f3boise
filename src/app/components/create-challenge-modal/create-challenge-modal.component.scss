@@ -31,6 +31,28 @@
   }
 }
 
+.privacy-section {
+  margin: 24px 0;
+
+  ion-item {
+    --border-color: transparent;
+
+    ion-label {
+      h3 {
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 4px;
+      }
+
+      p {
+        font-size: 14px;
+        color: var(--ion-color-medium);
+        margin: 0;
+      }
+    }
+  }
+}
+
 .metrics-section,
 .sort-section {
   margin: 24px 0;

@@ -18,6 +18,7 @@ export class CreateChallengeModalComponent implements OnInit {
   description = '';
   startDate = '';
   endDate = '';
+  isPrivate = false;
   metrics = {
     bds: false,
     uniqueAos: false,
@@ -45,6 +46,7 @@ export class CreateChallengeModalComponent implements OnInit {
       this.description = this.challengeToEdit.description;
       this.startDate = this.challengeToEdit.startDate;
       this.endDate = this.challengeToEdit.endDate;
+      this.isPrivate = this.challengeToEdit.isPrivate || false;
       this.metrics = {...this.challengeToEdit.metrics};
       this.sortBy = this.challengeToEdit.sortBy;
     }
@@ -97,6 +99,7 @@ export class CreateChallengeModalComponent implements OnInit {
           description: this.description.trim(),
           startDate: this.startDate,
           endDate: this.endDate,
+          isPrivate: this.isPrivate,
           metrics: this.metrics,
           sortBy: this.sortBy,
         };
@@ -112,6 +115,7 @@ export class CreateChallengeModalComponent implements OnInit {
           description: this.description.trim(),
           startDate: this.startDate,
           endDate: this.endDate,
+          isPrivate: this.isPrivate,
           metrics: this.metrics,
           sortBy: this.sortBy,
           createdBy: this.createdBy,

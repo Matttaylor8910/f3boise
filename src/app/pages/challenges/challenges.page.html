@@ -35,7 +35,13 @@
         <ion-card-header>
           <div class="card-header-row">
             <div class="card-title-section">
-              <ion-card-title>{{ challenge.name }}</ion-card-title>
+              <div class="title-row">
+                <ion-card-title>{{ challenge.name }}</ion-card-title>
+                <ion-chip *ngIf="challenge.isPrivate" color="medium" class="private-chip">
+                  <ion-icon name="lock-closed-outline"></ion-icon>
+                  <ion-label>Private</ion-label>
+                </ion-chip>
+              </div>
               <ion-card-subtitle>{{ getDateRange(challenge) }}</ion-card-subtitle>
             </div>
             <ion-chip *ngIf="getParticipantCount(challenge.id)" class="participants-chip">
