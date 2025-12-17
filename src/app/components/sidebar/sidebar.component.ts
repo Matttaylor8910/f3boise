@@ -1,6 +1,8 @@
 import {Component, HostListener, OnDestroy, OnInit} from '@angular/core';
 import {NavigationEnd, NavigationExtras, Router} from '@angular/router';
+import {ToastController} from '@ionic/angular';
 import {filter, Subscription} from 'rxjs';
+import {AuthService} from 'src/app/services/auth.service';
 import {SidebarService} from 'src/app/services/sidebar.service';
 import {UtilService} from 'src/app/services/util.service';
 
@@ -66,9 +68,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
       private readonly sidebarService: SidebarService,
       private readonly router: Router,
       public readonly utilService: UtilService,
+      private readonly authService: AuthService,
+      private readonly toastController: ToastController,
   ) {}
 
   ngOnInit() {
+    // Handle email link sign-in (check on every page load)
+    this.handleEmailLinkSignIn();
+
     // Initialize regions with normalized AO names
     // Filter out region-agnostic AOs from region lists
     const regionAgnosticSet = REGION_AGNOSTIC_AOS;
@@ -348,6 +355,35 @@ export class SidebarComponent implements OnInit, OnDestroy {
           region.isActive = true;
           break;
         }
+      }
+    }
+  }
+
+  private async handleEmailLinkSignIn() {
+    if (this.authService.isSignInWithEmailLink()) {
+      try {
+        await this.authService.signInWithEmailLink();
+        const toast = await this.toastController.create({
+          message: 'Successfully signed in!',
+          duration: 3000,
+          color: 'success',
+          position: 'top',
+        });
+        await toast.present();
+        // Clean up the URL by removing the query parameters
+        const currentUrl = this.router.url.split('?')[0];
+        this.router.navigate([currentUrl], {
+          queryParams: {},
+          replaceUrl: true,
+        });
+      } catch (error: any) {
+        const toast = await this.toastController.create({
+          message: error.message || 'Failed to sign in. Please try again.',
+          duration: 5000,
+          color: 'danger',
+          position: 'top',
+        });
+        await toast.present();
       }
     }
   }
