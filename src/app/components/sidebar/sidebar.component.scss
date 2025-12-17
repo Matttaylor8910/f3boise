@@ -26,7 +26,8 @@
   width: 280px;
   background: #1e2123;
   z-index: 999;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   transform: translateX(-100%);
   opacity: 0;
   transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
@@ -48,6 +49,7 @@
   }
 
   .sidebar-header {
+    flex-shrink: 0;
     padding: 16px;
     display: flex;
     justify-content: space-between;
@@ -65,8 +67,66 @@
     }
   }
 
+  .sidebar-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0; // Important for flex scrolling
+  }
+
   .sidebar-content {
     padding: 16px 0;
+  }
+
+  .sidebar-footer {
+    flex-shrink: 0;
+    padding: 16px;
+    background: #1e2123;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 10;
+
+    // Styling for auth button in sidebar footer
+    ::ng-deep .login-button {
+      width: 100%;
+      --background: #ee6059;
+      --color: #fff;
+      font-size: 16px;
+      font-weight: 500;
+      margin: 0;
+    }
+
+    ::ng-deep .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      padding: 12px;
+      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.05);
+      transition: background-color 0.2s;
+      width: 100%;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .user-avatar {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+      }
+
+      .user-name {
+        font-size: 14px;
+        color: #fff;
+        font-weight: 500;
+        flex: 1;
+        text-align: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
   }
 
   .region-header {
