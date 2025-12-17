@@ -18,6 +18,8 @@ import {PaxAvatarComponent} from './pax-avatar/pax-avatar.component';
 import {PaxChipComponent} from './pax-chip/pax-chip.component';
 import {PaxListItemComponent} from './pax-list-item/pax-list-item.component';
 import {PAXNameComponent} from './pax-name/pax-name.component';
+import {SidebarToggleComponent} from './sidebar-toggle/sidebar-toggle.component';
+import {SidebarComponent} from './sidebar/sidebar.component';
 import {TimeFilterComponent} from './time-filter/time-filter.component';
 import {UserMenuPopoverComponent} from './user-menu-popover/user-menu-popover.component';
 import {YearGridComponent} from './year-grid/year-grid.component';
@@ -38,6 +40,8 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     PaxChipComponent,
     PaxListItemComponent,
     PAXNameComponent,
+    SidebarComponent,
+    SidebarToggleComponent,
     TimeFilterComponent,
     UserMenuPopoverComponent,
     YearGridComponent,
@@ -62,6 +66,8 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     PaxChipComponent,
     PaxListItemComponent,
     PAXNameComponent,
+    SidebarComponent,
+    SidebarToggleComponent,
     TimeFilterComponent,
     UserMenuPopoverComponent,
     YearGridComponent,

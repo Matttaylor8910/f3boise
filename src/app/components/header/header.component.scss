@@ -8,8 +8,14 @@
   background: rgb(0,0,0);
   background: linear-gradient(180deg, rgba(0,0,0,0.8477766106442577) 0%, rgba(0,0,0,0.6797093837535014) 30%, rgba(0,0,0,0) 100%);
 
-  .left img {
-    cursor: pointer;
+  .left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    img {
+      cursor: pointer;
+    }
   }
 
   ion-button {
@@ -54,8 +60,10 @@
     padding: 20px;
     background: linear-gradient(180deg, rgba(0, 0, 0, 0.8477766106) 0%, rgba(0, 0, 0, 0.6797093838) 100%);
 
-    .left img {
-      width: 60px;
+    .left {
+      img {
+        width: 60px;
+      }
     }
     .right {
       .nav-button {

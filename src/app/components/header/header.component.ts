@@ -14,9 +14,24 @@ export class HeaderComponent {
     {label: 'Workouts [AO]', url: '/workouts'},
   ];
 
+  // Routes that should hide sidebar toggle on mobile
+  private staticPages = ['/', '/fng', '/workouts'];
+  hideSidebarToggle = false;
+
   constructor(
       private readonly router: Router,
-  ) {}
+  ) {
+    this.checkIfShouldHide();
+    // Subscribe to route changes
+    this.router.events.subscribe(() => {
+      this.checkIfShouldHide();
+    });
+  }
+
+  private checkIfShouldHide() {
+    const currentUrl = this.router.url.split('?')[0];
+    this.hideSidebarToggle = this.staticPages.includes(currentUrl);
+  }
 
   goHome() {
     this.showMenu = false;

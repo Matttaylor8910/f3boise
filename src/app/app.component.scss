@@ -1,0 +1,43 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+ion-app {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0; // Prevent overflow
+  transition: margin-left 0.3s ease-in-out;
+  position: relative;
+  z-index: 1;
+}
+
+// On mobile, when sidebar is open, shift content
+@media (max-width: 1023px) {
+  .main-content {
+    margin-left: 0;
+  }
+}
+
+// On desktop, sidebar is part of flex layout
+@media (min-width: 1024px) {
+  .main-content {
+    flex: 1;
+    min-width: 0;
+    z-index: 1;
+  }
+}

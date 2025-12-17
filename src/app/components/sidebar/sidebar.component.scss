@@ -1,0 +1,193 @@
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 280px;
+  background: #1e2123;
+  z-index: 999;
+  overflow-y: auto;
+  transform: translateX(-100%);
+  opacity: 0;
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+
+  &.open {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  // Always visible on desktop
+  &.desktop-open {
+    transform: translateX(0);
+    opacity: 1;
+    box-shadow: none;
+    pointer-events: auto;
+  }
+
+  .sidebar-header {
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    .close-button {
+      --color: #fff;
+      margin: 0;
+    }
+
+    // Hide header on desktop
+    @media (min-width: 1024px) {
+      display: none;
+    }
+  }
+
+  .sidebar-content {
+    padding: 16px 0;
+  }
+
+  .region-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding-right: 8px;
+  }
+
+  .region-link,
+  .nav-link {
+    display: block;
+    flex: 1;
+    text-align: left;
+    padding: 12px 24px;
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+    background: none;
+    border: none;
+    transition: background-color 0.2s, color 0.2s;
+    cursor: pointer;
+    font-family: inherit;
+    width: 100%;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    &.active {
+      background-color: rgba(238, 96, 89, 0.2);
+      color: #ee6059;
+      border-left: 3px solid #ee6059;
+    }
+
+    &.other-ao-section {
+      cursor: default;
+      opacity: 0.8;
+
+      &:hover {
+        background-color: transparent;
+      }
+
+      &[disabled] {
+        cursor: default;
+        opacity: 0.8;
+      }
+    }
+  }
+
+  .collapse-toggle {
+    --color: rgba(255, 255, 255, 0.6);
+    --padding-start: 8px;
+    --padding-end: 8px;
+    margin: 0;
+    min-width: auto;
+    height: auto;
+
+    &:hover {
+      --color: #fff;
+    }
+  }
+
+  .ao-list {
+    padding-left: 16px;
+    margin-top: 8px;
+    max-height: 1000px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, opacity 0.2s ease-out;
+    opacity: 1;
+
+    &.collapsed {
+      max-height: 0;
+      margin-top: 0;
+      opacity: 0;
+    }
+  }
+
+  .ao-link {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 24px;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-size: 14px;
+    background: none;
+    border: none;
+    transition: background-color 0.2s, color 0.2s;
+    cursor: pointer;
+    font-family: inherit;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+
+    &.active {
+      background-color: rgba(238, 96, 89, 0.15);
+      color: #ee6059;
+      border-left: 2px solid #ee6059;
+    }
+  }
+}
+
+// Hide sidebar for static pages (on all screen sizes)
+.sidebar.hidden {
+  display: none !important;
+}
+
+// Desktop styles - sidebar should be part of flex layout, not overlapping
+@media (min-width: 1024px) {
+  .sidebar {
+    position: relative !important;
+    transform: translateX(0) !important;
+    flex-shrink: 0;
+    z-index: 1;
+    box-shadow: none;
+    height: 100vh;
+    top: auto;
+    left: auto;
+  }
+}

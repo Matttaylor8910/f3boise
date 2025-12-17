@@ -1,20 +1,21 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {CommonModule} from '@angular/common';
+import {NgModule} from '@angular/core';
+import {FormsModule} from '@angular/forms';
+import {IonicModule} from '@ionic/angular';
+import {ComponentsModule} from 'src/app/components/components.module';
 
-import { IonicModule } from '@ionic/angular';
-
-import { QLineUpPageRoutingModule } from './q-line-up-routing.module';
-
-import { QLineUpPage } from './q-line-up.page';
+import {QLineUpPageRoutingModule} from './q-line-up-routing.module';
+import {QLineUpPage} from './q-line-up.page';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    QLineUpPageRoutingModule
+    QLineUpPageRoutingModule,
+    ComponentsModule,
   ],
   declarations: [QLineUpPage]
 })
-export class QLineUpPageModule {}
+export class QLineUpPageModule {
+}

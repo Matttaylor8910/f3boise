@@ -1,0 +1,100 @@
+<!-- Overlay for mobile -->
+<div class="sidebar-overlay" *ngIf="isOpen && isMobile && !shouldHide" (click)="close()"></div>
+
+<!-- Sidebar -->
+<div class="sidebar" [class.open]="isOpen" [class.desktop-open]="!isMobile" [class.hidden]="shouldHide">
+  <!-- Close button for mobile -->
+  <div class="sidebar-header">
+    <ion-button fill="clear" class="close-button" (click)="close()" *ngIf="isMobile">
+      <ion-icon slot="icon-only" name="close"></ion-icon>
+    </ion-button>
+  </div>
+
+  <!-- Regions Section -->
+  <div class="sidebar-content">
+    <!-- Navigation Items -->
+    <div class="sidebar-section">
+      <button
+        type="button"
+        class="nav-link"
+        *ngFor="let item of navigationItems"
+        [class.active]="item.isActive"
+        (click)="navigate(item.route)">
+        {{ item.label }}
+      </button>
+    </div>
+
+    <!-- Regions Section -->
+    <div class="sidebar-section" *ngFor="let region of regions">
+      <div class="region-header">
+        <button
+          type="button"
+          class="region-link"
+          [class.active]="region.isActive"
+          (click)="navigate(region.route)">
+          {{ region.name }}
+        </button>
+        <ion-button
+          fill="clear"
+          class="collapse-toggle"
+          (click)="toggleRegionCollapse(region, $event)">
+          <ion-icon
+            [name]="region.collapsed ? 'chevron-down' : 'chevron-up'"
+            slot="icon-only">
+          </ion-icon>
+        </ion-button>
+      </div>
+      <div class="ao-list" [class.collapsed]="region.collapsed">
+        <button
+          type="button"
+          class="ao-link"
+          *ngFor="let ao of region.aos"
+          [class.active]="ao.isActive"
+          (click)="navigate('/ao/' + ao.name)">
+          {{ ao.normalizedName }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Other AO Sections (Region Agnostic and Discontinued) -->
+    <div class="sidebar-section" *ngFor="let section of otherAOSections">
+      <div class="region-header">
+        <button
+          type="button"
+          class="region-link other-ao-section"
+          disabled>
+          {{ section.title }}
+        </button>
+        <ion-button
+          fill="clear"
+          class="collapse-toggle"
+          (click)="toggleOtherAOSectionCollapse(section, $event)">
+          <ion-icon
+            [name]="section.collapsed ? 'chevron-down' : 'chevron-up'"
+            slot="icon-only">
+          </ion-icon>
+        </ion-button>
+      </div>
+      <div class="ao-list" [class.collapsed]="section.collapsed">
+        <button
+          type="button"
+          class="ao-link"
+          *ngFor="let ao of section.aos"
+          [class.active]="ao.isActive"
+          (click)="navigate('/ao/' + ao.name)">
+          {{ ao.normalizedName }}
+        </button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <ion-button
+        color="light"
+        fill="clear"
+        (click)="navigate('/')">
+        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+        Back to the main site
+      </ion-button>
+    </div>
+  </div>
+</div>

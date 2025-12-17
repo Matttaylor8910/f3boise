@@ -1,20 +1,21 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {CommonModule} from '@angular/common';
+import {NgModule} from '@angular/core';
+import {FormsModule} from '@angular/forms';
+import {IonicModule} from '@ionic/angular';
+import {ComponentsModule} from 'src/app/components/components.module';
 
-import { IonicModule } from '@ionic/angular';
-
-import { CalendarPageRoutingModule } from './calendar-routing.module';
-
-import { CalendarPage } from './calendar.page';
+import {CalendarPageRoutingModule} from './calendar-routing.module';
+import {CalendarPage} from './calendar.page';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    CalendarPageRoutingModule
+    CalendarPageRoutingModule,
+    ComponentsModule,
   ],
   declarations: [CalendarPage]
 })
-export class CalendarPageModule {}
+export class CalendarPageModule {
+}

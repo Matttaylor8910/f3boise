@@ -64,8 +64,8 @@ export class AoPage {
   ) {
     this.name = this.route.snapshot.params['name'];
     this.displayName = this.utilService.normalizeName(this.name);
-    this.bbType =
-        location.href.includes('/dd/') ? BBType.DOUBLEDOWN : BBType.BACKBLAST;
+    this.bbType = window.location.href.includes('/dd/') ? BBType.DOUBLEDOWN :
+                                                          BBType.BACKBLAST;
     this.updateBBProperties();
     this.all = this.name === 'all';
   }

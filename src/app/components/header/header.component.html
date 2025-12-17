@@ -1,6 +1,7 @@
 <div class="header-container">
   <!-- f3 logo leading back home -->
   <div class="left">
+    <app-sidebar-toggle *ngIf="!hideSidebarToggle"></app-sidebar-toggle>
     <img src="../../../assets/f3-white.png" (click)="goHome()"/>
   </div>
   <div class="right">

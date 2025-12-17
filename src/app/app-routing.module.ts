@@ -58,6 +58,11 @@ const routes: Routes = [
         import('./pages/gte/gte.module').then(m => m.GtePageModule)
   },
   {
+    path: 'challenges',
+    loadChildren: () => import('./pages/challenges/challenges.module')
+                            .then(m => m.ChallengesPageModule)
+  },
+  {
     path: 'backblasts',
     loadChildren: () => import('./pages/backblasts/backblasts.module')
                             .then(m => m.BackblastsPageModule)

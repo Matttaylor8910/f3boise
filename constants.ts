@@ -93,3 +93,14 @@ export const CANYON_AOS = new Set<string>([
   // include in all
   AO.BLACK_OPS,
 ]);
+
+// Region agnostic AOs (appear in all regions but should be listed separately)
+export const REGION_AGNOSTIC_AOS = new Set<string>([
+  AO.BLACK_OPS,
+]);
+
+// Discontinued/closed AOs
+export const DISCONTINUED_AOS = new Set<string>([
+  AO.RUCKERSHIP_EAST,
+  AO.RUCKERSHIP_WEST,
+]);
