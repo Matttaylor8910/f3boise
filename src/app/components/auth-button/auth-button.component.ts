@@ -58,6 +58,7 @@ export class AuthButtonComponent implements OnInit, OnDestroy {
       component: UserMenuPopoverComponent,
       componentProps: {
         pax: this.pax,
+        user: this.user,
       },
       cssClass: 'user-menu-popover',
       event,

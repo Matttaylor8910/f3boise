@@ -4,6 +4,8 @@ import {PopoverController} from '@ionic/angular';
 import {AuthService} from 'src/app/services/auth.service';
 import {Pax} from 'types';
 
+type FirebaseUser = any;
+
 @Component({
   selector: 'app-user-menu-popover',
   templateUrl: './user-menu-popover.component.html',
@@ -11,6 +13,7 @@ import {Pax} from 'types';
 })
 export class UserMenuPopoverComponent {
   @Input() pax?: Pax;
+  @Input() user?: FirebaseUser|null;
 
   constructor(
       private readonly authService: AuthService,
@@ -26,9 +29,9 @@ export class UserMenuPopoverComponent {
   }
 
   async goToBeatdownBreakdown() {
-    if (this.pax?.name) {
+    if (this.user?.uid) {
       await this.popoverController.dismiss();
-      this.router.navigateByUrl(`/beatdown-breakdown/${this.pax.name}`);
+      this.router.navigateByUrl(`/beatdown-breakdown/${this.user.uid}`);
     }
   }
 
