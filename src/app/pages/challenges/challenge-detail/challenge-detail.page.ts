@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {ModalController, ToastController} from '@ionic/angular';
+import {AlertController, ModalController, ToastController} from '@ionic/angular';
 import * as moment from 'moment';
 import {combineLatest, Subscription} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
@@ -41,6 +41,7 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
       private readonly authService: AuthService,
       private readonly modalController: ModalController,
       private readonly toastController: ToastController,
+      private readonly alertController: AlertController,
   ) {
     this.challengeId = this.route.snapshot.params['id'];
   }
@@ -48,8 +49,14 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   ngOnInit() {
     // Subscribe to auth state
     const authSub = this.authService.authState$.subscribe(user => {
+      const wasSignedOut = !this.user && user;
       this.user = user;
       this.checkParticipation();
+
+      // If user just signed in and there's a pending challenge join, auto-join
+      if (wasSignedOut && user) {
+        this.handlePendingJoin();
+      }
     });
     this.subscriptions.push(authSub);
 
@@ -227,6 +234,8 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
 
   async joinChallenge() {
     if (!this.user) {
+      // Save challenge ID to localStorage so we can auto-join after sign-in
+      localStorage.setItem('pendingChallengeJoin', this.challengeId);
       await this.openLoginModal();
       return;
     }
@@ -236,7 +245,11 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.isJoining) return;
+    await this.performJoin();
+  }
+
+  private async performJoin() {
+    if (!this.user || !this.challenge || this.isJoining) return;
 
     this.isJoining = true;
 
@@ -252,6 +265,8 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
       await this.challengesService.joinChallenge(
           this.challengeId, userId, paxName);
       await this.showToast('Successfully joined the challenge!', 'success');
+      // Clear pending join from localStorage
+      localStorage.removeItem('pendingChallengeJoin');
       // The participant list will update automatically via subscription
     } catch (error: any) {
       console.error('Error joining challenge:', error);
@@ -312,6 +327,17 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
 
     if (this.removingParticipant === userId) return;
 
+    // Find participant name for confirmation message
+    const participant = this.participants.find(p => p.userId === userId);
+    const participantName = participant?.paxName || userId;
+
+    // Show confirmation dialog
+    const confirmed =
+        await this.showRemoveConfirmation(isRemovingSelf, participantName);
+    if (!confirmed) {
+      return;
+    }
+
     this.removingParticipant = userId;
 
     try {
@@ -330,6 +356,42 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
     } finally {
       this.removingParticipant = null;
     }
+  }
+
+  private async showRemoveConfirmation(
+      isRemovingSelf: boolean, participantName: string): Promise<boolean> {
+    return new Promise(async resolve => {
+      const header =
+          isRemovingSelf ? 'Withdraw from Challenge?' : 'Remove Participant?';
+      const message = isRemovingSelf ?
+          'Are you sure you want to withdraw from this challenge? Your progress will be removed from the leaderboard.' :
+          `Are you sure you want to remove ${
+              participantName} from this challenge? Their progress will be removed from the leaderboard.`;
+
+      const alert = await this.alertController.create({
+        header,
+        message,
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
+            handler: () => {
+              resolve(false);
+            },
+          },
+          {
+            text: isRemovingSelf ? 'Withdraw' : 'Remove',
+            role: 'destructive',
+            cssClass: 'alert-button-destructive',
+            handler: () => {
+              resolve(true);
+            },
+          },
+        ],
+      });
+
+      await alert.present();
+    });
   }
 
   async openLoginModal() {
@@ -398,6 +460,16 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
     const {data} = await modal.onDidDismiss();
     if (data?.updated || data?.created) {
       // Challenge will automatically update via the subscription
+    }
+  }
+
+  private async handlePendingJoin() {
+    const pendingChallengeId = localStorage.getItem('pendingChallengeJoin');
+    if (pendingChallengeId && pendingChallengeId === this.challengeId) {
+      // Small delay to ensure everything is loaded
+      setTimeout(() => {
+        this.performJoin();
+      }, 500);
     }
   }
 
