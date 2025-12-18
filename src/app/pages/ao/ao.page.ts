@@ -45,6 +45,14 @@ export class AoPage {
   showMoreNoQs = false;
   bbType: BBType;
 
+  // Toggle states for leaderboard views
+  leaderboardViewByBdsPerWeek =
+      false;                      // false = Total BDs, true = BDs per week
+  topQsViewByPercentage = false;  // false = Total BDs (Qd), true = Percentage
+  bottomQsViewByPercentage =
+      false;                 // false = Total BDs (Qd), true = Percentage
+  noQsViewByLastBd = false;  // false = Total BDs, true = Last BD
+
   recentBds?: Backblast[];
 
   // Precomputed properties instead of getters
@@ -254,21 +262,94 @@ export class AoPage {
       }
     }
 
-    // sort and set stats
-    hasQd.sort((a, b) => a.qs - b.qs);
-    this.noQs = noQs.sort((a, b) => b.bds - a.bds);
-    this.bottomQs = [...hasQd];
-    this.topQs = [...hasQd].reverse();
+    // Sort noQs based on toggle state with fallback sorting
+    if (this.noQsViewByLastBd) {
+      // Sort by last BD date (most recent first), fallback to total BDs
+      this.noQs = noQs.sort((a, b) => {
+        if (!a.lastBdDate && !b.lastBdDate) {
+          return b.bds - a.bds;  // Fallback to BDs
+        }
+        if (!a.lastBdDate) return 1;
+        if (!b.lastBdDate) return -1;
+        const dateDiff =
+            moment(b.lastBdDate).valueOf() - moment(a.lastBdDate).valueOf();
+        if (dateDiff === 0) {
+          return b.bds - a.bds;  // Same date, fallback to BDs
+        }
+        return dateDiff;
+      });
+    } else {
+      // Sort by total BDs (default), fallback to last BD date
+      this.noQs = noQs.sort((a, b) => {
+        if (b.bds === a.bds) {
+          // Same BDs, fallback to most recent last BD
+          if (!a.lastBdDate && !b.lastBdDate) return 0;
+          if (!a.lastBdDate) return 1;
+          if (!b.lastBdDate) return -1;
+          return moment(b.lastBdDate).valueOf() -
+              moment(a.lastBdDate).valueOf();
+        }
+        return b.bds - a.bds;
+      });
+    }
+
+    // Sort Top Qs based on toggle state - always descending (highest first)
+    if (this.topQsViewByPercentage) {
+      // Sort by percentage descending, fallback to total Qs descending
+      this.topQs = [...hasQd].sort((a, b) => {
+        if (b.qRate === a.qRate) {
+          return b.qs - a.qs;  // Same percentage, fallback to total Qs
+        }
+        return b.qRate - a.qRate;
+      });
+    } else {
+      // Sort by total Qs descending, fallback to percentage descending
+      this.topQs = [...hasQd].sort((a, b) => {
+        if (b.qs === a.qs) {
+          return b.qRate - a.qRate;  // Same Qs, fallback to percentage
+        }
+        return b.qs - a.qs;
+      });
+    }
+
+    // Sort Bottom Qs based on toggle state - always ascending (lowest first)
+    if (this.bottomQsViewByPercentage) {
+      // Sort by percentage ascending, fallback to total Qs ascending
+      this.bottomQs = [...hasQd].sort((a, b) => {
+        if (a.qRate === b.qRate) {
+          return a.qs - b.qs;  // Same percentage, fallback to total Qs
+        }
+        return a.qRate - b.qRate;
+      });
+    } else {
+      // Sort by total Qs ascending, fallback to percentage ascending
+      this.bottomQs = [...hasQd].sort((a, b) => {
+        if (a.qs === b.qs) {
+          return a.qRate - b.qRate;  // Same Qs, fallback to percentage
+        }
+        return a.qs - b.qs;
+      });
+    }
 
     // leaderboard is sorted by highest # of bds attended, with tie breaks on
-    // the highest bds per week
-    this.leaderboard = [...noQs, ...hasQd].sort((a, b) => {
-      if (b.bds === a.bds) {
-        return b.bdsPerWeek - a.bdsPerWeek;
-      } else {
-        return b.bds - a.bds
-      }
-    });
+    // the highest bds per week, or by bds per week if toggle is on
+    if (this.leaderboardViewByBdsPerWeek) {
+      this.leaderboard = [...noQs, ...hasQd].sort((a, b) => {
+        if (b.bdsPerWeek === a.bdsPerWeek) {
+          return b.bds - a.bds;
+        } else {
+          return b.bdsPerWeek - a.bdsPerWeek;
+        }
+      });
+    } else {
+      this.leaderboard = [...noQs, ...hasQd].sort((a, b) => {
+        if (b.bds === a.bds) {
+          return b.bdsPerWeek - a.bdsPerWeek;
+        } else {
+          return b.bds - a.bds;
+        }
+      });
+    }
   }
 
   private reset() {
@@ -284,6 +365,32 @@ export class AoPage {
     this.showMoreTop = false;
     this.showMoreBottom = false;
     this.showMoreNoQs = false;
+
+    // Reset toggle states
+    this.leaderboardViewByBdsPerWeek = false;
+    this.topQsViewByPercentage = false;
+    this.bottomQsViewByPercentage = false;
+    this.noQsViewByLastBd = false;
+  }
+
+  toggleLeaderboardView() {
+    this.leaderboardViewByBdsPerWeek = !this.leaderboardViewByBdsPerWeek;
+    this.calculateQsCards();
+  }
+
+  toggleTopQsView() {
+    this.topQsViewByPercentage = !this.topQsViewByPercentage;
+    this.calculateQsCards();
+  }
+
+  toggleBottomQsView() {
+    this.bottomQsViewByPercentage = !this.bottomQsViewByPercentage;
+    this.calculateQsCards();
+  }
+
+  toggleNoQsView() {
+    this.noQsViewByLastBd = !this.noQsViewByLastBd;
+    this.calculateQsCards();
   }
 
   private newAoStats(): AoStats {

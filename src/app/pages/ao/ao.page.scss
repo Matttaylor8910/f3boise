@@ -16,6 +16,40 @@
     .show-more.has-more {
       display: block;
     }
+
+    ion-card-header {
+      .card-header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+
+        .toggle-button {
+          margin: 0;
+          --padding-start: 8px;
+          --padding-end: 8px;
+          --padding-top: 4px;
+          --padding-bottom: 4px;
+          min-width: auto;
+          height: auto;
+          color: var(--ion-color-medium);
+          white-space: nowrap;
+
+          &:hover {
+            color: var(--ion-color-primary);
+          }
+
+          ion-icon {
+            font-size: 1.1em;
+            margin-right: 4px;
+          }
+
+          span {
+            font-size: 0.9em;
+          }
+        }
+      }
+    }
   }
 
   .month-card {

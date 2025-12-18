@@ -37,8 +37,23 @@
         <div class="card-container">
           <ion-card>
             <ion-card-header>
-              <ion-card-title>Leaderboard</ion-card-title>
-              <ion-card-subtitle>Posted at the most {{ bbShort }}s</ion-card-subtitle>
+              <div class="card-header-content">
+                <div>
+                  <ion-card-title>Leaderboard</ion-card-title>
+                  <ion-card-subtitle>Posted at the most {{ bbShort }}s</ion-card-subtitle>
+                </div>
+                <ion-button
+                  fill="clear"
+                  size="small"
+                  class="toggle-button"
+                  (click)="toggleLeaderboardView()">
+                  <ion-icon
+                    [name]="leaderboardViewByBdsPerWeek ? 'time-outline' : 'bar-chart-outline'"
+                    slot="start">
+                  </ion-icon>
+                  <span>{{ leaderboardViewByBdsPerWeek ? 'BDs per week' : 'Total BDs' }}</span>
+                </ion-button>
+              </div>
             </ion-card-header>
             <ion-list>
               <app-pax-list-item
@@ -46,8 +61,12 @@
                 [pax]="pax"
                 [index]="i"
                 [showMore]="showMoreLeaderboard"
-                subtext="{{ pax.bdsPerWeek | number:'0.0-2' }} {{ pax.bdsPerWeek === 1 ? bbSingular : bbPlural }} per week"
-                metric="{{ pax.bds }} {{ pax.bds === 1 ? bbSingular : bbPlural }}"
+                [subtext]="leaderboardViewByBdsPerWeek ?
+                  (pax.bds + ' ' + (pax.bds === 1 ? bbSingular : bbPlural)) :
+                  (pax.bdsPerWeek | number:'0.0-2') + ' ' + (pax.bdsPerWeek === 1 ? bbSingular : bbPlural) + ' per week'"
+                [metric]="leaderboardViewByBdsPerWeek ?
+                  ((pax.bdsPerWeek | number:'0.0-2') + ' ' + (pax.bdsPerWeek === 1 ? bbSingular : bbPlural) + ' per week') :
+                  (pax.bds + ' ' + (pax.bds === 1 ? bbSingular : bbPlural))"
                 (click)="goToPaxPage(pax.name)">
               </app-pax-list-item>
 
@@ -71,8 +90,23 @@
         <div class="card-container">
           <ion-card>
             <ion-card-header>
-              <ion-card-title>Top Qs</ion-card-title>
-              <ion-card-subtitle>Takes the Q the most</ion-card-subtitle>
+              <div class="card-header-content">
+                <div>
+                  <ion-card-title>Top Qs</ion-card-title>
+                  <ion-card-subtitle>Takes the Q the most</ion-card-subtitle>
+                </div>
+                <ion-button
+                  fill="clear"
+                  size="small"
+                  class="toggle-button"
+                  (click)="toggleTopQsView()">
+                  <ion-icon
+                    [name]="topQsViewByPercentage ? 'pie-chart-outline' : 'bar-chart-outline'"
+                    slot="start">
+                  </ion-icon>
+                  <span>{{ topQsViewByPercentage ? 'Percentage' : 'Total BDs (Qd)' }}</span>
+                </ion-button>
+              </div>
             </ion-card-header>
             <ion-list>
               <app-pax-list-item
@@ -80,8 +114,12 @@
                 [pax]="q"
                 [index]="i"
                 [showMore]="showMoreTop"
-                subtext="Led {{ q.qs }} / {{ q.bds }} ({{ q.qRate | percent }})"
-                metric="{{ q.qs }} {{ q.qs === 1 ? bbSingular : bbPlural }}"
+                [subtext]="topQsViewByPercentage ?
+                  ('Led ' + q.qs + ' / ' + q.bds) :
+                  ('Led ' + q.qs + ' / ' + q.bds + ' (' + (q.qRate | percent) + ')')"
+                [metric]="topQsViewByPercentage ?
+                  ((q.qRate | percent) || '0%') :
+                  (q.qs + ' ' + (q.qs === 1 ? bbSingular : bbPlural))"
                 (click)="goToPaxPage(q.name)">
               </app-pax-list-item>
 
@@ -105,8 +143,23 @@
         <div class="card-container">
           <ion-card>
             <ion-card-header>
-              <ion-card-title>Bottom Qs</ion-card-title>
-              <ion-card-subtitle>Takes the Q the least</ion-card-subtitle>
+              <div class="card-header-content">
+                <div>
+                  <ion-card-title>Bottom Qs</ion-card-title>
+                  <ion-card-subtitle>Takes the Q the least</ion-card-subtitle>
+                </div>
+                <ion-button
+                  fill="clear"
+                  size="small"
+                  class="toggle-button"
+                  (click)="toggleBottomQsView()">
+                  <ion-icon
+                    [name]="bottomQsViewByPercentage ? 'pie-chart-outline' : 'bar-chart-outline'"
+                    slot="start">
+                  </ion-icon>
+                  <span>{{ bottomQsViewByPercentage ? 'Percentage' : 'Total BDs (Qd)' }}</span>
+                </ion-button>
+              </div>
             </ion-card-header>
             <ion-list>
               <app-pax-list-item
@@ -114,8 +167,12 @@
                 [pax]="q"
                 [index]="i"
                 [showMore]="showMoreBottom"
-                subtext="Led {{ q.qs }} / {{ q.bds }} ({{ q.qRate | percent }})"
-                metric="{{ q.qs }} {{ q.qs === 1 ? bbSingular : bbPlural }}"
+                [subtext]="bottomQsViewByPercentage ?
+                  ('Led ' + q.qs + ' / ' + q.bds) :
+                  ('Led ' + q.qs + ' / ' + q.bds + ' (' + (q.qRate | percent) + ')')"
+                [metric]="bottomQsViewByPercentage ?
+                  ((q.qRate | percent) || '0%') :
+                  (q.qs + ' ' + (q.qs === 1 ? bbSingular : bbPlural))"
                 (click)="goToPaxPage(q.name)">
               </app-pax-list-item>
 
@@ -139,8 +196,23 @@
         <div class="card-container">
           <ion-card>
             <ion-card-header>
-              <ion-card-title>Has not been the Q</ion-card-title>
-              <ion-card-subtitle>Lead 0 {{ bbPlural }}</ion-card-subtitle>
+              <div class="card-header-content">
+                <div>
+                  <ion-card-title>Has not been the Q</ion-card-title>
+                  <ion-card-subtitle>Lead 0 {{ bbPlural }}</ion-card-subtitle>
+                </div>
+                <ion-button
+                  fill="clear"
+                  size="small"
+                  class="toggle-button"
+                  (click)="toggleNoQsView()">
+                  <ion-icon
+                    [name]="noQsViewByLastBd ? 'calendar-outline' : 'bar-chart-outline'"
+                    slot="start">
+                  </ion-icon>
+                  <span>{{ noQsViewByLastBd ? 'Last BD' : 'Total BDs' }}</span>
+                </ion-button>
+              </div>
             </ion-card-header>
             <ion-list>
               <app-pax-list-item
@@ -148,8 +220,12 @@
                 [pax]="q"
                 [index]="i"
                 [showMore]="showMoreNoQs"
-                [subtext]="'Last ' + bbShort + ' was ' + (q.lastBdRelativeDate || '')"
-                metric="{{ q.bds }} {{ q.bds === 1 ? bbSingular : bbPlural }}"
+                [subtext]="noQsViewByLastBd ?
+                  (q.bds + ' ' + (q.bds === 1 ? bbSingular : bbPlural)) :
+                  ('Last ' + bbShort + ' was ' + (q.lastBdRelativeDate || ''))"
+                [metric]="noQsViewByLastBd ?
+                  ('Last ' + bbShort + ' was ' + (q.lastBdRelativeDate || '')) :
+                  (q.bds + ' ' + (q.bds === 1 ? bbSingular : bbPlural))"
                 (click)="goToPaxPage(q.name)">
               </app-pax-list-item>
 
