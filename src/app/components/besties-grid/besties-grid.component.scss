@@ -1,5 +1,5 @@
 .besties-grid-content {
-  --background: #f5f5f5;
+  --background: var(--ion-background-color, #f5f5f5);
   padding: 16px;
 }
 
@@ -13,8 +13,8 @@
 }
 
 .bestie-card {
-  background: white;
-  border: 3px solid #007bff;
+  background: var(--ion-card-background, var(--ion-background-color, white));
+  border: 3px solid var(--ion-color-primary, #007bff);
   border-radius: 12px;
   padding: 0;
   text-align: center;
@@ -29,7 +29,7 @@
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
-    border-color: #0056b3;
+    border-color: var(--ion-color-primary-shade, #0056b3);
   }
 
   &:active {
@@ -41,8 +41,8 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  background: #007bff;
-  color: white;
+  background: var(--ion-color-primary, #007bff);
+  color: var(--ion-color-primary-contrast, white);
   border-radius: 50%;
   width: 28px;
   height: 28px;
@@ -58,7 +58,7 @@
 .bestie-image-container {
   flex: 1;
   position: relative;
-  background: linear-gradient(135deg, #007bff, #0056b3);
+  background: linear-gradient(135deg, var(--ion-color-primary, #007bff), var(--ion-color-primary-shade, #0056b3));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -67,18 +67,18 @@
 
 .bestie-info {
   padding: 16px;
-  background: white;
+  background: var(--ion-card-background, var(--ion-background-color, white));
   flex: 1;
 
   .bestie-name {
     font-weight: bold;
     font-size: 1.2rem;
-    color: #333;
+    color: var(--ion-text-color, #333);
     margin-bottom: 4px;
   }
 
   .bestie-count {
-    color: #666;
+    color: var(--ion-color-step-600, var(--ion-color-medium, #666));
     font-size: 1rem;
     font-weight: 500;
   }
