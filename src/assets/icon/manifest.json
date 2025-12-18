@@ -2,7 +2,7 @@
   "name": "F3 Boise",
   "short_name": "F3 Boise",
   "description": "F3 Boise - Fitness, Fellowship, and Faith",
-  "start_url": "/",
+  "start_url": "/ao/all",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
