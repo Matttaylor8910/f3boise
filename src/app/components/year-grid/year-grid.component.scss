@@ -36,6 +36,7 @@
   .grid-container {
     overflow: auto;
     padding: 10px 0;
+    max-width: 100%;
 
     .row {
       display: inline-flex;
@@ -146,6 +147,18 @@
 }
 
 @media (min-width: 1560px) {
+  .grid-container {
+    position: absolute;
+    top: 65px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .legend-container {
+    margin-top: 220px;
+  }
+}
+
+@media (min-width: 700px) {
   .chart-container {
     align-items: center;
 
@@ -158,14 +171,5 @@
     .year-options {
       display: none;
     }
-  }
-  .grid-container {
-    position: absolute;
-    top: 65px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  .legend-container {
-    margin-top: 220px;
   }
 }

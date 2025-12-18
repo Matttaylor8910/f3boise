@@ -32,7 +32,7 @@
     </div>
   </div>
   <!-- the grid -->
-  <div class="grid-container">
+  <div class="grid-container" #gridContainer>
     <div class="row" *ngFor="let row of grid; let r = index">
       <div class="cell-container" *ngFor="let cell of row; let i = index">
         <div

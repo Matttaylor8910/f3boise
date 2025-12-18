@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, ElementRef, Input, OnChanges, OnInit, ViewChild} from '@angular/core';
 import {Router} from '@angular/router';
 import * as moment from 'moment';
 import {UtilService} from 'src/app/services/util.service';
@@ -42,7 +42,7 @@ const HEATMAP_COLORS = [
   templateUrl: './year-grid.component.html',
   styleUrls: ['./year-grid.component.scss'],
 })
-export class YearGridComponent implements OnInit {
+export class YearGridComponent implements OnInit, OnChanges {
   // the list of bds
   @Input() bds?: Backblast[];
 
@@ -57,6 +57,9 @@ export class YearGridComponent implements OnInit {
   grid: (GridCell|undefined)[][] = [];
   legend: LegendItem[] = [];
 
+  @ViewChild('gridContainer', {static: false})
+  gridContainer?: ElementRef<HTMLDivElement>;
+
   constructor(
       private readonly router: Router,
       private readonly utilService: UtilService,
@@ -68,6 +71,10 @@ export class YearGridComponent implements OnInit {
 
   ngOnChanges() {
     this.calculateThisPastYear();
+    // Scroll to the right after data changes
+    setTimeout(() => {
+      this.scrollToRight();
+    }, 0);
   }
 
   get yearLabel(): string {
@@ -180,6 +187,21 @@ export class YearGridComponent implements OnInit {
       {name: 'This Past Year', year: THIS_PAST_YEAR},
       ...this.years.map(year => ({name: String(year), year})),
     ];
+
+    // Scroll to the right after grid is rendered
+    setTimeout(() => {
+      this.scrollToRight();
+    }, 0);
+  }
+
+  private scrollToRight() {
+    if (this.gridContainer?.nativeElement) {
+      const container = this.gridContainer.nativeElement;
+      container.scrollTo({
+        left: container.scrollWidth,
+        behavior: 'smooth',
+      });
+    }
   }
 
   goPrev() {
@@ -208,6 +230,10 @@ export class YearGridComponent implements OnInit {
     } else {
       this.calculateGrid();
     }
+    // Scroll to the right after year change
+    setTimeout(() => {
+      this.scrollToRight();
+    }, 0);
   }
 
   cellClicked(cell?: GridCell) {
