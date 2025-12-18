@@ -143,10 +143,6 @@ export class AoPage {
         await this.backblastService.getAllData(this.bbType) :
         await this.backblastService.getBackblastsForAo(this.name, this.bbType);
 
-    if (allData.length === 0) {
-      return;
-    }
-
     // sort the data by date ascending
     const data: Backblast[] = [];
     for (const backblast of allData) {
@@ -169,6 +165,18 @@ export class AoPage {
         }
       }
       data.unshift(backblast);
+    }
+
+    // If there's no data after filtering, set empty stats and return
+    if (data.length === 0) {
+      this.aoStats = this.newAoStats();
+      this.paxStats = [];
+      this.leaderboard = [];
+      this.topQs = [];
+      this.bottomQs = [];
+      this.noQs = [];
+      this.recentBds = [];
+      return;
     }
 
     const statsMap = new Map<string, AoPaxStats>();
