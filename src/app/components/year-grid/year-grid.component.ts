@@ -152,6 +152,9 @@ export class YearGridComponent implements OnInit, OnChanges {
       }
     }
 
+    // Check if there's any actual data in the grid
+    const hasData = bdMap.size > 0;
+
     // build up a row for each day of the week, and populate with undefineds
     // until the first day of the year
     let current = moment(start);
@@ -254,6 +257,28 @@ export class YearGridComponent implements OnInit, OnChanges {
   }
 
   private calculateThisPastYear() {
+    // Find the most recent backblast date
+    let mostRecentDate: moment.Moment|null = null;
+    if (this.bds && this.bds.length > 0) {
+      for (const bd of this.bds) {
+        const bdDate = moment(bd.date);
+        if (!mostRecentDate || bdDate.isAfter(mostRecentDate)) {
+          mostRecentDate = bdDate;
+        }
+      }
+    }
+
+    // If the most recent date is >365 days ago, use that year instead
+    if (mostRecentDate) {
+      const daysAgo = moment().diff(mostRecentDate, 'days');
+      if (daysAgo > 365) {
+        this.year = mostRecentDate.year();
+        this.calculateGrid();
+        return;
+      }
+    }
+
+    // Otherwise calculate for the past year
     this.calculateGrid(
         moment().subtract(1, 'year').format(FORMAT), moment().format(FORMAT));
   }
