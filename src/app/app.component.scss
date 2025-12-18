@@ -12,7 +12,8 @@ ion-app {
 
 .app-container {
   display: flex;
-  min-height: 100vh;
+  min-height: 100vh; /* Fallback for browsers that don't support dvh */
+  min-height: 100dvh; /* Use dynamic viewport height for mobile Safari */
   width: 100%;
   position: relative;
   overflow-x: hidden;

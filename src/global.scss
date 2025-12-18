@@ -25,6 +25,19 @@
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
 
+/* Safe Area Insets for Mobile Safari */
+:root {
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+}
+
+/* Fix for mobile Safari - ensure ion-content can scroll to bottom */
+ion-content {
+  --padding-bottom: calc(var(--safe-area-inset-bottom) + 20px);
+}
+
 /* Sidebar toggle visibility - hide when back button is available */
 // Ionic adds a "can-go-back" class to the page which the
 // ionic-back-button uses this to determine if it should
@@ -108,7 +121,8 @@ ngx-chart-designer {
 
 .top-container {
   position: fixed;
-  height: 100vh;
+  height: 100vh; /* Fallback for browsers that don't support dvh */
+  height: 100dvh; /* Use dynamic viewport height for mobile Safari */
   width: 100vw;
   background: rgb(0,0,0);
   background: radial-gradient(circle, rgba(0,0,0,0.6432948179271709) 0%, rgba(0,0,0,1) 100%);
