@@ -59,7 +59,7 @@ export class PaxPage {
       private readonly actionSheetController: ActionSheetController,
       private readonly modalController: ModalController,
   ) {
-    this.name = this.route.snapshot.params['name'];
+    this.name = this.route.snapshot.params['name']?.toLowerCase();
 
     // load the statsType if it exists
     const statsType = localStorage.getItem('BBTYPE');
