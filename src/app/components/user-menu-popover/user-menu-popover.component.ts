@@ -1,5 +1,5 @@
 import {Component, Input} from '@angular/core';
-import {Router} from '@angular/router';
+import {NavigationExtras, Router} from '@angular/router';
 import {PopoverController} from '@ionic/angular';
 import {AuthService} from 'src/app/services/auth.service';
 import {Pax} from 'types';
@@ -24,7 +24,10 @@ export class UserMenuPopoverComponent {
   async goToProfile() {
     if (this.pax?.name) {
       await this.popoverController.dismiss();
-      this.router.navigateByUrl(`/pax/${this.pax.name}`);
+      const navigationExtras: NavigationExtras = {
+        replaceUrl: true,  // Replace current history state instead of pushing
+      };
+      this.router.navigateByUrl(`/pax/${this.pax.name}`, navigationExtras);
     }
   }
 

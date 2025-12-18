@@ -1,4 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
+import {NavigationExtras, Router} from '@angular/router';
 import {ModalController, PopoverController} from '@ionic/angular';
 import {Subscription} from 'rxjs';
 import {AuthService} from 'src/app/services/auth.service';
@@ -26,6 +27,7 @@ export class AuthButtonComponent implements OnInit, OnDestroy {
       private readonly paxService: PaxService,
       private readonly modalController: ModalController,
       private readonly popoverController: PopoverController,
+      private readonly router: Router,
   ) {}
 
   ngOnInit() {
@@ -65,6 +67,16 @@ export class AuthButtonComponent implements OnInit, OnDestroy {
       translucent: true,
     });
     await popover.present();
+  }
+
+  goToPaxPage(event: Event) {
+    event.stopPropagation();
+    if (this.pax?.name) {
+      const navigationExtras: NavigationExtras = {
+        replaceUrl: true,  // Replace current history state instead of pushing
+      };
+      this.router.navigateByUrl(`/pax/${this.pax.name}`, navigationExtras);
+    }
   }
 
   get displayName(): string {

@@ -8,8 +8,8 @@
 .user-info {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  cursor: pointer;
   padding: 4px 8px;
   border-radius: 20px;
   background-color: #eee;
@@ -17,6 +17,14 @@
 
   &:hover {
     background-color: #ddd;
+  }
+
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    flex: 1;
   }
 
   .user-avatar {
@@ -28,5 +36,17 @@
     font-size: 16px;
     color: #333;
     font-weight: 500;
+  }
+
+  .menu-icon {
+    font-size: 20px;
+    color: #666;
+    cursor: pointer;
+    padding: 4px;
+    flex-shrink: 0;
+
+    &:hover {
+      color: #333;
+    }
   }
 }

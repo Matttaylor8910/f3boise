@@ -8,10 +8,17 @@
 </ng-container>
 
 <ng-template #loggedIn>
-  <div class="user-info" (click)="showUserMenu($event)">
-    <ion-avatar class="user-avatar">
-      <img [src]="photoURL || '/assets/f3.jpg'" [alt]="displayName" />
-    </ion-avatar>
-    <span class="user-name">{{ displayName }}</span>
+  <div class="user-info">
+    <div class="user-profile" (click)="goToPaxPage($event)">
+      <ion-avatar class="user-avatar">
+        <img [src]="photoURL || '/assets/f3.jpg'" [alt]="displayName" />
+      </ion-avatar>
+      <span class="user-name">{{ displayName }}</span>
+    </div>
+    <ion-icon
+      name="ellipsis-horizontal"
+      class="menu-icon"
+      (click)="showUserMenu($event)">
+    </ion-icon>
   </div>
 </ng-template>
