@@ -54,7 +54,7 @@
 
   .participants-chip {
     --background: var(--ion-color-light);
-    --color: var(--ion-color-dark);
+    --color: var(--ion-text-color);
     margin: 0;
 
     ion-icon {
@@ -113,7 +113,7 @@
 
     .description {
       margin: 0 0 16px 0;
-      color: var(--ion-color-dark);
+      color: var(--ion-text-color);
       line-height: 1.5;
       white-space: pre-line;
     }
@@ -137,7 +137,7 @@
         }
 
         strong {
-          color: var(--ion-color-dark);
+          color: var(--ion-text-color);
         }
       }
     }

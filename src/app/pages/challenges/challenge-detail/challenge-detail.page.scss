@@ -1,7 +1,7 @@
 .participants-chip {
   margin: 0 8px 0 0;
   --background: var(--ion-color-light);
-  --color: var(--ion-color-dark);
+  --color: var(--ion-text-color);
 
   ion-icon {
     font-size: 16px;
@@ -57,7 +57,7 @@
 
     .description {
       margin: 0 0 16px 0;
-      color: var(--ion-color-dark);
+      color: var(--ion-text-color);
       line-height: 1.5;
       white-space: pre-line;
     }
@@ -81,7 +81,7 @@
         }
 
         strong {
-          color: var(--ion-color-dark);
+          color: var(--ion-text-color);
         }
       }
     }
@@ -118,7 +118,7 @@
 
   .leaderboard-table {
     overflow-x: auto;
-    background: white;
+    background: var(--ion-card-background);
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
@@ -134,7 +134,7 @@
           text-align: left;
           font-weight: 600;
           font-size: 14px;
-          color: var(--ion-color-dark);
+          color: var(--ion-text-color);
           border-bottom: 2px solid var(--ion-color-medium);
 
           &:not(:first-child):not(:nth-child(2)) {
@@ -170,7 +170,7 @@
         td {
           padding: 12px 16px;
           font-size: 14px;
-          color: var(--ion-color-dark);
+          color: var(--ion-text-color);
 
           &.rank {
             font-weight: 600;
