@@ -1,6 +1,7 @@
 .custom-date-popover {
   padding: 16px;
   min-width: 280px;
+  background: var(--ion-background-color);
 }
 
 .popover-header {
@@ -11,7 +12,7 @@
   margin: 0;
   font-size: 1.1em;
   font-weight: 600;
-  color: #333;
+  color: var(--ion-text-color);
 }
 
 .popover-content {
@@ -29,22 +30,23 @@
   font-size: 0.9em;
   font-weight: 500;
   margin-bottom: 6px;
-  color: #666;
+  color: var(--ion-text-color);
 }
 
 .date-input {
   width: 100%;
   padding: 10px 12px;
-  border: 1.5px solid #e0e0e0;
+  border: 1px solid var(--ion-color-medium);
   border-radius: 6px;
   font-size: 0.95em;
-  background: #fff;
+  background: var(--ion-background-color);
+  color: var(--ion-text-color);
   transition: border-color 0.2s;
 }
 
 .date-input:focus {
   outline: none;
-  border-color: #428cff;
+  border-color: var(--ion-color-primary);
 }
 
 .popover-actions {
@@ -53,5 +55,5 @@
   gap: 8px;
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--ion-color-medium);
 }
