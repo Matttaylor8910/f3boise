@@ -76,10 +76,11 @@
       <ion-item>
         <ion-checkbox
           [(ngModel)]="metrics.bds"
+          (ionChange)="onMetricChange()"
           [disabled]="isLoading">
         </ion-checkbox>
         <ion-label class="metric-label">
-          <h2># of BDs (Beatdowns)</h2>
+          <h2># of BDs</h2>
           <p>Total number of beatdowns attended</p>
         </ion-label>
       </ion-item>
@@ -87,6 +88,7 @@
       <ion-item>
         <ion-checkbox
           [(ngModel)]="metrics.uniqueAos"
+          (ionChange)="onMetricChange()"
           [disabled]="isLoading">
         </ion-checkbox>
         <ion-label class="metric-label">
@@ -98,6 +100,7 @@
       <ion-item>
         <ion-checkbox
           [(ngModel)]="metrics.qs"
+          (ionChange)="onMetricChange()"
           [disabled]="isLoading">
         </ion-checkbox>
         <ion-label class="metric-label">
@@ -107,27 +110,15 @@
       </ion-item>
     </div>
 
-    <div class="sort-section">
+    <div class="sort-section" *ngIf="availableSortOptions.length > 1">
       <h3>Sort Leaderboard By</h3>
       <p class="section-description">Choose which metric to use for sorting the leaderboard:</p>
 
-      <ion-radio-group [(ngModel)]="sortBy" [disabled]="isLoading">
-        <ion-item>
-          <ion-radio [value]="ChallengeMetric.BDS" [disabled]="!metrics.bds || isLoading">
+      <ion-radio-group [(ngModel)]="sortBy">
+        <ion-item *ngFor="let option of availableSortOptions">
+          <ion-radio [value]="option.value" [disabled]="isLoading">
           </ion-radio>
-          <ion-label># of BDs</ion-label>
-        </ion-item>
-
-        <ion-item>
-          <ion-radio [value]="ChallengeMetric.UNIQUE_AOS" [disabled]="!metrics.uniqueAos || isLoading">
-          </ion-radio>
-          <ion-label>Unique # of AOs</ion-label>
-        </ion-item>
-
-        <ion-item>
-          <ion-radio [value]="ChallengeMetric.QS" [disabled]="!metrics.qs || isLoading">
-          </ion-radio>
-          <ion-label># of Qs</ion-label>
+          <ion-label class="space-before">{{ option.label }}</ion-label>
         </ion-item>
       </ion-radio-group>
     </div>
@@ -135,7 +126,7 @@
     <ion-button
       expand="block"
       (click)="createChallenge()"
-      [disabled]="isLoading || !name.trim() || !description.trim() || !startDate || !endDate">
+      [disabled]="isFormInvalid">
       <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
       <span *ngIf="!isLoading">{{ isEditMode ? 'Update Challenge' : 'Create Challenge' }}</span>
     </ion-button>

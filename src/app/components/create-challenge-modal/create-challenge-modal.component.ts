@@ -29,8 +29,16 @@ export class CreateChallengeModalComponent implements OnInit {
   readonly today: string = moment().format('YYYY-MM-DD');
   readonly ChallengeMetric = ChallengeMetric;
 
+  // Available sort options based on selected metrics
+  availableSortOptions: Array<{value: ChallengeMetric; label: string}> = [];
+
   get isEditMode(): boolean {
     return !!this.challengeToEdit;
+  }
+
+  get isFormInvalid(): boolean {
+    return this.isLoading || !this.name.trim() || !this.description.trim() ||
+        !this.startDate || !this.endDate;
   }
 
   constructor(
@@ -40,6 +48,8 @@ export class CreateChallengeModalComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.updateAvailableSortOptions();
+
     if (this.challengeToEdit) {
       // Populate form with existing challenge data
       this.name = this.challengeToEdit.name;
@@ -49,6 +59,46 @@ export class CreateChallengeModalComponent implements OnInit {
       this.isPrivate = this.challengeToEdit.isPrivate || false;
       this.metrics = {...this.challengeToEdit.metrics};
       this.sortBy = this.challengeToEdit.sortBy;
+      this.updateAvailableSortOptions();
+      // Ensure sortBy is valid for selected metrics
+      this.updateSortByIfNeeded();
+    }
+  }
+
+  onMetricChange() {
+    // When metrics change, update available options and sortBy if needed
+    this.updateAvailableSortOptions();
+    this.updateSortByIfNeeded();
+  }
+
+  private updateAvailableSortOptions() {
+    const options: Array<{value: ChallengeMetric; label: string}> = [];
+    if (this.metrics.bds) {
+      options.push({value: ChallengeMetric.BDS, label: '# of BDs'});
+    }
+    if (this.metrics.uniqueAos) {
+      options.push(
+          {value: ChallengeMetric.UNIQUE_AOS, label: 'Unique # of AOs'});
+    }
+    if (this.metrics.qs) {
+      options.push({value: ChallengeMetric.QS, label: '# of Qs'});
+    }
+    this.availableSortOptions = options;
+  }
+
+  private updateSortByIfNeeded() {
+    // If no metrics selected, nothing to do
+    if (this.availableSortOptions.length === 0) {
+      return;
+    }
+
+    // Check if current sortBy is still valid
+    const isCurrentSortValid =
+        this.availableSortOptions.some(opt => opt.value === this.sortBy);
+
+    if (!isCurrentSortValid) {
+      // Current sortBy is not in available options, select the first one
+      this.sortBy = this.availableSortOptions[0].value;
     }
   }
 
@@ -81,12 +131,17 @@ export class CreateChallengeModalComponent implements OnInit {
       return;
     }
 
-    // Validate that sortBy metric is selected
-    if (!this.metrics[this.sortBy]) {
+    // Ensure sortBy is valid (should already be handled by
+    // updateSortByIfNeeded, but double-check)
+    const availableOptions = this.availableSortOptions;
+    if (availableOptions.length === 0) {
       await this.showToast(
-          'The sort metric must be one of the selected tracking metrics',
-          'danger');
+          'Please select at least one metric to track', 'danger');
       return;
+    }
+    if (!availableOptions.some(opt => opt.value === this.sortBy)) {
+      // Fallback: select first available option
+      this.sortBy = availableOptions[0].value;
     }
 
     this.isLoading = true;
