@@ -138,6 +138,7 @@ export class ChallengesPage implements OnInit, OnDestroy {
     if (challenge.metrics.bds) metrics.push('# of BDs');
     if (challenge.metrics.uniqueAos) metrics.push('Unique # of AOs');
     if (challenge.metrics.qs) metrics.push('# of Qs');
+    if (challenge.metrics.doubleDowns) metrics.push('Double Downs');
     return metrics.join(', ');
   }
 
@@ -146,9 +147,11 @@ export class ChallengesPage implements OnInit, OnDestroy {
       case 'bds':
         return '# of BDs';
       case 'uniqueAos':
-        return 'Unique # of AOs';
+        return '# of AOs';
       case 'qs':
         return '# of Qs';
+      case 'doubleDowns':
+        return '# of DDs';
       default:
         return challenge.sortBy;
     }

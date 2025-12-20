@@ -100,8 +100,9 @@
               <th>Rank</th>
               <th>Name</th>
               <th *ngIf="challenge.metrics.bds"># of BDs</th>
-              <th *ngIf="challenge.metrics.uniqueAos">Unique AOs</th>
+              <th *ngIf="challenge.metrics.uniqueAos"># of AOs</th>
               <th *ngIf="challenge.metrics.qs"># of Qs</th>
+              <th *ngIf="challenge.metrics.doubleDowns"># of DDs</th>
               <th *ngIf="isOwner() || (user && isParticipant)" class="actions-column">Actions</th>
             </tr>
           </thead>
@@ -121,6 +122,7 @@
               <td *ngIf="challenge.metrics.bds" class="metric">{{ entry.bds }}</td>
               <td *ngIf="challenge.metrics.uniqueAos" class="metric">{{ entry.uniqueAos }}</td>
               <td *ngIf="challenge.metrics.qs" class="metric">{{ entry.qs }}</td>
+              <td *ngIf="challenge.metrics.doubleDowns" class="metric">{{ entry.doubleDowns }}</td>
               <td *ngIf="isOwner() || (user && (entry.userId === user.email || entry.userId === user.uid))" class="actions">
                 <ion-button
                   fill="clear"

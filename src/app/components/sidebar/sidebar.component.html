@@ -16,10 +16,28 @@
     <div class="sidebar-content">
     <!-- Navigation Items -->
     <div class="sidebar-section">
+      <!-- All Stats -->
       <button
         type="button"
         class="nav-link"
-        *ngFor="let item of navigationItems"
+        [class.active]="allStatsItem.isActive"
+        (click)="navigate(allStatsItem.route)">
+        {{ allStatsItem.label }}
+      </button>
+      <!-- Double Downs link styled like AOs -->
+      <button
+        type="button"
+        class="ao-link"
+        style="padding-left: 40px;"
+        [class.active]="doubleDownsActive"
+        (click)="navigate('/dd/all')">
+        Double Downs
+      </button>
+      <!-- Other navigation items -->
+      <button
+        type="button"
+        class="nav-link"
+        *ngFor="let item of otherNavigationItems"
         [class.active]="item.isActive"
         (click)="navigate(item.route)">
         {{ item.label }}

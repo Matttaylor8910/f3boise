@@ -103,7 +103,8 @@ export enum PaxOrigin {
 export enum ChallengeMetric {
   BDS = 'bds',
   UNIQUE_AOS = 'uniqueAos',
-  QS = 'qs'
+  QS = 'qs',
+  DOUBLE_DOWNS = 'doubleDowns'
 }
 
 export interface Challenge {
@@ -112,7 +113,7 @@ export interface Challenge {
   description: string;
   startDate: string;  // YYYY-MM-DD format
   endDate: string;    // YYYY-MM-DD format
-  metrics: {bds: boolean; uniqueAos: boolean; qs: boolean;};
+  metrics: {bds: boolean; uniqueAos: boolean; qs: boolean; doubleDowns: boolean;};
   sortBy: ChallengeMetric;
   createdBy: string;   // User email or UID
   createdAt: any;      // Firestore timestamp
@@ -133,4 +134,5 @@ export interface ChallengeLeaderboardEntry {
   bds: number;
   uniqueAos: number;
   qs: number;
+  doubleDowns: number;
 }

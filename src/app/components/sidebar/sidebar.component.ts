@@ -62,7 +62,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
     {label: 'Exicon', route: '/exicon', isActive: false},
   ];
 
+  get allStatsItem(): NavigationItem {
+    return this.navigationItems[0];
+  }
+
+  get otherNavigationItems(): NavigationItem[] {
+    return this.navigationItems.slice(1);
+  }
+
   otherAOSections: OtherAOSection[] = [];
+  doubleDownsActive = false;
 
   constructor(
       private readonly sidebarService: SidebarService,
@@ -288,6 +297,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.navigationItems.forEach(item => {
       item.isActive = currentUrl === item.route;
     });
+
+    // Update Double Downs active state
+    this.doubleDownsActive = currentUrl === '/dd/all';
 
     // First, reset all regions, AOs, and other AO sections
     for (const region of this.regions) {

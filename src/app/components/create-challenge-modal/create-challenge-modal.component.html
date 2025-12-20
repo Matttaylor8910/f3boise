@@ -108,6 +108,18 @@
           <p>Total number of Q-sources</p>
         </ion-label>
       </ion-item>
+
+      <ion-item>
+        <ion-checkbox
+          [(ngModel)]="metrics.doubleDowns"
+          (ionChange)="onMetricChange()"
+          [disabled]="isLoading">
+        </ion-checkbox>
+        <ion-label class="metric-label">
+          <h2># of DDs</h2>
+          <p>Total number of double downs</p>
+        </ion-label>
+      </ion-item>
     </div>
 
     <div class="sort-section" *ngIf="availableSortOptions.length > 1">

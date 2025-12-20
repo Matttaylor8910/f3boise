@@ -4,7 +4,7 @@ import {AlertController, ModalController, ToastController} from '@ionic/angular'
 import * as moment from 'moment';
 import {combineLatest, Subscription} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
-import {Backblast, Challenge, ChallengeLeaderboardEntry, ChallengeMetric, ChallengeParticipant,} from 'types';
+import {Backblast, BBType, Challenge, ChallengeLeaderboardEntry, ChallengeMetric, ChallengeParticipant,} from 'types';
 
 import {AddParticipantModalComponent} from '../../../components/add-participant-modal/add-participant-modal.component';
 import {CreateChallengeModalComponent} from '../../../components/create-challenge-modal/create-challenge-modal.component';
@@ -130,16 +130,29 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
     this.isLoading = true;
 
     try {
-      // Get all backblasts in the date range
-      const allBackblasts = await this.backblastService.getAllData();
       const startDate = moment(this.challenge.startDate);
       const endDate = moment(this.challenge.endDate).endOf('day');
 
+      // Get all backblasts in the date range
+      const allBackblasts = await this.backblastService.getAllData();
       const filteredBackblasts = allBackblasts.filter(bb => {
         const bbDate = moment(bb.date);
         return bbDate.isSameOrAfter(startDate, 'day') &&
             bbDate.isSameOrBefore(endDate, 'day');
       });
+
+      // Get all double downs in the date range
+      let allDoubleDowns: Backblast[] = [];
+      let filteredDoubleDowns: Backblast[] = [];
+      if (this.challenge.metrics.doubleDowns) {
+        allDoubleDowns =
+            await this.backblastService.getAllData(BBType.DOUBLEDOWN);
+        filteredDoubleDowns = allDoubleDowns.filter(dd => {
+          const ddDate = moment(dd.date);
+          return ddDate.isSameOrAfter(startDate, 'day') &&
+              ddDate.isSameOrBefore(endDate, 'day');
+        });
+      }
 
       // Get all PAX data for name mapping
       const allPax = await this.paxService.loadPaxData();
@@ -160,6 +173,7 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
           bds: 0,
           uniqueAos: 0,
           qs: 0,
+          doubleDowns: 0,
         });
       });
 
@@ -209,6 +223,23 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
               const entry = leaderboardMap.get(userId);
               if (entry) {
                 entry.qs++;
+              }
+            }
+          }
+        }
+      }
+
+      // Count Double Downs for each participant
+      if (this.challenge.metrics.doubleDowns) {
+        for (const doubleDown of filteredDoubleDowns) {
+          for (const paxName of doubleDown.pax) {
+            const normalizedPaxName = paxName.toLowerCase();
+            const userId = paxNameToUserIdMap.get(normalizedPaxName);
+
+            if (userId) {
+              const entry = leaderboardMap.get(userId);
+              if (entry) {
+                entry.doubleDowns++;
               }
             }
           }
@@ -500,8 +531,9 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
     if (!this.challenge) return '';
     const metrics: string[] = [];
     if (this.challenge.metrics.bds) metrics.push('# of BDs');
-    if (this.challenge.metrics.uniqueAos) metrics.push('Unique # of AOs');
+    if (this.challenge.metrics.uniqueAos) metrics.push('# of AOs');
     if (this.challenge.metrics.qs) metrics.push('# of Qs');
+    if (this.challenge.metrics.doubleDowns) metrics.push('# of DDs');
     return metrics.join(', ');
   }
 
@@ -511,9 +543,11 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
       case 'bds':
         return '# of BDs';
       case 'uniqueAos':
-        return 'Unique # of AOs';
+        return '# of AOs';
       case 'qs':
         return '# of Qs';
+      case 'doubleDowns':
+        return '# of DDs';
       default:
         return this.challenge.sortBy;
     }

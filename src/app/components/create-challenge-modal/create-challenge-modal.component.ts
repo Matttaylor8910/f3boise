@@ -23,6 +23,7 @@ export class CreateChallengeModalComponent implements OnInit {
     bds: false,
     uniqueAos: false,
     qs: false,
+    doubleDowns: false,
   };
   sortBy: ChallengeMetric = ChallengeMetric.BDS;
   isLoading = false;
@@ -77,11 +78,13 @@ export class CreateChallengeModalComponent implements OnInit {
       options.push({value: ChallengeMetric.BDS, label: '# of BDs'});
     }
     if (this.metrics.uniqueAos) {
-      options.push(
-          {value: ChallengeMetric.UNIQUE_AOS, label: 'Unique # of AOs'});
+      options.push({value: ChallengeMetric.UNIQUE_AOS, label: '# of AOs'});
     }
     if (this.metrics.qs) {
       options.push({value: ChallengeMetric.QS, label: '# of Qs'});
+    }
+    if (this.metrics.doubleDowns) {
+      options.push({value: ChallengeMetric.DOUBLE_DOWNS, label: '# of DDs'});
     }
     this.availableSortOptions = options;
   }
@@ -125,7 +128,8 @@ export class CreateChallengeModalComponent implements OnInit {
     }
 
     // Check if at least one metric is selected
-    if (!this.metrics.bds && !this.metrics.uniqueAos && !this.metrics.qs) {
+    if (!this.metrics.bds && !this.metrics.uniqueAos && !this.metrics.qs &&
+        !this.metrics.doubleDowns) {
       await this.showToast(
           'Please select at least one metric to track', 'danger');
       return;
