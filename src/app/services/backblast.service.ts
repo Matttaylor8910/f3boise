@@ -7,8 +7,6 @@ import {BASE_URL, CANYON_AOS, CITY_OF_TREES_AOS, HIGH_DESERT_AOS, REGION, SETTLE
 import {HttpService} from './http.service';
 import {UtilService} from './util.service';
 
-const DD_START_DATE = '2024-10-03';
-
 @Injectable({providedIn: 'root'})
 export class BackblastService {
   allBackblasts?: Backblast[];
@@ -33,7 +31,6 @@ export class BackblastService {
     if (type === BBType.BACKBLAST) {
       this.allBackblasts = backblasts;
     } else {
-      backblasts = backblasts.filter(dd => dd.date > DD_START_DATE);
       this.allDoubleDowns = backblasts;
     }
 
