@@ -144,13 +144,21 @@
       </div>
 
       <!-- Non-Joined Qualifying PAX Leaderboard (only when requireJoining is false) -->
-      <div class="leaderboard-subsection" *ngIf="challenge?.requireJoining === false">
+      <div class="leaderboard-subsection qualifying-pax-subsection" *ngIf="challenge?.requireJoining === false && (isLoading || nonJoinedLeaderboard.length > 0)">
         <div class="leaderboard-header">
           <h2>Qualifying PAX (Not Joined)</h2>
-        </div>
-
-        <div *ngIf="!isLoading && nonJoinedLeaderboard.length === 0" class="empty-leaderboard">
-          <p>No qualifying PAX found who haven't joined yet.</p>
+          <ion-button
+            *ngIf="!isLoading && nonJoinedLeaderboard.length > 0 && isOwner()"
+            fill="solid"
+            size="small"
+            color="primary"
+            (click)="addAllNonJoinedParticipants()"
+            [disabled]="isAddingAll">
+            <ion-spinner *ngIf="isAddingAll" name="crescent"></ion-spinner>
+            <ion-icon *ngIf="!isAddingAll" slot="start" name="person-add-outline"></ion-icon>
+            <span *ngIf="!isAddingAll">Add All</span>
+            <span *ngIf="isAddingAll">Adding...</span>
+          </ion-button>
         </div>
 
         <div *ngIf="!isLoading && nonJoinedLeaderboard.length > 0" class="leaderboard-table">

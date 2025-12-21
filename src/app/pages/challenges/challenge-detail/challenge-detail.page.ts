@@ -31,6 +31,7 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   isWithdrawing = false;
   removingParticipant: string|null = null;
   addingParticipant: string|null = null;
+  isAddingAll = false;
   isDeleting = false;
   challengeLoading = true;
   user: any = null;
@@ -477,6 +478,57 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
       );
     } finally {
       this.addingParticipant = null;
+    }
+  }
+
+  async addAllNonJoinedParticipants() {
+    if (!this.user || !this.challenge || !this.isOwner()) {
+      return;
+    }
+
+    if (this.isAddingAll || this.nonJoinedLeaderboard.length === 0) {
+      return;
+    }
+
+    this.isAddingAll = true;
+
+    try {
+      let successCount = 0;
+      let failureCount = 0;
+
+      for (const entry of this.nonJoinedLeaderboard) {
+        try {
+          await this.challengesService.joinChallenge(
+              this.challengeId, entry.userId, entry.paxName);
+          successCount++;
+        } catch (error: any) {
+          console.error(
+              `Error adding ${entry.paxName || entry.userId}:`, error);
+          failureCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        await this.showToast(
+            `Successfully added ${successCount} participant${
+                successCount !== 1 ?
+                    's' :
+                    ''}${failureCount > 0 ? ` (${failureCount} failed)` : ''}`,
+            failureCount > 0 ? 'warning' : 'success');
+      } else {
+        await this.showToast(
+            'Failed to add participants. Please try again.', 'danger');
+      }
+      // The participant list will update automatically via subscription,
+      // which will trigger loadLeaderboard() to refresh both leaderboards
+    } catch (error: any) {
+      console.error('Error adding all participants:', error);
+      await this.showToast(
+          'Failed to add all participants. Please try again.',
+          'danger',
+      );
+    } finally {
+      this.isAddingAll = false;
     }
   }
 

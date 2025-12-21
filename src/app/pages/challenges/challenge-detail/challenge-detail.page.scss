@@ -96,7 +96,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin: 32px 0 16px;
 
       h2 {
         margin: 0;
@@ -113,6 +113,10 @@
       text-align: center;
       padding: 40px 20px;
       color: var(--ion-color-medium);
+    }
+
+    &.qualifying-pax-subsection {
+      margin-top: 32px;
     }
   }
 
