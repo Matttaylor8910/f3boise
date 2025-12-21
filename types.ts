@@ -118,6 +118,7 @@ export interface Challenge {
   createdBy: string;   // User email or UID
   createdAt: any;      // Firestore timestamp
   isPrivate: boolean;  // Whether the challenge is private (default: false)
+  requireJoining: boolean;  // Whether participants must join (default: true). If false, automatically include all PAX with at least one metric > 0
 }
 
 export interface ChallengeParticipant {

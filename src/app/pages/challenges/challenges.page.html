@@ -14,8 +14,13 @@
 
 <ion-content>
   <div class="challenges-container">
-    <div class="header-section">
-      <h2>Current Challenges</h2>
+    <div class="header-section" [class.showing-past]="showPastChallenges">
+      <h2 class="challenges-title">
+        <span class="title-text current">{{ showPastChallenges ? 'Past Challenges' : 'Current Challenges' }}</span>
+      </h2>
+      <a class="past-challenges-link" (click)="togglePastChallenges()">
+        <span class="link-text">{{ showPastChallenges ? 'Current Challenges' : 'Past Challenges' }}</span>
+      </a>
       <p *ngIf="!user" class="sign-in-prompt">
         <a (click)="openLoginModal()">Sign in</a> to create and participate in challenges.
       </p>
@@ -25,9 +30,11 @@
 
     <div *ngIf="!isLoading && challenges.length === 0" class="empty-state">
       <ion-icon name="trophy-outline"></ion-icon>
-      <h3>No challenges yet</h3>
-      <p *ngIf="user">Be the first to create a challenge!</p>
-      <p *ngIf="!user">Sign in to create the first challenge.</p>
+      <h3 *ngIf="!showPastChallenges">No challenges yet</h3>
+      <h3 *ngIf="showPastChallenges">No past challenges</h3>
+      <p *ngIf="!showPastChallenges && user">Be the first to create a challenge!</p>
+      <p *ngIf="!showPastChallenges && !user">Sign in to create the first challenge.</p>
+      <p *ngIf="showPastChallenges">There are no past challenges to display.</p>
     </div>
 
     <div *ngIf="!isLoading && challenges.length > 0" class="challenges-list">

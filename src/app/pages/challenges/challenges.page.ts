@@ -17,9 +17,11 @@ import {ChallengesService} from '../../services/challenges.service';
 })
 export class ChallengesPage implements OnInit, OnDestroy {
   challenges: Challenge[] = [];
+  allChallenges: Challenge[] = [];  // Store all challenges
   participantCounts: Map<string, number> = new Map();
   isLoading = false;
   user: any = null;
+  showPastChallenges = false;  // Toggle between current and past
   private authSubscription?: Subscription;
   private challengesSubscription?: Subscription;
   private participantSubscriptions: Subscription[] = [];
@@ -60,7 +62,8 @@ export class ChallengesPage implements OnInit, OnDestroy {
               // For private challenges, only show if user is the owner
               return this.isOwner(challenge);
             });
-            this.challenges = filteredChallenges;
+            this.allChallenges = filteredChallenges;
+            this.updateChallengesDisplay();
             this.loadParticipantCounts(filteredChallenges);
             this.isLoading = false;
           },
@@ -189,5 +192,29 @@ export class ChallengesPage implements OnInit, OnDestroy {
     if (challenge.id) {
       this.router.navigateByUrl(`/challenges/${challenge.id}`);
     }
+  }
+
+  togglePastChallenges() {
+    this.showPastChallenges = !this.showPastChallenges;
+    this.updateChallengesDisplay();
+  }
+
+  private updateChallengesDisplay() {
+    const today = moment().startOf('day');
+    if (this.showPastChallenges) {
+      // Show only past challenges (endDate < today)
+      this.challenges = this.allChallenges.filter(challenge => {
+        const endDate = moment(challenge.endDate).startOf('day');
+        return endDate.isBefore(today);
+      });
+    } else {
+      // Show only current challenges (endDate >= today)
+      this.challenges = this.allChallenges.filter(challenge => {
+        const endDate = moment(challenge.endDate).startOf('day');
+        return endDate.isSameOrAfter(today);
+      });
+    }
+    // Update participant counts for displayed challenges
+    this.loadParticipantCounts(this.challenges);
   }
 }

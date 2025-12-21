@@ -19,6 +19,7 @@ export class CreateChallengeModalComponent implements OnInit {
   startDate = '';
   endDate = '';
   isPrivate = false;
+  requireJoining = true;
   metrics = {
     bds: false,
     uniqueAos: false,
@@ -58,6 +59,9 @@ export class CreateChallengeModalComponent implements OnInit {
       this.startDate = this.challengeToEdit.startDate;
       this.endDate = this.challengeToEdit.endDate;
       this.isPrivate = this.challengeToEdit.isPrivate || false;
+      this.requireJoining = this.challengeToEdit.requireJoining !== undefined ?
+          this.challengeToEdit.requireJoining :
+          true;
       this.metrics = {...this.challengeToEdit.metrics};
       this.sortBy = this.challengeToEdit.sortBy;
       this.updateAvailableSortOptions();
@@ -159,6 +163,7 @@ export class CreateChallengeModalComponent implements OnInit {
           startDate: this.startDate,
           endDate: this.endDate,
           isPrivate: this.isPrivate,
+          requireJoining: this.requireJoining,
           metrics: this.metrics,
           sortBy: this.sortBy,
         };
@@ -175,6 +180,7 @@ export class CreateChallengeModalComponent implements OnInit {
           startDate: this.startDate,
           endDate: this.endDate,
           isPrivate: this.isPrivate,
+          requireJoining: this.requireJoining,
           metrics: this.metrics,
           sortBy: this.sortBy,
           createdBy: this.createdBy,

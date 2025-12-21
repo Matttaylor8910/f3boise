@@ -69,6 +69,19 @@
       </ion-item>
     </div>
 
+    <div class="joining-section">
+      <ion-item>
+        <ion-label>
+          <h3>Require Joining</h3>
+          <p>When enabled, PAX must join to appear on the leaderboard. When disabled, all PAX with activity are automatically included.</p>
+        </ion-label>
+        <ion-toggle
+          [(ngModel)]="requireJoining"
+          [disabled]="isLoading">
+        </ion-toggle>
+      </ion-item>
+    </div>
+
     <div class="metrics-section">
       <h3>Metrics to Track</h3>
       <p class="section-description">Select which metrics should be tracked in the leaderboard:</p>

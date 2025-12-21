@@ -62,13 +62,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
     {label: 'Exicon', route: '/exicon', isActive: false},
   ];
 
-  get allStatsItem(): NavigationItem {
-    return this.navigationItems[0];
-  }
-
-  get otherNavigationItems(): NavigationItem[] {
-    return this.navigationItems.slice(1);
-  }
+  allStatsItem: NavigationItem = this.navigationItems[0];
+  otherNavigationItems: NavigationItem[] = this.navigationItems.slice(1);
 
   otherAOSections: OtherAOSection[] = [];
   doubleDownsActive = false;

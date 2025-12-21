@@ -12,6 +12,21 @@
       font-weight: 600;
     }
 
+    .past-challenges-link {
+      display: inline-block;
+      color: #ee6059;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 16px;
+      margin-bottom: 8px;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 0.8;
+        text-decoration: underline;
+      }
+    }
+
     .sign-in-prompt {
       color: var(--ion-color-medium);
       margin: 0;

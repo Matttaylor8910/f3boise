@@ -62,7 +62,7 @@
     </ion-card>
 
     <!-- Join Challenge CTA -->
-    <div class="join-section" *ngIf="!isParticipant">
+    <div class="join-section" *ngIf="!isParticipant && challenge?.requireJoining !== false">
       <ion-button
         expand="block"
         (click)="joinChallenge()"
@@ -76,67 +76,128 @@
 
     <!-- Leaderboard -->
     <div class="leaderboard-section">
-      <div class="leaderboard-header">
-        <h2>Leaderboard</h2>
-        <ion-button
-          *ngIf="isOwner()"
-          fill="clear"
-          size="small"
-          (click)="openAddParticipantModal()">
-          <ion-icon slot="start" name="person-add-outline"></ion-icon>
-          Add PAX
-        </ion-button>
-      </div>
-      <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+      <!-- Joined Participants Leaderboard -->
+      <div class="leaderboard-subsection">
+        <div class="leaderboard-header">
+          <h2>Participants</h2>
+          <ion-button
+            *ngIf="isOwner() && challenge?.requireJoining !== false"
+            fill="clear"
+            size="small"
+            (click)="openAddParticipantModal()">
+            <ion-icon slot="start" name="person-add-outline"></ion-icon>
+            Add PAX
+          </ion-button>
+        </div>
+        <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
 
-      <div *ngIf="!isLoading && leaderboard.length === 0" class="empty-leaderboard">
-        <p>No participants yet. Be the first to join!</p>
+        <div *ngIf="!isLoading && leaderboard.length === 0" class="empty-leaderboard">
+          <p *ngIf="challenge?.requireJoining !== false">No participants yet. Be the first to join!</p>
+          <p *ngIf="challenge?.requireJoining === false">No participants have joined yet.</p>
+        </div>
+
+        <div *ngIf="!isLoading && leaderboard.length > 0" class="leaderboard-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Name</th>
+                <th *ngIf="challenge.metrics.bds"># of BDs</th>
+                <th *ngIf="challenge.metrics.uniqueAos"># of AOs</th>
+                <th *ngIf="challenge.metrics.qs"># of Qs</th>
+                <th *ngIf="challenge.metrics.doubleDowns"># of DDs</th>
+                <th *ngIf="isOwner() || (user && isParticipant)" class="actions-column">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let entry of leaderboard; let i = index; trackBy: trackByLeaderboardEntry"
+                  [class.current-user]="user && (entry.userId === user.email || entry.userId === user.uid)">
+                <td class="rank">{{ i + 1 }}</td>
+                <td class="name">
+                  <div class="pax-cell" *ngIf="entry.paxName; else userIdDisplay">
+                    <app-pax-avatar [name]="entry.paxName" [size]="32" [clickable]="true"></app-pax-avatar>
+                    <app-pax-name [name]="entry.paxName"></app-pax-name>
+                  </div>
+                  <ng-template #userIdDisplay>
+                    {{ entry.userId }}
+                  </ng-template>
+                </td>
+                <td *ngIf="challenge.metrics.bds" class="metric">{{ entry.bds }}</td>
+                <td *ngIf="challenge.metrics.uniqueAos" class="metric">{{ entry.uniqueAos }}</td>
+                <td *ngIf="challenge.metrics.qs" class="metric">{{ entry.qs }}</td>
+                <td *ngIf="challenge.metrics.doubleDowns" class="metric">{{ entry.doubleDowns }}</td>
+                <td *ngIf="isOwner() || (user && (entry.userId === user.email || entry.userId === user.uid))" class="actions">
+                  <ion-button
+                    fill="clear"
+                    size="small"
+                    color="danger"
+                    (click)="removeParticipant(entry.userId)"
+                    [disabled]="removingParticipant === entry.userId">
+                    <ion-spinner *ngIf="removingParticipant === entry.userId" name="crescent"></ion-spinner>
+                    <ion-icon *ngIf="removingParticipant !== entry.userId" slot="icon-only" name="close-circle-outline"></ion-icon>
+                  </ion-button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <div *ngIf="!isLoading && leaderboard.length > 0" class="leaderboard-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Name</th>
-              <th *ngIf="challenge.metrics.bds"># of BDs</th>
-              <th *ngIf="challenge.metrics.uniqueAos"># of AOs</th>
-              <th *ngIf="challenge.metrics.qs"># of Qs</th>
-              <th *ngIf="challenge.metrics.doubleDowns"># of DDs</th>
-              <th *ngIf="isOwner() || (user && isParticipant)" class="actions-column">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let entry of leaderboard; let i = index; trackBy: trackByLeaderboardEntry"
-                [class.current-user]="user && (entry.userId === user.email || entry.userId === user.uid)">
-              <td class="rank">{{ i + 1 }}</td>
-              <td class="name">
-                <div class="pax-cell" *ngIf="entry.paxName; else userIdDisplay">
-                  <app-pax-avatar [name]="entry.paxName" [size]="32" [clickable]="true"></app-pax-avatar>
-                  <app-pax-name [name]="entry.paxName"></app-pax-name>
-                </div>
-                <ng-template #userIdDisplay>
-                  {{ entry.userId }}
-                </ng-template>
-              </td>
-              <td *ngIf="challenge.metrics.bds" class="metric">{{ entry.bds }}</td>
-              <td *ngIf="challenge.metrics.uniqueAos" class="metric">{{ entry.uniqueAos }}</td>
-              <td *ngIf="challenge.metrics.qs" class="metric">{{ entry.qs }}</td>
-              <td *ngIf="challenge.metrics.doubleDowns" class="metric">{{ entry.doubleDowns }}</td>
-              <td *ngIf="isOwner() || (user && (entry.userId === user.email || entry.userId === user.uid))" class="actions">
-                <ion-button
-                  fill="clear"
-                  size="small"
-                  color="danger"
-                  (click)="removeParticipant(entry.userId)"
-                  [disabled]="removingParticipant === entry.userId">
-                  <ion-spinner *ngIf="removingParticipant === entry.userId" name="crescent"></ion-spinner>
-                  <ion-icon *ngIf="removingParticipant !== entry.userId" slot="icon-only" name="close-circle-outline"></ion-icon>
-                </ion-button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- Non-Joined Qualifying PAX Leaderboard (only when requireJoining is false) -->
+      <div class="leaderboard-subsection" *ngIf="challenge?.requireJoining === false">
+        <div class="leaderboard-header">
+          <h2>Qualifying PAX (Not Joined)</h2>
+        </div>
+
+        <div *ngIf="!isLoading && nonJoinedLeaderboard.length === 0" class="empty-leaderboard">
+          <p>No qualifying PAX found who haven't joined yet.</p>
+        </div>
+
+        <div *ngIf="!isLoading && nonJoinedLeaderboard.length > 0" class="leaderboard-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Name</th>
+                <th *ngIf="challenge.metrics.bds"># of BDs</th>
+                <th *ngIf="challenge.metrics.uniqueAos"># of AOs</th>
+                <th *ngIf="challenge.metrics.qs"># of Qs</th>
+                <th *ngIf="challenge.metrics.doubleDowns"># of DDs</th>
+                <th *ngIf="isOwner()" class="actions-column">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let entry of nonJoinedLeaderboard; let i = index; trackBy: trackByLeaderboardEntry"
+                  [class.current-user]="user && (entry.userId === user.email || entry.userId === user.uid)">
+                <td class="rank">{{ i + 1 }}</td>
+                <td class="name">
+                  <div class="pax-cell" *ngIf="entry.paxName; else userIdDisplay">
+                    <app-pax-avatar [name]="entry.paxName" [size]="32" [clickable]="true"></app-pax-avatar>
+                    <app-pax-name [name]="entry.paxName"></app-pax-name>
+                  </div>
+                  <ng-template #userIdDisplay>
+                    {{ entry.userId }}
+                  </ng-template>
+                </td>
+                <td *ngIf="challenge.metrics.bds" class="metric">{{ entry.bds }}</td>
+                <td *ngIf="challenge.metrics.uniqueAos" class="metric">{{ entry.uniqueAos }}</td>
+                <td *ngIf="challenge.metrics.qs" class="metric">{{ entry.qs }}</td>
+                <td *ngIf="challenge.metrics.doubleDowns" class="metric">{{ entry.doubleDowns }}</td>
+                <td *ngIf="isOwner()" class="actions">
+                  <ion-button
+                    fill="clear"
+                    size="small"
+                    color="primary"
+                    (click)="addParticipantFromLeaderboard(entry)"
+                    [disabled]="addingParticipant === entry.userId">
+                    <ion-spinner *ngIf="addingParticipant === entry.userId" name="crescent"></ion-spinner>
+                    <ion-icon *ngIf="addingParticipant !== entry.userId" slot="icon-only" name="add-circle-outline"></ion-icon>
+                  </ion-button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>

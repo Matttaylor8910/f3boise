@@ -24,10 +24,13 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   challenge?: Challenge;
   participants: ChallengeParticipant[] = [];
   leaderboard: ChallengeLeaderboardEntry[] = [];
+  nonJoinedLeaderboard: ChallengeLeaderboardEntry[] =
+      [];  // For PAX that qualify but haven't joined
   isLoading = false;
   isJoining = false;
   isWithdrawing = false;
   removingParticipant: string|null = null;
+  addingParticipant: string|null = null;
   isDeleting = false;
   challengeLoading = true;
   user: any = null;
@@ -122,8 +125,16 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   }
 
   async loadLeaderboard() {
-    if (!this.challenge || !this.participants.length) {
+    if (!this.challenge) {
       this.leaderboard = [];
+      this.nonJoinedLeaderboard = [];
+      return;
+    }
+
+    // If requireJoining is true, need at least one participant
+    if (this.challenge.requireJoining !== false && !this.participants.length) {
+      this.leaderboard = [];
+      this.nonJoinedLeaderboard = [];
       return;
     }
 
@@ -163,29 +174,55 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
 
       // Calculate metrics for each participant
       const leaderboardMap = new Map<string, ChallengeLeaderboardEntry>();
-
-      // Initialize entries for all participants
-      this.participants.forEach(participant => {
-        const paxName = this.getPaxNameForUser(participant.userId, allPax);
-        leaderboardMap.set(participant.userId, {
-          userId: participant.userId,
-          paxName,
-          bds: 0,
-          uniqueAos: 0,
-          qs: 0,
-          doubleDowns: 0,
-        });
-      });
-
-      // Create a map of PAX name to participant userId for quick lookup
       const paxNameToUserIdMap = new Map<string, string>();
-      this.participants.forEach(participant => {
-        const paxName = participant.paxName ||
-            this.getPaxNameForUser(participant.userId, allPax);
-        if (paxName) {
-          paxNameToUserIdMap.set(paxName.toLowerCase(), participant.userId);
-        }
-      });
+
+      if (this.challenge.requireJoining !== false) {
+        // Require joining mode: only process participants
+        // Initialize entries for all participants
+        this.participants.forEach(participant => {
+          const paxName = this.getPaxNameForUser(participant.userId, allPax);
+          leaderboardMap.set(participant.userId, {
+            userId: participant.userId,
+            paxName,
+            bds: 0,
+            uniqueAos: 0,
+            qs: 0,
+            doubleDowns: 0,
+          });
+        });
+
+        // Create a map of PAX name to participant userId for quick lookup
+        this.participants.forEach(participant => {
+          const paxName = participant.paxName ||
+              this.getPaxNameForUser(participant.userId, allPax);
+          if (paxName) {
+            paxNameToUserIdMap.set(paxName.toLowerCase(), participant.userId);
+          }
+        });
+      } else {
+        // Auto-include mode: process all PAX with email
+        // Build map from PAX name to userId (email)
+        allPax.forEach(pax => {
+          if (pax.email) {
+            paxNameToUserIdMap.set(
+                pax.name.toLowerCase(), pax.email.toLowerCase());
+          }
+        });
+
+        // Initialize entries for all PAX with email
+        allPax.forEach(pax => {
+          if (pax.email) {
+            leaderboardMap.set(pax.email.toLowerCase(), {
+              userId: pax.email.toLowerCase(),
+              paxName: pax.name,
+              bds: 0,
+              uniqueAos: 0,
+              qs: 0,
+              doubleDowns: 0,
+            });
+          }
+        });
+      }
 
       // Calculate metrics from backblasts
       const uniqueAosMap = new Map<string, Set<string>>();
@@ -246,9 +283,48 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
         }
       }
 
-      // Convert to array and sort
-      this.leaderboard = Array.from(leaderboardMap.values());
-      this.sortLeaderboard();
+      // Convert to array
+      let leaderboard = Array.from(leaderboardMap.values());
+
+      // If requireJoining is false, separate into two leaderboards
+      if (this.challenge.requireJoining === false) {
+        const challenge = this.challenge;  // Capture for closure
+
+        // Get set of participant user IDs (normalized for comparison)
+        const participantUserIds = new Set<string>();
+        this.participants.forEach(participant => {
+          participantUserIds.add(participant.userId.toLowerCase());
+        });
+
+        // Filter to only include PAX with at least one metric > 0
+        const qualifyingEntries = leaderboard.filter(entry => {
+          return (challenge.metrics.bds && entry.bds > 0) ||
+              (challenge.metrics.uniqueAos && entry.uniqueAos > 0) ||
+              (challenge.metrics.qs && entry.qs > 0) ||
+              (challenge.metrics.doubleDowns && entry.doubleDowns > 0);
+        });
+
+        // Split into joined and non-joined
+        const joinedEntries: ChallengeLeaderboardEntry[] = [];
+        const nonJoinedEntries: ChallengeLeaderboardEntry[] = [];
+
+        qualifyingEntries.forEach(entry => {
+          if (participantUserIds.has(entry.userId.toLowerCase())) {
+            joinedEntries.push(entry);
+          } else {
+            nonJoinedEntries.push(entry);
+          }
+        });
+
+        this.leaderboard = joinedEntries;
+        this.nonJoinedLeaderboard = nonJoinedEntries;
+        this.sortLeaderboard();
+        this.sortNonJoinedLeaderboard();
+      } else {
+        this.leaderboard = leaderboard;
+        this.nonJoinedLeaderboard = [];
+        this.sortLeaderboard();
+      }
     } catch (error) {
       console.error('Error loading leaderboard:', error);
       await this.showToast('Failed to load leaderboard', 'danger');
@@ -262,6 +338,17 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
 
     const sortBy = this.challenge.sortBy;
     this.leaderboard.sort((a, b) => {
+      const aValue = a[sortBy] || 0;
+      const bValue = b[sortBy] || 0;
+      return bValue - aValue;  // Descending order
+    });
+  }
+
+  sortNonJoinedLeaderboard() {
+    if (!this.challenge) return;
+
+    const sortBy = this.challenge.sortBy;
+    this.nonJoinedLeaderboard.sort((a, b) => {
       const aValue = a[sortBy] || 0;
       const bValue = b[sortBy] || 0;
       return bValue - aValue;  // Descending order
@@ -362,6 +449,34 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
       );
     } finally {
       this.isWithdrawing = false;
+    }
+  }
+
+  async addParticipantFromLeaderboard(entry: ChallengeLeaderboardEntry) {
+    if (!this.user || !this.challenge || !this.isOwner()) {
+      return;
+    }
+
+    if (this.addingParticipant === entry.userId) return;
+
+    this.addingParticipant = entry.userId;
+
+    try {
+      await this.challengesService.joinChallenge(
+          this.challengeId, entry.userId, entry.paxName);
+      await this.showToast(
+          `${entry.paxName || entry.userId} added to challenge successfully`,
+          'success');
+      // The participant list will update automatically via subscription,
+      // which will trigger loadLeaderboard() to refresh both leaderboards
+    } catch (error: any) {
+      console.error('Error adding participant:', error);
+      await this.showToast(
+          error.message || 'Failed to add participant. Please try again.',
+          'danger',
+      );
+    } finally {
+      this.addingParticipant = null;
     }
   }
 
