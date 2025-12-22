@@ -144,7 +144,7 @@
       </div>
 
       <!-- Non-Joined Qualifying PAX Leaderboard (only when requireJoining is false) -->
-      <div class="leaderboard-subsection qualifying-pax-subsection" *ngIf="challenge?.requireJoining === false && (isLoading || nonJoinedLeaderboard.length > 0)">
+      <div class="leaderboard-subsection qualifying-pax-subsection" *ngIf="nonJoinedLeaderboard.length > 0">
         <div class="leaderboard-header">
           <h2>Qualifying PAX (Not Joined)</h2>
           <ion-button
