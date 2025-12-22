@@ -9,17 +9,29 @@ export interface WrappedData {
   weatherStats: WeatherStat[];
 
   topAO: {
-    name: string; posts: number; percentage: number; address: string | null;
-    map_location_url: string | null;
+    name: string,
+    posts: number,
+    percentage: number,
+    address: string|null,
+    map_location_url: string|null,
+    consistencyRate: number,
+    possibleSlots: number,
   };
+
+  topAOs: Array<{
+    name: string,
+    posts: number,
+    percentage: number,
+  }>;
 
   estimatedBurpees: number;
 
-  paxNetwork: {totalPaxEncountered: number; topWorkoutBuddies: WorkoutBuddy[];};
+  paxNetwork: {
+    totalPaxEncountered: number,
+    topWorkoutBuddies: WorkoutBuddy[],
+  };
 
   percentileRank: number;
-
-  f3Evolution: F3Phase[];
 
   qStats: {timesAsQ: number; totalPaxLed: number; averagePaxPerQ: number;};
 }

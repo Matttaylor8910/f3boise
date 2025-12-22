@@ -32,6 +32,7 @@ import {PaxNetworkComponent} from './wrapped/pax-network/pax-network.component';
 import {CombinedBreakdownComponent} from './wrapped/combined-breakdown/combined-breakdown.component';
 import {WorkoutTypeBreakdownComponent} from './wrapped/workout-type-breakdown/workout-type-breakdown.component';
 import {HomeBaseComponent} from './wrapped/home-base/home-base.component';
+import {TopAosBreakdownComponent} from './wrapped/top-aos-breakdown/top-aos-breakdown.component';
 
 @NgModule({
   declarations: [
@@ -63,6 +64,7 @@ import {HomeBaseComponent} from './wrapped/home-base/home-base.component';
     CombinedBreakdownComponent,
     WorkoutTypeBreakdownComponent,
     HomeBaseComponent,
+    TopAosBreakdownComponent,
   ],
   imports: [
     IonicModule,
@@ -98,6 +100,7 @@ import {HomeBaseComponent} from './wrapped/home-base/home-base.component';
     CombinedBreakdownComponent,
     WorkoutTypeBreakdownComponent,
     HomeBaseComponent,
+    TopAosBreakdownComponent,
   ],
   providers: [
     CurrencyPipe,

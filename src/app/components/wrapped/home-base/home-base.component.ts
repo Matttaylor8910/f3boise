@@ -17,6 +17,8 @@ export class HomeBaseComponent implements OnInit, OnChanges, AfterViewInit {
   @Input() description: string = '';
   @Input() address: string|null = null;
   @Input() mapLocationUrl: string|null = null;
+  @Input() consistencyRate: number = 0;
+  @Input() possibleSlots: number = 0;
   @Input()
   backgroundGradient: string =
       'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)';

@@ -70,7 +70,8 @@ export class WrappedService {
     const monthlyBreakdown =
         this.calculateMonthlyBreakdown(userBackblasts, year);
     const dayOfWeekBreakdown = this.calculateDayOfWeekBreakdown(userBackblasts);
-    const topAO = await this.calculateTopAO(userBackblasts);
+    const topAOs = this.calculateTopAOs(userBackblasts);
+    const topAO = await this.calculateTopAO(userBackblasts, year);
     const estimatedBurpees = this.calculateEstimatedBurpees(totalPosts);
     const paxNetwork = this.calculatePaxNetwork(userBackblasts, paxName);
     const qStats = this.calculateQStats(userBackblasts, paxName);
@@ -78,7 +79,6 @@ export class WrappedService {
         await this.calculateWorkoutTypeBreakdown(userBackblasts);
     const weatherStats = this.getMockWeatherStats();
     const percentileRank = this.getMockPercentileRank();
-    const f3Evolution = this.getMockF3Evolution();
 
     return {
       userId,
@@ -89,10 +89,10 @@ export class WrappedService {
       dayOfWeekBreakdown,
       weatherStats,
       topAO,
+      topAOs,
       estimatedBurpees,
       paxNetwork,
       percentileRank,
-      f3Evolution,
       qStats,
     };
   }
@@ -119,6 +119,36 @@ export class WrappedService {
                             month,
                             posts: monthCounts.get(month) || 0,
                           }));
+  }
+
+  private calculateTopAOs(backblasts: Backblast[]):
+      Array<{name: string; posts: number; percentage: number;}> {
+    const aoCounts = new Map<string, number>();
+
+    backblasts.forEach(bb => {
+      aoCounts.set(bb.ao, (aoCounts.get(bb.ao) || 0) + 1);
+    });
+
+    if (aoCounts.size === 0) {
+      return [];
+    }
+
+    const totalPosts = backblasts.length;
+    const maxCount = Math.max(...Array.from(aoCounts.values()));
+
+    // Sort AOs by count and take top 5
+    const topAOs =
+        Array.from(aoCounts.entries())
+            .map(([name, count]) => ({
+                   name,
+                   posts: count,
+                   percentage:
+                       maxCount > 0 ? Math.round((count / maxCount) * 100) : 0,
+                 }))
+            .sort((a, b) => b.posts - a.posts)
+            .slice(0, 5);
+
+    return topAOs;
   }
 
   private calculateDayOfWeekBreakdown(backblasts: Backblast[]): DayOfWeek[] {
@@ -148,9 +178,11 @@ export class WrappedService {
     });
   }
 
-  private async calculateTopAO(backblasts: Backblast[]): Promise<{
+  private async calculateTopAO(backblasts: Backblast[], year: number): Promise<{
     name: string; posts: number; percentage: number; address: string | null;
-    map_location_url: string | null
+    map_location_url: string | null;
+    consistencyRate: number;
+    possibleSlots: number;
   }> {
     const aoCounts = new Map<string, number>();
 
@@ -164,7 +196,9 @@ export class WrappedService {
         posts: 0,
         percentage: 0,
         address: null,
-        map_location_url: null
+        map_location_url: null,
+        consistencyRate: 0,
+        possibleSlots: 0
       };
     }
 
@@ -182,9 +216,12 @@ export class WrappedService {
     const percentage =
         totalPosts > 0 ? Math.round((maxPosts / totalPosts) * 100) : 0;
 
-    // Get workout data to find address and map_location_url
+    // Get workout data to find address, map_location_url, and calculate
+    // consistency rate
     let address: string|null = null;
     let map_location_url: string|null = null;
+    let consistencyRate = 0;
+    let possibleSlots = 0;
 
     try {
       const workouts = await this.workoutService.getAllData();
@@ -200,6 +237,25 @@ export class WrappedService {
       if (matchingWorkout) {
         address = matchingWorkout.address;
         map_location_url = matchingWorkout.map_location_url;
+
+        // Calculate consistency rate based on workout schedule
+        const workoutDates = matchingWorkout.workout_dates;
+        const daysPerWeek = Object.keys(workoutDates).length;
+
+        if (daysPerWeek > 0) {
+          // Calculate number of weeks in the year
+          const yearStart = moment(`${year}-01-01`);
+          const yearEnd = moment(`${year}-12-31`);
+          const weeksInYear = yearEnd.diff(yearStart, 'weeks') + 1;
+
+          // Calculate total possible slots
+          possibleSlots = daysPerWeek * weeksInYear;
+
+          // Calculate consistency rate
+          if (possibleSlots > 0) {
+            consistencyRate = Math.round((maxPosts / possibleSlots) * 100);
+          }
+        }
       }
     } catch (error) {
       console.error('Error fetching workout data for top AO:', error);
@@ -212,6 +268,8 @@ export class WrappedService {
       percentage,
       address,
       map_location_url,
+      consistencyRate,
+      possibleSlots,
     };
   }
 
@@ -369,28 +427,5 @@ export class WrappedService {
 
   private getMockPercentileRank(): number {
     return 85;
-  }
-
-  private getMockF3Evolution() {
-    return [
-      {
-        period: 'January - March',
-        title: 'The Runner',
-        description: 'Mostly running workouts, building that cardio base',
-        icon: '🏃',
-      },
-      {
-        period: 'April - August',
-        title: 'The Lifter',
-        description: 'Shifted to strength training and bootcamp',
-        icon: '💪',
-      },
-      {
-        period: 'September - December',
-        title: 'The Rucker',
-        description: 'Embraced the ruck and long steady distance',
-        icon: '🎒',
-      },
-    ];
   }
 }

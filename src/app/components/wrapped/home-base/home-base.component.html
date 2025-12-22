@@ -1,8 +1,13 @@
 <div class="home-base-slide" [style.background]="backgroundGradient">
   <div class="home-base-content">
-    <div class="eyebrow">YOUR HOME BASE</div>
+    <div class="eyebrow">YOUR HOME AO</div>
     <div class="big-stat">{{aoName | uppercase}}</div>
     <div class="stat-label">{{posts}} POSTS</div>
+    <div class="consistency-stat" *ngIf="consistencyRate > 0 && possibleSlots > 0">
+      <div class="consistency-rate">{{consistencyRate}}%</div>
+      <div class="consistency-label">CONSISTENCY RATE</div>
+      <div class="consistency-detail">{{posts}} OF {{possibleSlots}} POSSIBLE SLOTS</div>
+    </div>
     <div class="description" *ngIf="description">{{description}}</div>
 
     <div class="map-container" *ngIf="mapEmbedUrl || useJavaScriptApi">

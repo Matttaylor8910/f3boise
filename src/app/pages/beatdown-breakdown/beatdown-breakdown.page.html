@@ -72,6 +72,13 @@
         backgroundGradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
       </app-workout-type-breakdown>
 
+      <!-- Top AOs Breakdown -->
+      <app-top-aos-breakdown
+        *ngIf="wrappedData.topAOs.length > 0"
+        [topAOs]="wrappedData.topAOs"
+        backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
+      </app-top-aos-breakdown>
+
       <!-- Top AO -->
       <app-home-base
         [aoName]="wrappedData.topAO.name"
@@ -80,6 +87,8 @@
         [description]="getTopAODescription()"
         [address]="wrappedData.topAO.address"
         [mapLocationUrl]="wrappedData.topAO.map_location_url"
+        [consistencyRate]="wrappedData.topAO.consistencyRate"
+        [possibleSlots]="wrappedData.topAO.possibleSlots"
         backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
       </app-home-base>
 
