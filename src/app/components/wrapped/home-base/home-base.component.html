@@ -2,13 +2,25 @@
   <div class="home-base-content">
     <div class="eyebrow">YOUR HOME AO</div>
     <div class="big-stat">{{aoName | uppercase}}</div>
-    <div class="stat-label">{{posts}} POSTS</div>
-    <div class="consistency-stat" *ngIf="consistencyRate > 0 && possibleSlots > 0">
-      <div class="consistency-rate">{{consistencyRate}}%</div>
-      <div class="consistency-label">CONSISTENCY RATE</div>
-      <div class="consistency-detail">{{posts}} OF {{possibleSlots}} POSSIBLE SLOTS</div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{posts}}</div>
+        <div class="stat-label">POSTS</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{possibleSlots || 0}}</div>
+        <div class="stat-label">POSSIBLE BDS</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{consistencyRate || 0}}%</div>
+        <div class="stat-label">CONSISTENCY</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{percentage || 0}}%</div>
+        <div class="stat-label">OF YOUR POSTS</div>
+      </div>
     </div>
-    <div class="description" *ngIf="description">{{description}}</div>
 
     <div class="map-container" *ngIf="mapEmbedUrl || useJavaScriptApi">
       <div class="map-overlay" *ngIf="!useJavaScriptApi"></div>
