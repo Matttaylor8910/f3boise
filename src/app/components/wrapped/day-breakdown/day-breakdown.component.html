@@ -1,0 +1,19 @@
+<div class="day-slide" [style.background]="backgroundGradient">
+  <div class="day-breakdown-content">
+    <div class="eyebrow">Best Day to Post</div>
+    <h2>{{bestDay}}</h2>
+    <div class="day-grid">
+      <div class="day-item" *ngFor="let dayData of data">
+        <div class="day-name">{{dayData.day}}</div>
+        <div class="day-bar"
+             [style.height.%]="dayData.percentage"
+             [style.background]="'rgba(255,255,255,' + (dayData.percentage/100) + ')'">
+        </div>
+        <div class="day-count">{{dayData.posts}}</div>
+      </div>
+    </div>
+    <div class="description" *ngIf="bestDay">
+      You're a {{bestDay}} warrior. Something about that day just hits different.
+    </div>
+  </div>
+</div>

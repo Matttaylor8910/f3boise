@@ -1,0 +1,37 @@
+<div class="combined-slide" [style.background]="backgroundGradient">
+  <div class="combined-content">
+    <div class="eyebrow">Here's when you posted most:</div>
+    
+    <!-- Monthly Section -->
+    <div class="section">
+      <div class="section-label">Month</div>
+      <div class="section-value">{{strongestMonth}}</div>
+      <div class="chart-grid monthly-grid">
+        <div 
+          class="chart-item" 
+          *ngFor="let item of monthlyPercentages"
+          [style.height.%]="item.percentage">
+        </div>
+      </div>
+      <div class="chart-labels">
+        <span *ngFor="let item of monthlyPercentages">{{item.month}}</span>
+      </div>
+    </div>
+
+    <!-- Daily Section -->
+    <div class="section">
+      <div class="section-label">Day</div>
+      <div class="section-value">{{strongestDay}}</div>
+      <div class="chart-grid daily-grid">
+        <div 
+          class="chart-item" 
+          *ngFor="let item of dayPercentages"
+          [style.height.%]="item.percentage">
+        </div>
+      </div>
+      <div class="chart-labels">
+        <span *ngFor="let item of dayPercentages">{{item.day}}</span>
+      </div>
+    </div>
+  </div>
+</div>

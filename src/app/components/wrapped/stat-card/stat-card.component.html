@@ -1,0 +1,9 @@
+<div class="stat-slide" [style.background]="backgroundGradient">
+  <div class="decoration" *ngIf="decorationIcon">{{decorationIcon}}</div>
+  <div class="stat-card-content">
+    <div class="eyebrow" *ngIf="eyebrow">{{eyebrow}}</div>
+    <div class="big-stat">{{bigStat}}</div>
+    <div class="stat-label" *ngIf="statLabel">{{statLabel}}</div>
+    <div class="description" *ngIf="description">{{description}}</div>
+  </div>
+</div>

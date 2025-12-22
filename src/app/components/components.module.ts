@@ -25,6 +25,11 @@ import {SidebarComponent} from './sidebar/sidebar.component';
 import {TimeFilterComponent} from './time-filter/time-filter.component';
 import {UserMenuPopoverComponent} from './user-menu-popover/user-menu-popover.component';
 import {YearGridComponent} from './year-grid/year-grid.component';
+import {StatCardComponent} from './wrapped/stat-card/stat-card.component';
+import {MonthlyChartComponent} from './wrapped/monthly-chart/monthly-chart.component';
+import {DayBreakdownComponent} from './wrapped/day-breakdown/day-breakdown.component';
+import {PaxNetworkComponent} from './wrapped/pax-network/pax-network.component';
+import {CombinedBreakdownComponent} from './wrapped/combined-breakdown/combined-breakdown.component';
 
 @NgModule({
   declarations: [
@@ -49,6 +54,11 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     TimeFilterComponent,
     UserMenuPopoverComponent,
     YearGridComponent,
+    StatCardComponent,
+    MonthlyChartComponent,
+    DayBreakdownComponent,
+    PaxNetworkComponent,
+    CombinedBreakdownComponent,
   ],
   imports: [
     IonicModule,
@@ -77,6 +87,11 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     TimeFilterComponent,
     UserMenuPopoverComponent,
     YearGridComponent,
+    StatCardComponent,
+    MonthlyChartComponent,
+    DayBreakdownComponent,
+    PaxNetworkComponent,
+    CombinedBreakdownComponent,
   ],
   providers: [
     CurrencyPipe,

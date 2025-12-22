@@ -1,6 +1,118 @@
-<ion-content>
-  <div class="coming-soon-container">
-    <img src="../../../assets/coming-soon.jpg" alt="Coming Soon">
+<ion-content class="ion-no-padding">
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="loading-container">
+    <ion-spinner name="circles"></ion-spinner>
+    <p>Loading your beatdown breakdown...</p>
+  </div>
+
+  <!-- Wrapped data slides -->
+  <div *ngIf="!isLoading && wrappedData" class="wrapped-slides" #slidesContainer>
+    <!-- Welcome slide -->
+    <app-stat-card
+      eyebrow="Your {{wrappedData.year}}"
+      bigStat="F3 Wrapped"
+      statLabel=""
+      description="This year you showed up, you pushed yourself, and you left no man behind. Let's look back at your year in the gloom."
+      backgroundGradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+      decorationIcon="💪">
+    </app-stat-card>
+
+    <!-- Total posts -->
+    <app-stat-card
+      eyebrow="You Posted"
+      [bigStat]="wrappedData.totalPosts"
+      statLabel="Times in {{wrappedData.year}}"
+      [description]="getTotalPostsDescription()"
+      backgroundGradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+      decorationIcon="💪">
+    </app-stat-card>
+
+    <!-- Combined breakdown -->
+    <app-combined-breakdown
+      [monthlyData]="wrappedData.monthlyBreakdown"
+      [dayData]="wrappedData.dayOfWeekBreakdown"
+      backgroundGradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)">
+    </app-combined-breakdown>
+
+    <!-- Wake up time -->
+    <app-stat-card
+      eyebrow="Average Wake Up Time"
+      [bigStat]="wrappedData.averageWakeUpTime"
+      statLabel="That's Early"
+      [description]="getWakeUpDescription()"
+      backgroundGradient="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
+      decorationIcon="☀️">
+    </app-stat-card>
+
+    <!-- Top AO -->
+    <app-stat-card
+      eyebrow="Your Home Base"
+      [bigStat]="wrappedData.topAO.name"
+      [statLabel]="wrappedData.topAO.posts + ' Posts'"
+      [description]="getTopAODescription()"
+      backgroundGradient="linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)">
+    </app-stat-card>
+
+    <!-- Burpees -->
+    <app-stat-card
+      eyebrow="Estimated Burpees"
+      [bigStat]="wrappedData.estimatedBurpees"
+      statLabel="Burpees This Year"
+      [description]="getBurpeesDescription()"
+      backgroundGradient="linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)"
+      decorationIcon="🏋️">
+    </app-stat-card>
+
+    <!-- PAX Network -->
+    <app-pax-network
+      [totalPax]="wrappedData.paxNetwork.totalPaxEncountered"
+      [workoutBuddies]="wrappedData.paxNetwork.topWorkoutBuddies"
+      backgroundGradient="linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)">
+    </app-pax-network>
+
+    <!-- Percentile rank -->
+    <app-stat-card
+      eyebrow="Top 15%"
+      bigStat="You Outposted"
+      [statLabel]="wrappedData.percentileRank + '% of F3 Boise PAX'"
+      description="You're in the top tier of gloom crusaders."
+      backgroundGradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+      decorationIcon="🏆">
+    </app-stat-card>
+
+    <!-- Q Stats -->
+    <app-stat-card
+      eyebrow="Leadership Impact"
+      [bigStat]="wrappedData.qStats.timesAsQ"
+      statLabel="Times as Q"
+      [description]="getQStatsDescription()"
+      backgroundGradient="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
+      decorationIcon="👨‍🏫">
+    </app-stat-card>
+
+    <!-- 2025 Challenge -->
+    <app-stat-card
+      eyebrow="Look Ahead"
+      bigStat="2025 Challenge"
+      [statLabel]="wrappedData.challenge2025.targetPosts + ' Posts'"
+      [description]="getChallengeDescription()"
+      backgroundGradient="linear-gradient(135deg, #fa709a 0%, #fee140 100%)">
+    </app-stat-card>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="!isLoading && !wrappedData" class="error-container">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    <p>Unable to load your beatdown breakdown. Please try again later.</p>
+  </div>
+
+  <!-- Progress dots -->
+  <div *ngIf="!isLoading && wrappedData" class="progress-dots">
+    <div 
+      *ngFor="let slide of [].constructor(totalSlides); let i = index" 
+      class="dot"
+      [class.active]="i === currentSlideIndex">
+    </div>
   </div>
 
   <ion-fab slot="fixed" vertical="top" horizontal="start">

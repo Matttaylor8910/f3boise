@@ -1,9 +1,86 @@
-.coming-soon-container {
+.loading-container,
+.error-container {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100%;
-  max-height: 500px;
+  height: 100vh;
+  padding: 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+
+  ion-spinner {
+    --color: white;
+    margin-bottom: 2rem;
+  }
+
+  ion-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.8;
+  }
+
+  p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    max-width: 300px;
+    line-height: 1.6;
+  }
+}
+
+.wrapped-slides {
+  height: 100vh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+
+  // Hide scrollbar but keep functionality
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  app-stat-card,
+  app-monthly-chart,
+  app-day-breakdown,
+  app-pax-network,
+  app-combined-breakdown {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.progress-dots {
+  position: fixed;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    transition: all 0.3s ease;
+
+    &.active {
+      background: white;
+      width: 8px;
+      height: 24px;
+      border-radius: 4px;
+    }
+  }
 }
 
 .close-fab {

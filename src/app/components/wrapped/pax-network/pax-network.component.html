@@ -1,0 +1,13 @@
+<div class="pax-slide" [style.background]="backgroundGradient">
+  <div class="pax-content">
+    <div class="eyebrow">Your PAX Network</div>
+    <h2>Posted with {{totalPax}} Different PAX</h2>
+    <div class="pax-highlights">
+      <div class="pax-card" *ngFor="let buddy of workoutBuddies">
+        <div class="pax-name">{{buddy.name}}</div>
+        <div class="pax-stat">{{buddy.posts}} posts together</div>
+        <div class="pax-label">{{buddy.description}}</div>
+      </div>
+    </div>
+  </div>
+</div>
