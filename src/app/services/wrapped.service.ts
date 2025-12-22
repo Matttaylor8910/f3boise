@@ -28,29 +28,45 @@ export class WrappedService {
 
   private async generateWrappedData(userId: string, year: number):
       Promise<WrappedData> {
-    // userId can be either an email or a Firebase UID
+    // userId can be either an email, a Firebase UID, or a pax name (for
+    // testing)
     let email = userId;
+    let paxName: string|undefined;
 
     // If userId looks like a UID (not an email), get the email from the current
     // user
     if (!userId.includes('@')) {
-      const user = await this.authService.user$.pipe(take(1)).toPromise();
-      if (user?.email) {
-        email = user.email;
+      // Try to get pax by name first (for testing with ?pax=Name query param)
+      const paxByName = await this.paxService.getPax(userId);
+      if (paxByName) {
+        paxName = paxByName.name;
+        // Use email if available, otherwise use name as identifier
+        email = paxByName.email || paxByName.name;
       } else {
-        throw new Error(`No email found for user ${
-            userId}. Please ensure your account has an email address.`);
+        // Not a pax name, try to get email from current user
+        const user = await this.authService.user$.pipe(take(1)).toPromise();
+        if (user?.email) {
+          email = user.email;
+        } else {
+          throw new Error(`No email found for user ${
+              userId}. Please ensure your account has an email address.`);
+        }
       }
     }
 
-    // Get pax by email
-    const pax = await this.paxService.getPaxByEmail(email);
+    // Get pax by email (or use the one we already found)
+    let pax = paxName ? await this.paxService.getPax(paxName) :
+                        await this.paxService.getPaxByEmail(email);
+
     if (!pax) {
-      throw new Error(`No PAX found for email ${
+      throw new Error(`No PAX found for ${
           email}. Please ensure your account email matches your F3 PAX email.`);
     }
 
-    const paxName = pax.name;
+    // Ensure paxName is set
+    if (!paxName) {
+      paxName = pax.name;
+    }
 
     // Get all backblasts for this pax
     const allBackblasts = await this.backblastService.getBackblastsForPax(

@@ -47,6 +47,14 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+    // Check for test pax query parameter
+    const paxParam = this.route.snapshot.queryParams['pax'];
+    if (paxParam) {
+      // Bypass auth and load data for specified pax
+      this.loadWrappedDataForPax(paxParam);
+      return;
+    }
+
     // Handle email link sign-in if present
     this.handleEmailLinkSignIn();
 
@@ -78,6 +86,39 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
       this.paxService.getPaxByEmail(this.user.email).then(pax => {
         this.paxName = pax?.name;
       });
+    }
+  }
+
+  private async loadWrappedDataForPax(paxName: string) {
+    try {
+      // Get pax by name
+      const pax = await this.paxService.getPax(paxName);
+      if (!pax) {
+        console.error(`No PAX found with name: ${paxName}`);
+        return;
+      }
+
+      // Use email if available, otherwise use pax name as identifier
+      const identifier = pax.email || pax.name;
+      this.paxName = pax.name;
+      this.userId = identifier;
+
+      const yearNum = parseInt(this.year, 10);
+      this.wrappedService.getWrappedData(identifier, yearNum).subscribe({
+        next: (data) => {
+          this.wrappedData = data;
+          // Auto-scroll past intro slide
+          setTimeout(() => {
+            this.currentSlideIndex = 1;
+            this.scrollToSlide(1);
+          }, 500);
+        },
+        error: (error) => {
+          console.error('Error loading wrapped data:', error);
+        }
+      });
+    } catch (error) {
+      console.error('Error loading pax data:', error);
     }
   }
 
