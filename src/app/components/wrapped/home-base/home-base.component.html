@@ -1,0 +1,26 @@
+<div class="home-base-slide" [style.background]="backgroundGradient">
+  <div class="home-base-content">
+    <div class="eyebrow">YOUR HOME BASE</div>
+    <div class="big-stat">{{aoName | uppercase}}</div>
+    <div class="stat-label">{{posts}} POSTS</div>
+    <div class="description" *ngIf="description">{{description}}</div>
+
+    <div class="map-container" *ngIf="mapEmbedUrl || useJavaScriptApi">
+      <div class="map-overlay" *ngIf="!useJavaScriptApi"></div>
+      <iframe
+        *ngIf="mapEmbedUrl && !useJavaScriptApi"
+        [src]="mapEmbedUrl"
+        frameborder="0"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        class="map-embed">
+      </iframe>
+      <div
+        *ngIf="useJavaScriptApi"
+        #mapContainer
+        class="map-embed map-js">
+      </div>
+    </div>
+  </div>
+</div>
+

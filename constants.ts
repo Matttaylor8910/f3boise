@@ -1,5 +1,7 @@
 export const BASE_URL = 'https://f3-scraper-rs.fly.dev';
 
+export const GOOGLE_MAPS_API_KEY = 'AIzaSyDeyjzsdu8Yjlzc6udpTP8Pd_pRs4Hle6I';
+
 export enum REGION {
   CITY_OF_TREES = 'city-of-trees',
   HIGH_DESERT = 'high-desert',

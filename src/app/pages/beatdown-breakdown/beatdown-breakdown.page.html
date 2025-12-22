@@ -65,14 +65,23 @@
         backgroundGradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)">
       </app-combined-breakdown>
 
+      <!-- Workout Type Breakdown -->
+      <app-workout-type-breakdown
+        *ngIf="wrappedData.workoutTypeBreakdown.length > 0"
+        [workoutTypes]="wrappedData.workoutTypeBreakdown"
+        backgroundGradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+      </app-workout-type-breakdown>
+
       <!-- Top AO -->
-      <app-stat-card
-        eyebrow="YOUR HOME BASE"
-        [bigStat]="wrappedData.topAO.name | uppercase"
-        [statLabel]="wrappedData.topAO.posts + ' POSTS'"
+      <app-home-base
+        [aoName]="wrappedData.topAO.name"
+        [posts]="wrappedData.topAO.posts"
+        [percentage]="wrappedData.topAO.percentage"
         [description]="getTopAODescription()"
+        [address]="wrappedData.topAO.address"
+        [mapLocationUrl]="wrappedData.topAO.map_location_url"
         backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
-      </app-stat-card>
+      </app-home-base>
 
       <!-- Burpees -->
       <app-stat-card

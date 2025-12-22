@@ -4,11 +4,13 @@ import {from, Observable} from 'rxjs';
 import {take} from 'rxjs/operators';
 import {Backblast, BBType} from 'types';
 
-import {DayOfWeek, MonthlyData, WorkoutBuddy, WrappedData} from '../interfaces/wrapped-data.interface';
+import {DayOfWeek, MonthlyData, WorkoutBuddy, WorkoutType, WrappedData} from '../interfaces/wrapped-data.interface';
 
 import {AuthService} from './auth.service';
 import {BackblastService} from './backblast.service';
 import {PaxService} from './pax.service';
+import {UtilService} from './util.service';
+import {WorkoutService} from './workout.service';
 
 @Injectable({providedIn: 'root'})
 export class WrappedService {
@@ -16,6 +18,8 @@ export class WrappedService {
       private readonly backblastService: BackblastService,
       private readonly paxService: PaxService,
       private readonly authService: AuthService,
+      private readonly workoutService: WorkoutService,
+      private readonly utilService: UtilService,
   ) {}
 
   getWrappedData(userId: string, year: number): Observable<WrappedData> {
@@ -66,15 +70,12 @@ export class WrappedService {
     const monthlyBreakdown =
         this.calculateMonthlyBreakdown(userBackblasts, year);
     const dayOfWeekBreakdown = this.calculateDayOfWeekBreakdown(userBackblasts);
-    const topAO = this.calculateTopAO(userBackblasts);
+    const topAO = await this.calculateTopAO(userBackblasts);
     const estimatedBurpees = this.calculateEstimatedBurpees(totalPosts);
     const paxNetwork = this.calculatePaxNetwork(userBackblasts, paxName);
     const qStats = this.calculateQStats(userBackblasts, paxName);
-
-    // For now, return mock data for fields that require additional
-    // data/calculations
-    // TODO: Implement these when we have the data sources
-    const workoutTypeBreakdown = this.getMockWorkoutTypeBreakdown();
+    const workoutTypeBreakdown =
+        await this.calculateWorkoutTypeBreakdown(userBackblasts);
     const weatherStats = this.getMockWeatherStats();
     const percentileRank = this.getMockPercentileRank();
     const f3Evolution = this.getMockF3Evolution();
@@ -147,8 +148,10 @@ export class WrappedService {
     });
   }
 
-  private calculateTopAO(backblasts: Backblast[]):
-      {name: string; posts: number; percentage: number} {
+  private async calculateTopAO(backblasts: Backblast[]): Promise<{
+    name: string; posts: number; percentage: number; address: string | null;
+    map_location_url: string | null
+  }> {
     const aoCounts = new Map<string, number>();
 
     backblasts.forEach(bb => {
@@ -156,7 +159,13 @@ export class WrappedService {
     });
 
     if (aoCounts.size === 0) {
-      return {name: 'N/A', posts: 0, percentage: 0};
+      return {
+        name: 'N/A',
+        posts: 0,
+        percentage: 0,
+        address: null,
+        map_location_url: null
+      };
     }
 
     let topAO = '';
@@ -173,10 +182,36 @@ export class WrappedService {
     const percentage =
         totalPosts > 0 ? Math.round((maxPosts / totalPosts) * 100) : 0;
 
+    // Get workout data to find address and map_location_url
+    let address: string|null = null;
+    let map_location_url: string|null = null;
+
+    try {
+      const workouts = await this.workoutService.getAllData();
+      const normalizedTopAO =
+          this.utilService.normalizeName(topAO).toLowerCase();
+
+      const matchingWorkout = workouts.find(workout => {
+        const normalizedWorkoutName =
+            this.utilService.normalizeName(workout.name).toLowerCase();
+        return normalizedWorkoutName === normalizedTopAO;
+      });
+
+      if (matchingWorkout) {
+        address = matchingWorkout.address;
+        map_location_url = matchingWorkout.map_location_url;
+      }
+    } catch (error) {
+      console.error('Error fetching workout data for top AO:', error);
+      // Continue without address data
+    }
+
     return {
       name: topAO,
       posts: maxPosts,
       percentage,
+      address,
+      map_location_url,
     };
   }
 
@@ -248,13 +283,70 @@ export class WrappedService {
     };
   }
 
-  private getMockWorkoutTypeBreakdown() {
-    return [
-      {type: 'Bootcamp', percentage: 35, color: '#FF6B6B'},
-      {type: 'Running', percentage: 28, color: '#4ECDC4'},
-      {type: 'Rucking', percentage: 22, color: '#FFE66D'},
-      {type: 'Other', percentage: 15, color: '#95E1D3'},
-    ];
+  private async calculateWorkoutTypeBreakdown(backblasts: Backblast[]):
+      Promise<WorkoutType[]> {
+    if (backblasts.length === 0) {
+      return [];
+    }
+
+    // Load workouts to get workout_type for each AO
+    const workouts = await this.workoutService.getAllData();
+
+    // Create a map of normalized AO name to workout type
+    const aoToWorkoutType = new Map<string, string>();
+    workouts.forEach(workout => {
+      const normalizedAo =
+          this.utilService.normalizeName(workout.name).toLowerCase();
+      aoToWorkoutType.set(normalizedAo, workout.workout_type);
+    });
+
+    // Count workout types from backblasts
+    const typeCounts = new Map<string, number>();
+    let totalMatched = 0;
+
+    backblasts.forEach(bb => {
+      const normalizedAo = this.utilService.normalizeName(bb.ao).toLowerCase();
+      const workoutType = aoToWorkoutType.get(normalizedAo);
+
+      if (workoutType) {
+        typeCounts.set(workoutType, (typeCounts.get(workoutType) || 0) + 1);
+        totalMatched++;
+      }
+    });
+
+    if (typeCounts.size === 0) {
+      return [];
+    }
+
+    // Convert to array and calculate percentages
+    const workoutTypes: WorkoutType[] =
+        Array.from(typeCounts.entries())
+            .map(([type, count]) => ({
+                   type,
+                   count,
+                   percentage: totalMatched > 0 ?
+                       Math.round((count / totalMatched) * 100) :
+                       0,
+                   color: this.getColorForWorkoutType(type),
+                 }))
+            .sort(
+                (a, b) => b.percentage -
+                    a.percentage);  // Sort by percentage descending
+
+    return workoutTypes;
+  }
+
+  private getColorForWorkoutType(workoutType: string): string {
+    // Assign colors based on workout type
+    const colorMap: {[key: string]: string} = {
+      'High Intensity': '#FF6B6B',
+      'Running': '#4ECDC4',
+      'Ruck/Hike': '#FFE66D',
+      'Bootcamp': '#95E1D3',
+      'Other': '#A8E6CF',
+    };
+
+    return colorMap[workoutType] || '#CCCCCC';
   }
 
   private getMockWeatherStats() {

@@ -9,27 +9,19 @@ export interface WrappedData {
   weatherStats: WeatherStat[];
 
   topAO: {
-    name: string;
-    posts: number;
-    percentage: number;
+    name: string; posts: number; percentage: number; address: string | null;
+    map_location_url: string | null;
   };
 
   estimatedBurpees: number;
 
-  paxNetwork: {
-    totalPaxEncountered: number;
-    topWorkoutBuddies: WorkoutBuddy[];
-  };
+  paxNetwork: {totalPaxEncountered: number; topWorkoutBuddies: WorkoutBuddy[];};
 
   percentileRank: number;
 
   f3Evolution: F3Phase[];
 
-  qStats: {
-    timesAsQ: number;
-    totalPaxLed: number;
-    averagePaxPerQ: number;
-  };
+  qStats: {timesAsQ: number; totalPaxLed: number; averagePaxPerQ: number;};
 }
 
 export interface MonthlyData {
@@ -41,6 +33,7 @@ export interface WorkoutType {
   type: string;
   percentage: number;
   color: string;
+  count: number;
 }
 
 export interface DayOfWeek {
