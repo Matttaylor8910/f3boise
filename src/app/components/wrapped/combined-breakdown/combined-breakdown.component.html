@@ -9,12 +9,13 @@
       <div class="chart-grid monthly-grid">
         <div
           class="chart-bar-wrapper"
+          [class.zero-value]="item.posts === 0"
           *ngFor="let item of monthlyPercentages">
-          <div class="bar-count">{{item.posts}}</div>
+          <div class="bar-count" *ngIf="item.posts > 0">{{item.posts}}</div>
           <div
             class="chart-item"
             [class.highlighted]="item.isHighest"
-            [style.height.%]="item.percentage">
+            [style.height.%]="item.posts === 0 ? 5 : item.percentage">
           </div>
         </div>
       </div>
@@ -30,12 +31,13 @@
       <div class="chart-grid daily-grid">
         <div
           class="chart-bar-wrapper"
+          [class.zero-value]="item.posts === 0"
           *ngFor="let item of dayPercentages">
-          <div class="bar-count">{{item.posts}}</div>
+          <div class="bar-count" *ngIf="item.posts > 0">{{item.posts}}</div>
           <div
             class="chart-item"
             [class.highlighted]="item.isHighest"
-            [style.height.%]="item.percentage">
+            [style.height.%]="item.posts === 0 ? 5 : item.percentage">
           </div>
         </div>
       </div>

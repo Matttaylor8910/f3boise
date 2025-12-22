@@ -117,6 +117,14 @@
   }
 }
 
+.zero-value {
+  opacity: 0.5;
+
+  .chart-item {
+    min-height: 8px;
+  }
+}
+
 .chart-labels {
   display: flex;
   justify-content: space-around;
