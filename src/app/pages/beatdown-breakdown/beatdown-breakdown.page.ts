@@ -25,7 +25,7 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   wrappedData: WrappedData|null = null;
   isLoading = true;
   currentSlideIndex = 0;
-  totalSlides = 8;  // Intro slide + 7 content slides
+  totalSlides = 7;  // Intro slide + 6 content slides
   showEmailInput = false;
   email = '';
   isSendingEmail = false;
@@ -238,14 +238,6 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
     return `YOU LED ${this.wrappedData.qStats.timesAsQ} BEATDOWNS AND PUSHED ${
         this.wrappedData.qStats.totalPaxLed} TOTAL PAX. YOUR AVERAGE Q HAD ${
         this.wrappedData.qStats.averagePaxPerQ} PAX SHOW UP.`;
-  }
-
-  getChallengeDescription(): string {
-    if (!this.wrappedData) return '';
-    return `CAN YOU BEAT ${this.wrappedData.totalPosts}? WE THINK YOU CAN HIT ${
-        this.wrappedData.challenge2025.targetPosts} IN 2025. THAT'S JUST ${
-        this.wrappedData.challenge2025
-            .postsPerWeek} POSTS A WEEK. YOU'VE GOT THIS.`;
   }
 
   private setupScrollListener() {

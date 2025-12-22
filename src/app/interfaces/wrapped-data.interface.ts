@@ -30,11 +30,6 @@ export interface WrappedData {
     totalPaxLed: number;
     averagePaxPerQ: number;
   };
-
-  challenge2025: {
-    targetPosts: number;
-    postsPerWeek: number;
-  };
 }
 
 export interface MonthlyData {
