@@ -52,10 +52,10 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
     this.handleEmailLinkSignIn();
 
     // Get user ID from auth service
-    this.authService.authState$.subscribe(user => {
+      this.authService.authState$.subscribe(user => {
       this.user = user;
       if (user?.uid) {
-        this.userId = user.uid;
+        this.userId = user.email || user.uid;  // Prefer email, fallback to UID
         this.showEmailInput =
             false;  // Hide email input if user becomes authenticated
         this.loadWrappedData();
