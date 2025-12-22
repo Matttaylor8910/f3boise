@@ -16,6 +16,7 @@ type FirebaseUser = any;
 })
 export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   @ViewChild('slidesContainer', {static: false}) slidesContainer!: ElementRef;
+  @ViewChild('emailInput', {static: false}) emailInput!: any;
 
   year: string;
   userId: string|null = null;
@@ -24,7 +25,7 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   wrappedData: WrappedData|null = null;
   isLoading = true;
   currentSlideIndex = 0;
-  totalSlides = 9;  // Intro slide + 8 content slides
+  totalSlides = 8;  // Intro slide + 7 content slides
   showEmailInput = false;
   email = '';
   isSendingEmail = false;
@@ -106,6 +107,17 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
     } else {
       // User is not authenticated, show email input
       this.showEmailInput = true;
+      // Focus on email input after a short delay to allow animation
+      setTimeout(() => {
+        if (this.emailInput) {
+          const inputElement = this.emailInput.getInputElement();
+          if (inputElement) {
+            inputElement.then((el: HTMLInputElement) => {
+              el.focus();
+            });
+          }
+        }
+      }, 400);
     }
   }
 

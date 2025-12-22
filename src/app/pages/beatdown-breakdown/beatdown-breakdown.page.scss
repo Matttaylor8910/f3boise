@@ -43,7 +43,7 @@
     display: none;
   }
 
-  .intro-slide,
+  .intro-slide-in-slides,
   app-stat-card,
   app-monthly-chart,
   app-day-breakdown,
@@ -58,120 +58,7 @@
   }
 }
 
-// Disable scrolling when user is not authenticated
-:host ::ng-deep ion-content.no-scroll {
-  --overflow: hidden;
-  overflow: hidden !important;
-  touch-action: none;
-
-  .scroll-content {
-    overflow: hidden !important;
-    touch-action: none;
-  }
-}
-
-.intro-slide-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
-
-  &.hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
-}
-
-.welcome-slide {
-  width: 100%;
-  height: 100vh;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem;
-  position: relative;
-  overflow: hidden;
-  background-image: url('../../../assets/boise-dusk.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.4);
-    z-index: 1;
-  }
-
-  .welcome-content {
-    text-align: center;
-    z-index: 2;
-    max-width: 600px;
-    position: relative;
-
-    .eyebrow {
-      font-size: 1rem;
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      opacity: 0.9;
-      margin-bottom: 1rem;
-      font-weight: 600;
-      color: #ffffff;
-      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
-    }
-
-    .big-title {
-      font-size: 4rem;
-      font-weight: 900;
-      margin: 0;
-      color: #ffffff;
-      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
-      text-transform: uppercase;
-      letter-spacing: 4px;
-      line-height: 1.1;
-    }
-
-    .subtitle {
-      font-size: 1.4rem;
-      color: #ffffff;
-      margin-top: 1.5rem;
-      font-weight: 600;
-      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    }
-
-    .description {
-      font-size: 1rem;
-      color: #ffffff;
-      margin-top: 2rem;
-      font-weight: 500;
-      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
-      line-height: 1.6;
-      opacity: 0.95;
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  .welcome-slide .welcome-content .big-title {
-    font-size: 2.5rem;
-    letter-spacing: 2px;
-  }
-}
-
-.intro-slide {
+.intro-slide-in-slides {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -243,7 +130,7 @@
 
     &.hidden {
       opacity: 0;
-      visibility: hidden;
+      pointer-events: none;
       transform: translateY(10px);
       pointer-events: none;
       transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0s 0.3s;
@@ -336,24 +223,21 @@
       margin-top: 1rem;
     }
   }
+}
 
-  .action-section {
-    position: relative;
-    z-index: 2;
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-    transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0s 0s;
 
-    &.hidden {
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(10px);
-      pointer-events: none;
-      transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0s 0.3s;
-    }
+// Disable scrolling when user is not authenticated
+:host ::ng-deep ion-content.no-scroll {
+  --overflow: hidden;
+  overflow: hidden !important;
+  touch-action: none;
+
+  .scroll-content {
+    overflow: hidden !important;
+    touch-action: none;
   }
 }
+
 
 @keyframes fadeInUp {
   from {
