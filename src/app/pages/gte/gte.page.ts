@@ -12,6 +12,7 @@ const GTE_DATE = '09/16/2023';
 export class GtePage {
   gteMoment = moment(GTE_DATE);
   formattedDate = this.gteMoment.format('dddd, MMM DD yyyy');
+  currentYear = new Date().getFullYear();
 
   countdown: string;
 
