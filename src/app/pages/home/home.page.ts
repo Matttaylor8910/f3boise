@@ -12,6 +12,7 @@ export class HomePage {
   // default to these counts for the home page
   paxCount: number = 100;
   aoCount: number = 10;
+  currentYear = new Date().getFullYear();
 
   constructor(
       private readonly backblastService: BackblastService,

@@ -7,6 +7,8 @@ import {Router} from '@angular/router';
   styleUrls: ['./fng.page.scss'],
 })
 export class FNGPage {
+  currentYear = new Date().getFullYear();
+
   constructor(
       private readonly router: Router,
   ) {}

@@ -17,6 +17,7 @@ interface AoGrouping {
 export class WorkoutsPage {
   groupings: AoGrouping[] = [];
   tomorrow = moment().add(1, 'day').format('dddd');
+  currentYear = new Date().getFullYear();
 
   constructor(
       public readonly utilService: UtilService,
