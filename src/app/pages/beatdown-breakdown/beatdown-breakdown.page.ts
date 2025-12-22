@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {AuthService} from 'src/app/services/auth.service';
 import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
@@ -21,6 +21,7 @@ export class BeatdownBreakdownPage {
       private readonly route: ActivatedRoute,
       private readonly authService: AuthService,
       private readonly paxService: PaxService,
+      private readonly router: Router,
   ) {
     this.userId = this.route.snapshot.params['userId'];
   }
@@ -34,5 +35,9 @@ export class BeatdownBreakdownPage {
         this.paxName = pax?.name;
       }
     });
+  }
+
+  goToHome() {
+    this.router.navigateByUrl('/ao/all');
   }
 }

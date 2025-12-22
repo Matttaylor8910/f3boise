@@ -47,8 +47,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private routerSubscription?: Subscription;
   private resizeListener?: () => void;
 
-  // Routes that should hide sidebar (public static pages)
-  private staticPages = ['/', '/fng', '/workouts'];
+  // Routes that should hide sidebar (public static pages and special views)
+  private staticPages = ['/', '/fng', '/workouts', '/wrapped'];
 
   regions: RegionInfo[] = [];
 
@@ -220,7 +220,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   private checkIfShouldHide() {
     const currentUrl = this.router.url.split('?')[0];
-    this.shouldHide = this.staticPages.includes(currentUrl);
+    this.shouldHide = this.staticPages.includes(currentUrl) || 
+                     currentUrl.startsWith('/beatdown-breakdown/');
     // Close sidebar if it should be hidden
     if (this.shouldHide && this.isOpen) {
       this.sidebarService.close();

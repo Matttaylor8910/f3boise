@@ -74,4 +74,8 @@ export class WrappedPage {
       console.error('Error completing sign-in:', error);
     }
   }
+
+  goToHome() {
+    this.router.navigateByUrl('/ao/all');
+  }
 }

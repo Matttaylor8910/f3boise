@@ -1,16 +1,11 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <app-sidebar-toggle></app-sidebar-toggle>
-    </ion-buttons>
-    <ion-title>
-      My Beatdown Breakdown
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content>
   <div class="coming-soon-container">
     <img src="../../../assets/coming-soon.jpg" alt="Coming Soon">
   </div>
+
+  <ion-fab slot="fixed" vertical="top" horizontal="start">
+    <ion-fab-button (click)="goToHome()" class="close-fab">
+      <ion-icon name="close"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>

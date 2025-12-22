@@ -1,19 +1,25 @@
 <ion-content class="ion-no-padding">
   <div class="wrapped-container">
     <div class="title-section">
-      <h1>F3 Boise's</h1>
-      <h2>Beatdown Breakdown</h2>
-      <p class="subtitle">Your year in workouts</p>
+      <p class="subtitle">Your 2025</p>
+      <h1>Beatdown Breakdown</h1>
+      <p class="subtitle">Another year in the Gloom</p>
     </div>
-    
+
     <div class="action-section">
-      <ion-button 
-        expand="block" 
-        size="large" 
+      <ion-button
+        expand="block"
+        size="large"
         (click)="onLetsRoll()"
         class="lets-roll-button">
         Let's Roll
       </ion-button>
     </div>
   </div>
+
+  <ion-fab slot="fixed" vertical="top" horizontal="start">
+    <ion-fab-button (click)="goToHome()" class="close-fab">
+      <ion-icon name="close"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>
