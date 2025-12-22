@@ -97,6 +97,11 @@ const routes: Routes = [
     path: 'exicon',
     loadChildren: () =>
         import('./pages/exicon/exicon.module').then(m => m.ExiconPageModule)
+  },
+  {
+    path: 'wrapped',
+    loadChildren: () =>
+        import('./pages/wrapped/wrapped.module').then(m => m.WrappedPageModule)
   }
 ];
 
