@@ -1,6 +1,10 @@
-<div class="stat-slide" [style.background]="backgroundGradient">
+<div class="stat-slide" [class.large-stat-card]="largeStat" [style.background]="backgroundGradient">
   <div class="decoration" *ngIf="decorationIcon">{{decorationIcon}}</div>
   <div class="stat-card-content">
+    <div class="profile-photo-container" *ngIf="photoUrl">
+      <img [src]="photoUrl" alt="Profile" class="profile-photo" />
+    </div>
+    <div class="pax-name" *ngIf="normalizedName">{{normalizedName}}</div>
     <div class="eyebrow" *ngIf="eyebrow">{{eyebrow}}</div>
     <div class="big-stat">{{bigStat}}</div>
     <div class="stat-label" *ngIf="statLabel">{{statLabel}}</div>

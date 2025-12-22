@@ -96,10 +96,15 @@ export class WrappedService {
     const weatherStats = this.getMockWeatherStats();
     const percentileRank = this.getMockPercentileRank();
 
+    // Get pax photo URL
+    const paxPhotoUrl = pax.img_url || null;
+
     return {
       userId,
       year,
       totalPosts,
+      paxPhotoUrl,
+      paxName,
       monthlyBreakdown,
       workoutTypeBreakdown,
       dayOfWeekBreakdown,

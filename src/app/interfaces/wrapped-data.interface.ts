@@ -2,6 +2,8 @@ export interface WrappedData {
   userId: string;
   year: number;
   totalPosts: number;
+  paxPhotoUrl: string|null;
+  paxName: string;
 
   monthlyBreakdown: MonthlyData[];
   workoutTypeBreakdown: WorkoutType[];
