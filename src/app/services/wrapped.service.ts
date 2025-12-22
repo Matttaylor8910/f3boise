@@ -6,19 +6,17 @@ import {WrappedData} from '../interfaces/wrapped-data.interface';
 export class WrappedService {
   constructor() {}
 
-  getWrappedData(userId: string): Observable<WrappedData> {
+  getWrappedData(userId: string, year: number): Observable<WrappedData> {
     // TODO: Replace with actual API call when backend is ready
-    return of(this.getMockData(userId));
+    return of(this.getMockData(userId, year));
   }
 
-  private getMockData(userId: string): WrappedData {
+  private getMockData(userId: string, year: number): WrappedData {
     return {
       userId,
-      year: 2024,
+      year,
       totalPosts: 147,
-      averageWakeUpTime: '4:47 AM',
-      earliestPost: '4:15 AM',
-      
+
       monthlyBreakdown: [
         { month: 'Jan', posts: 8 },
         { month: 'Feb', posts: 11 },
@@ -52,28 +50,28 @@ export class WrappedService {
       ],
 
       weatherStats: [
-        { 
-          condition: 'Below Freezing', 
-          icon: '❄️', 
-          count: 23, 
-          description: 'Below Freezing Days' 
+        {
+          condition: 'Below Freezing',
+          icon: '❄️',
+          count: 23,
+          description: 'Below Freezing Days'
         },
-        { 
-          condition: 'Rainy', 
-          icon: '🌧️', 
-          count: 17, 
-          description: 'Rainy Mornings' 
+        {
+          condition: 'Rainy',
+          icon: '🌧️',
+          count: 17,
+          description: 'Rainy Mornings'
         },
-        { 
-          condition: 'Hot', 
-          icon: '🔥', 
-          count: 31, 
-          description: 'Over 80°F Days' 
+        {
+          condition: 'Hot',
+          icon: '🔥',
+          count: 31,
+          description: 'Over 80°F Days'
         }
       ],
 
       topAO: {
-        name: 'The Colosseum',
+        name: 'Bleach',
         posts: 52,
         percentage: 35
       },

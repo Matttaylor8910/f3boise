@@ -22,37 +22,48 @@
 .eyebrow {
   font-size: 0.875rem;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  opacity: 0.9;
+  letter-spacing: 3px;
+  opacity: 0.95;
   margin-bottom: 1rem;
-  font-weight: 600;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .big-stat {
-  font-size: 7rem;
+  font-size: 6rem;
   font-weight: 900;
   line-height: 1;
   margin: 1rem 0;
-  text-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  text-transform: uppercase;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  letter-spacing: 2px;
 }
 
 @media (max-width: 768px) {
   .big-stat {
-    font-size: 5rem;
+    font-size: 4rem;
+    letter-spacing: 1px;
   }
 }
 
 .stat-label {
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-top: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .description {
   font-size: 1rem;
-  opacity: 0.9;
+  opacity: 0.95;
   margin-top: 1rem;
   line-height: 1.6;
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 .decoration {

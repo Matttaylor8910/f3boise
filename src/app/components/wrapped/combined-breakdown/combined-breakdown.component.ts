@@ -13,8 +13,10 @@ export class CombinedBreakdownComponent implements OnInit {
 
   strongestMonth = '';
   strongestDay = '';
-  monthlyPercentages: Array<{month: string, percentage: number}> = [];
-  dayPercentages: Array<{day: string, percentage: number}> = [];
+  monthlyPercentages: Array<{month: string, percentage: number, posts: number, isHighest: boolean}> = [];
+  dayPercentages: Array<{day: string, percentage: number, posts: number, isHighest: boolean}> = [];
+  maxMonthlyIndex = -1;
+  maxDailyIndex = -1;
 
   ngOnInit() {
     this.calculateStrongestMonth();
@@ -24,7 +26,7 @@ export class CombinedBreakdownComponent implements OnInit {
 
   private calculateStrongestMonth() {
     if (this.monthlyData.length > 0) {
-      const maxData = this.monthlyData.reduce((max, current) => 
+      const maxData = this.monthlyData.reduce((max, current) =>
         current.posts > max.posts ? current : max
       );
       this.strongestMonth = this.getFullMonthName(maxData.month);
@@ -33,7 +35,7 @@ export class CombinedBreakdownComponent implements OnInit {
 
   private calculateStrongestDay() {
     if (this.dayData.length > 0) {
-      const maxData = this.dayData.reduce((max, current) => 
+      const maxData = this.dayData.reduce((max, current) =>
         current.posts > max.posts ? current : max
       );
       this.strongestDay = this.getDayName(maxData.day) + 's';
@@ -44,18 +46,24 @@ export class CombinedBreakdownComponent implements OnInit {
     // Calculate monthly percentages
     if (this.monthlyData.length > 0) {
       const maxMonthly = Math.max(...this.monthlyData.map(d => d.posts));
-      this.monthlyPercentages = this.monthlyData.map(d => ({
+      this.maxMonthlyIndex = this.monthlyData.findIndex(d => d.posts === maxMonthly);
+      this.monthlyPercentages = this.monthlyData.map((d, index) => ({
         month: d.month.charAt(0), // Just first letter
-        percentage: (d.posts / maxMonthly) * 100
+        percentage: (d.posts / maxMonthly) * 100,
+        posts: d.posts,
+        isHighest: index === this.maxMonthlyIndex
       }));
     }
 
     // Calculate day percentages
     if (this.dayData.length > 0) {
       const maxDaily = Math.max(...this.dayData.map(d => d.posts));
-      this.dayPercentages = this.dayData.map(d => ({
+      this.maxDailyIndex = this.dayData.findIndex(d => d.posts === maxDaily);
+      this.dayPercentages = this.dayData.map((d, index) => ({
         day: d.day.charAt(0), // Just first letter
-        percentage: (d.posts / maxDaily) * 100
+        percentage: (d.posts / maxDaily) * 100,
+        posts: d.posts,
+        isHighest: index === this.maxDailyIndex
       }));
     }
   }

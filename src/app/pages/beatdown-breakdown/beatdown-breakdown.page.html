@@ -1,30 +1,78 @@
-<ion-content class="ion-no-padding">
-  <!-- Loading state -->
-  <div *ngIf="isLoading" class="loading-container">
+<ion-content class="ion-no-padding" [class.no-scroll]="!user || !wrappedData">
+  <!-- Loading state (only shown when authenticated and loading data) -->
+  <div *ngIf="isLoading && user && !wrappedData" class="loading-container">
     <ion-spinner name="circles"></ion-spinner>
     <p>Loading your beatdown breakdown...</p>
   </div>
 
-  <!-- Wrapped data slides -->
-  <div *ngIf="!isLoading && wrappedData" class="wrapped-slides" #slidesContainer>
+  <!-- Intro slide (shown when not authenticated OR when authenticated but no data loaded yet) -->
+  <div *ngIf="(!user || !wrappedData) && !(isLoading && user)" class="intro-slide-container">
+    <div class="intro-slide">
+      <div class="title-section">
+        <p class="subtitle">Your {{year}}</p>
+        <h1>Beatdown Breakdown</h1>
+        <p class="subtitle">Another year in the Gloom</p>
+      </div>
+
+      <!-- Email input form (shown when user clicks "Let's Roll" and is not authenticated) -->
+      <div *ngIf="showEmailInput" class="email-input-section">
+        <p class="email-prompt">Enter your F3 email address</p>
+        <p class="slack-email-note">Please use the same email address you use for Slack.</p>
+        <ion-item class="email-input-item">
+          <ion-input
+            type="email"
+            [(ngModel)]="email"
+            placeholder="your.email@example.com"
+            [disabled]="isSendingEmail">
+          </ion-input>
+        </ion-item>
+        <ion-button
+          expand="block"
+          size="large"
+          (click)="sendLoginLink()"
+          [disabled]="isSendingEmail || !email"
+          class="send-link-button">
+          <ion-spinner *ngIf="isSendingEmail" name="crescent"></ion-spinner>
+          <span *ngIf="!isSendingEmail">Send Sign-In Link</span>
+        </ion-button>
+        <p class="help-text">You'll receive an email with a link to sign in. No password required!</p>
+      </div>
+
+      <!-- Let's Roll button (shown when email input is not visible) -->
+      <div *ngIf="!showEmailInput" class="action-section">
+        <ion-button
+          expand="block"
+          size="large"
+          (click)="onLetsRoll()"
+          class="lets-roll-button">
+          Let's Roll
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wrapped data slides (only shown when authenticated and data is loaded) -->
+  <div *ngIf="!isLoading && wrappedData && user" class="wrapped-slides" #slidesContainer>
+
     <!-- Welcome slide -->
-    <app-stat-card
-      eyebrow="Your {{wrappedData.year}}"
-      bigStat="F3 Wrapped"
-      statLabel=""
-      description="This year you showed up, you pushed yourself, and you left no man behind. Let's look back at your year in the gloom."
-      backgroundGradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-      decorationIcon="💪">
-    </app-stat-card>
+    <div class="welcome-slide">
+      <div class="welcome-content">
+        <div class="eyebrow">YOUR {{wrappedData.year}}</div>
+        <div class="big-title">BEATDOWN</div>
+        <div class="big-title">BREAKDOWN</div>
+        <div class="subtitle">ANOTHER YEAR IN THE GLOOM</div>
+        <div class="description">THIS YEAR YOU SHOWED UP, YOU PUSHED YOURSELF, AND YOU LEFT NO MAN BEHIND. LET'S LOOK BACK AT YOUR YEAR IN THE GLOOM.</div>
+      </div>
+    </div>
 
     <!-- Total posts -->
     <app-stat-card
-      eyebrow="You Posted"
+      eyebrow="YOU POSTED"
       [bigStat]="wrappedData.totalPosts"
-      statLabel="Times in {{wrappedData.year}}"
+      [statLabel]="'TIMES IN ' + wrappedData.year"
       [description]="getTotalPostsDescription()"
-      backgroundGradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
-      decorationIcon="💪">
+      backgroundGradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)"
+      decorationIcon="">
     </app-stat-card>
 
     <!-- Combined breakdown -->
@@ -34,85 +82,66 @@
       backgroundGradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)">
     </app-combined-breakdown>
 
-    <!-- Wake up time -->
-    <app-stat-card
-      eyebrow="Average Wake Up Time"
-      [bigStat]="wrappedData.averageWakeUpTime"
-      statLabel="That's Early"
-      [description]="getWakeUpDescription()"
-      backgroundGradient="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
-      decorationIcon="☀️">
-    </app-stat-card>
-
     <!-- Top AO -->
     <app-stat-card
-      eyebrow="Your Home Base"
-      [bigStat]="wrappedData.topAO.name"
-      [statLabel]="wrappedData.topAO.posts + ' Posts'"
+      eyebrow="YOUR HOME BASE"
+      [bigStat]="wrappedData.topAO.name | uppercase"
+      [statLabel]="wrappedData.topAO.posts + ' POSTS'"
       [description]="getTopAODescription()"
-      backgroundGradient="linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)">
+      backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
     </app-stat-card>
 
     <!-- Burpees -->
     <app-stat-card
-      eyebrow="Estimated Burpees"
+      eyebrow="ESTIMATED BURPEES"
       [bigStat]="wrappedData.estimatedBurpees"
-      statLabel="Burpees This Year"
+      statLabel="BURPEES THIS YEAR"
       [description]="getBurpeesDescription()"
-      backgroundGradient="linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)"
-      decorationIcon="🏋️">
+      backgroundGradient="linear-gradient(135deg, #c0392b 0%, #e74c3c 100%)"
+      decorationIcon="">
     </app-stat-card>
 
     <!-- PAX Network -->
     <app-pax-network
       [totalPax]="wrappedData.paxNetwork.totalPaxEncountered"
       [workoutBuddies]="wrappedData.paxNetwork.topWorkoutBuddies"
-      backgroundGradient="linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)">
+      backgroundGradient="linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)">
     </app-pax-network>
 
     <!-- Percentile rank -->
     <app-stat-card
-      eyebrow="Top 15%"
-      bigStat="You Outposted"
-      [statLabel]="wrappedData.percentileRank + '% of F3 Boise PAX'"
-      description="You're in the top tier of gloom crusaders."
-      backgroundGradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-      decorationIcon="🏆">
+      eyebrow="TOP 15%"
+      bigStat="YOU OUTPOSTED"
+      [statLabel]="wrappedData.percentileRank + '% OF F3 BOISE PAX'"
+      description="YOU'RE IN THE TOP TIER OF GLOOM CRUSADERS."
+      backgroundGradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)"
+      decorationIcon="">
     </app-stat-card>
 
     <!-- Q Stats -->
     <app-stat-card
-      eyebrow="Leadership Impact"
+      eyebrow="LEADERSHIP IMPACT"
       [bigStat]="wrappedData.qStats.timesAsQ"
-      statLabel="Times as Q"
+      statLabel="TIMES AS Q"
       [description]="getQStatsDescription()"
-      backgroundGradient="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
-      decorationIcon="👨‍🏫">
+      backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)"
+      decorationIcon="">
     </app-stat-card>
 
     <!-- 2025 Challenge -->
     <app-stat-card
-      eyebrow="Look Ahead"
-      bigStat="2025 Challenge"
-      [statLabel]="wrappedData.challenge2025.targetPosts + ' Posts'"
+      eyebrow="LOOK AHEAD"
+      bigStat="2025 CHALLENGE"
+      [statLabel]="wrappedData.challenge2025.targetPosts + ' POSTS'"
       [description]="getChallengeDescription()"
-      backgroundGradient="linear-gradient(135deg, #fa709a 0%, #fee140 100%)">
+      backgroundGradient="linear-gradient(135deg, #c0392b 0%, #e74c3c 100%)">
     </app-stat-card>
   </div>
 
-  <!-- Error state -->
-  <div *ngIf="!isLoading && !wrappedData" class="error-container">
+  <!-- Error state (only shown when authenticated but failed to load data) -->
+  <div *ngIf="!isLoading && user && !wrappedData" class="error-container">
     <ion-icon name="alert-circle-outline"></ion-icon>
     <p>Unable to load your beatdown breakdown. Please try again later.</p>
-  </div>
-
-  <!-- Progress dots -->
-  <div *ngIf="!isLoading && wrappedData" class="progress-dots">
-    <div 
-      *ngFor="let slide of [].constructor(totalSlides); let i = index" 
-      class="dot"
-      [class.active]="i === currentSlideIndex">
-    </div>
   </div>
 
   <ion-fab slot="fixed" vertical="top" horizontal="start">
