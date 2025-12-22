@@ -6,8 +6,8 @@
   </div>
 
   <!-- Intro slide (shown when not authenticated OR when authenticated but no data loaded yet) -->
-  <div *ngIf="(!user || !wrappedData) && !(isLoading && user)" class="intro-slide-container">
-    <div class="intro-slide">
+  <div class="intro-slide-container" [class.hidden]="isLoading || user">
+    <div class="intro-slide" [class.email-shown]="showEmailInput">
       <div class="title-section">
         <p class="subtitle">Your {{year}}</p>
         <h1>Beatdown Breakdown</h1>
@@ -15,7 +15,7 @@
       </div>
 
       <!-- Email input form (shown when user clicks "Let's Roll" and is not authenticated) -->
-      <div *ngIf="showEmailInput" class="email-input-section">
+      <div class="email-input-section" [class.visible]="showEmailInput">
         <p class="email-prompt">Enter your F3 email address</p>
         <p class="slack-email-note">Please use the same email address you use for Slack.</p>
         <ion-item class="email-input-item">
@@ -39,7 +39,7 @@
       </div>
 
       <!-- Let's Roll button (shown when email input is not visible) -->
-      <div *ngIf="!showEmailInput" class="action-section">
+      <div class="action-section" [class.hidden]="showEmailInput">
         <ion-button
           expand="block"
           size="large"
