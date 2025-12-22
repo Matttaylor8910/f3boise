@@ -23,7 +23,6 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   user: FirebaseUser|null = null;
   paxName: string|undefined;
   wrappedData: WrappedData|null = null;
-  isLoading = true;
   currentSlideIndex = 0;
   totalSlides = 7;  // Intro slide + 6 content slides
   showEmailInput = false;
@@ -58,10 +57,10 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
         this.userId = user.email || user.uid;  // Prefer email, fallback to UID
         this.showEmailInput =
             false;  // Hide email input if user becomes authenticated
+        // Load data in background
         this.loadWrappedData();
       } else {
-        // User not logged in, show intro slide only (no loading state)
-        this.isLoading = false;
+        // User not logged in, show intro slide only
         this.showEmailInput = false;
       }
     });
@@ -85,16 +84,14 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   private loadWrappedData() {
     if (!this.userId || !this.year) return;
 
-    this.isLoading = true;
     const yearNum = parseInt(this.year, 10);
     this.wrappedService.getWrappedData(this.userId, yearNum).subscribe({
       next: (data) => {
         this.wrappedData = data;
-        this.isLoading = false;
       },
       error: (error) => {
         console.error('Error loading wrapped data:', error);
-        this.isLoading = false;
+        // Silently fail - slides will just be blank
       }
     });
   }

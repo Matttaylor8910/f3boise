@@ -1,12 +1,6 @@
 <ion-content class="ion-no-padding" [class.no-scroll]="!user || !wrappedData">
-  <!-- Loading state (only shown when authenticated and loading data) -->
-  <div *ngIf="isLoading && user && !wrappedData" class="loading-container">
-    <ion-spinner name="circles"></ion-spinner>
-    <p>Loading your beatdown breakdown...</p>
-  </div>
-
   <!-- Wrapped data slides -->
-  <div *ngIf="!isLoading && (wrappedData || !user)" class="wrapped-slides" #slidesContainer>
+  <div class="wrapped-slides" #slidesContainer>
     <!-- Intro slide (first slide, shown for all users) -->
     <div class="intro-slide-in-slides" [class.email-shown]="showEmailInput && !user">
       <div class="title-section">
@@ -119,11 +113,6 @@
     </ng-container>
   </div>
 
-  <!-- Error state (only shown when authenticated but failed to load data) -->
-  <div *ngIf="!isLoading && user && !wrappedData" class="error-container">
-    <ion-icon name="alert-circle-outline"></ion-icon>
-    <p>Unable to load your beatdown breakdown. Please try again later.</p>
-  </div>
 
   <ion-fab class="close-fab-container" slot="fixed" vertical="top" horizontal="start">
     <ion-fab-button (click)="goToHome()" class="close-fab">
