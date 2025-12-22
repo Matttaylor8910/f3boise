@@ -15,7 +15,7 @@
           <div
             class="chart-item"
             [class.highlighted]="item.isHighest"
-            [style.height.%]="item.posts === 0 ? 5 : item.percentage">
+            [style.height.%]="item.posts === 0 ? 5 : item.scaledHeight">
           </div>
         </div>
       </div>
@@ -37,7 +37,7 @@
           <div
             class="chart-item"
             [class.highlighted]="item.isHighest"
-            [style.height.%]="item.posts === 0 ? 5 : item.percentage">
+            [style.height.%]="item.posts === 0 ? 5 : item.scaledHeight">
           </div>
         </div>
       </div>

@@ -13,10 +13,15 @@ export class CombinedBreakdownComponent implements OnInit {
 
   strongestMonth = '';
   strongestDay = '';
-  monthlyPercentages: Array<{month: string, percentage: number, posts: number, isHighest: boolean}> = [];
-  dayPercentages: Array<{day: string, percentage: number, posts: number, isHighest: boolean}> = [];
+  monthlyPercentages: Array<{month: string, percentage: number, posts: number, isHighest: boolean, scaledHeight: number}> = [];
+  dayPercentages: Array<{day: string, percentage: number, posts: number, isHighest: boolean, scaledHeight: number}> = [];
   maxMonthlyIndex = -1;
   maxDailyIndex = -1;
+
+  // Container heights from CSS
+  private readonly MONTHLY_GRID_HEIGHT = 140; // px
+  private readonly DAILY_GRID_HEIGHT = 100; // px
+  private readonly MIN_BAR_HEIGHT = 15; // px
 
   ngOnInit() {
     this.calculateStrongestMonth();
@@ -47,24 +52,42 @@ export class CombinedBreakdownComponent implements OnInit {
     if (this.monthlyData.length > 0) {
       const maxMonthly = Math.max(...this.monthlyData.map(d => d.posts));
       this.maxMonthlyIndex = this.monthlyData.findIndex(d => d.posts === maxMonthly);
-      this.monthlyPercentages = this.monthlyData.map((d, index) => ({
-        month: d.month.charAt(0), // Just first letter
-        percentage: (d.posts / maxMonthly) * 100,
-        posts: d.posts,
-        isHighest: index === this.maxMonthlyIndex
-      }));
+      const monthlyRange = this.MONTHLY_GRID_HEIGHT - this.MIN_BAR_HEIGHT;
+      this.monthlyPercentages = this.monthlyData.map((d, index) => {
+        const percentage = maxMonthly > 0 ? (d.posts / maxMonthly) : 0;
+        // Scale height: min-height + (percentage * range)
+        const scaledHeight = this.MIN_BAR_HEIGHT + (percentage * monthlyRange);
+        // Convert to percentage of container height
+        const scaledPercentage = (scaledHeight / this.MONTHLY_GRID_HEIGHT) * 100;
+        return {
+          month: d.month.charAt(0), // Just first letter
+          percentage: percentage * 100,
+          posts: d.posts,
+          isHighest: index === this.maxMonthlyIndex,
+          scaledHeight: scaledPercentage
+        };
+      });
     }
 
     // Calculate day percentages
     if (this.dayData.length > 0) {
       const maxDaily = Math.max(...this.dayData.map(d => d.posts));
       this.maxDailyIndex = this.dayData.findIndex(d => d.posts === maxDaily);
-      this.dayPercentages = this.dayData.map((d, index) => ({
-        day: d.day.charAt(0), // Just first letter
-        percentage: (d.posts / maxDaily) * 100,
-        posts: d.posts,
-        isHighest: index === this.maxDailyIndex
-      }));
+      const dailyRange = this.DAILY_GRID_HEIGHT - this.MIN_BAR_HEIGHT;
+      this.dayPercentages = this.dayData.map((d, index) => {
+        const percentage = maxDaily > 0 ? (d.posts / maxDaily) : 0;
+        // Scale height: min-height + (percentage * range)
+        const scaledHeight = this.MIN_BAR_HEIGHT + (percentage * dailyRange);
+        // Convert to percentage of container height
+        const scaledPercentage = (scaledHeight / this.DAILY_GRID_HEIGHT) * 100;
+        return {
+          day: d.day.charAt(0), // Just first letter
+          percentage: percentage * 100,
+          posts: d.posts,
+          isHighest: index === this.maxDailyIndex,
+          scaledHeight: scaledPercentage
+        };
+      });
     }
   }
 
