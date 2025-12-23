@@ -7,6 +7,12 @@ import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
 import {WrappedService} from 'src/app/services/wrapped.service';
 
+interface BestieWithPhoto {
+  name: string;
+  posts: number;
+  photoUrl: string|null;
+}
+
 type FirebaseUser = any;
 
 @Component({
@@ -28,6 +34,7 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   showEmailInput = false;
   email = '';
   isSendingEmail = false;
+  bestiePhotoUrl: string|null = null;
 
   constructor(
       public readonly utilService: UtilService,
@@ -107,6 +114,7 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
       this.wrappedService.getWrappedData(identifier, yearNum).subscribe({
         next: (data) => {
           this.wrappedData = data;
+          this.loadBestiePhoto();
           // Auto-scroll past intro slide
           setTimeout(() => {
             this.currentSlideIndex = 1;
@@ -292,6 +300,50 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
     return `BASED ON AVERAGE BEATDOWN DATA, YOU DID ROUGHLY ${
         this.wrappedData
             .estimatedBurpees} BURPEES. YOUR CHEST AND THE GROUND BECAME VERY CLOSE FRIENDS.`;
+  }
+
+  async loadBestiePhoto() {
+    if (!this.wrappedData?.paxNetwork.topWorkoutBuddies ||
+        this.wrappedData.paxNetwork.topWorkoutBuddies.length === 0) {
+      this.bestiePhotoUrl = null;
+      return;
+    }
+    try {
+      const bestie = this.wrappedData.paxNetwork.topWorkoutBuddies[0];
+      const pax = await this.paxService.getPax(bestie.name);
+      this.bestiePhotoUrl = pax?.img_url || null;
+    } catch (error) {
+      console.error('Error loading bestie photo:', error);
+      this.bestiePhotoUrl = null;
+    }
+  }
+
+  getBestieName(): string {
+    if (!this.wrappedData?.paxNetwork.topWorkoutBuddies ||
+        this.wrappedData.paxNetwork.topWorkoutBuddies.length === 0) {
+      return '';
+    }
+    return this.utilService.normalizeName(
+        this.wrappedData.paxNetwork.topWorkoutBuddies[0].name);
+  }
+
+  getBestieDescription(): string {
+    if (!this.wrappedData?.paxNetwork.topWorkoutBuddies ||
+        this.wrappedData.paxNetwork.topWorkoutBuddies.length === 0) {
+      return '';
+    }
+    const bestie = this.wrappedData.paxNetwork.topWorkoutBuddies[0];
+    const bestieName = this.getBestieName();
+    const totalPax = this.wrappedData.paxNetwork.totalPaxEncountered;
+    const percentage = totalPax > 0 ?
+        Math.round((bestie.posts / this.wrappedData.totalPosts) * 100) :
+        0;
+
+    return `YOU POSTED ${bestie.posts} ${
+        bestie.posts === 1 ?
+            'BD' :
+            'BDs'} WITH ${bestieName.toUpperCase()} THIS YEAR. THAT'S ${
+        percentage}% OF YOUR ${this.wrappedData.totalPosts} BEATDOWNS.`;
   }
 
   getQStatsDescription(): string {

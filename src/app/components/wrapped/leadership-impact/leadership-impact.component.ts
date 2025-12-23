@@ -15,14 +15,16 @@ export class LeadershipImpactComponent implements AfterViewInit, OnDestroy {
   @Input()
   backgroundGradient: string =
       'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)';
-  @Input() metrics: Array<{
-    type: 'ao' | 'region' | 'overall' | 'diversity' | 'attendance' | 'bd_overall' | 'bd_region' | 'q_overall' | 'participation' | 'consistency';
+  @Input()
+  metrics: Array<{
+    type: 'ao' | 'region' | 'overall' | 'diversity' | 'attendance' |
+        'bd_overall' | 'bd_region' | 'q_overall' | 'participation' |
+        'consistency';
     label: string;
     rank?: number;
     total?: number;
     percentile?: number;
-    value?: number;
-    priority: number;
+    value?: number; priority: number;
   }> = [];
 
   private resizeObserver?: ResizeObserver;
@@ -83,16 +85,16 @@ export class LeadershipImpactComponent implements AfterViewInit, OnDestroy {
 
   getMetricIcon(type: string): string {
     const icons: {[key: string]: string} = {
-      'ao': '📍', // Location pin for AO
-      'region': '🗺️', // Map for region
-      'overall': '🏆', // Trophy for overall
-      'diversity': '🌟', // Star for diversity
-      'attendance': '👥', // People for attendance
-      'bd_overall': '💪', // Flexed bicep for BDs overall
-      'bd_region': '🏃', // Runner for regional BDs
-      'q_overall': '👑', // Crown for Q overall
-      'participation': '✨', // Sparkles for participation/encouragement
-      'consistency': '📅', // Calendar for consistency
+      'ao': '📍',             // Location pin for AO
+      'region': '🗺️',   // Map for region
+      'overall': '🏆',        // Trophy for overall
+      'diversity': '🌟',      // Star for diversity
+      'attendance': '👥',     // People for attendance
+      'bd_overall': '💪',     // Flexed bicep for BDs overall
+      'bd_region': '🏃',      // Runner for regional BDs
+      'q_overall': '👑',      // Crown for Q overall
+      'participation': '✨',  // Sparkles for participation/encouragement
+      'consistency': '📅',    // Calendar for consistency
     };
     return icons[type] || '⭐';
   }
@@ -122,7 +124,7 @@ export class LeadershipImpactComponent implements AfterViewInit, OnDestroy {
         const containerCenter = containerRect.left + containerRect.width / 2;
 
         // Find which card is closest to center
-        let closestCard: HTMLElement | null = null;
+        let closestCard: HTMLElement|null = null;
         let closestDistance = Infinity;
 
         cards.forEach((card: Element) => {
@@ -146,17 +148,14 @@ export class LeadershipImpactComponent implements AfterViewInit, OnDestroy {
 
           // Calculate scroll position to center this card
           // Account for the padding-left
-          const paddingLeft = parseFloat(getComputedStyle(container).paddingLeft) || 0;
+          const paddingLeft =
+              parseFloat(getComputedStyle(container).paddingLeft) || 0;
           const cardCenter = cardLeft + cardWidth / 2;
           const scrollTo = cardCenter - containerWidth / 2;
 
-          container.scrollTo({
-            left: Math.max(0, scrollTo),
-            behavior: 'smooth'
-          });
+          container.scrollTo({left: Math.max(0, scrollTo), behavior: 'smooth'});
         }
       }, 150);
     }, {passive: true});
   }
 }
-

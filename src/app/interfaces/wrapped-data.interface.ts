@@ -81,6 +81,7 @@ export interface WorkoutBuddy {
   name: string;
   posts: number;
   description: string;
+  photoUrl?: string|null;
 }
 
 export interface F3Phase {

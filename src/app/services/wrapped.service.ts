@@ -113,7 +113,7 @@ export class WrappedService {
     const estimatedBurpees = this.calculateEstimatedBurpees(totalPosts);
     const totalMinutesInGloom =
         await this.calculateTotalMinutesInGloom(userBackblasts);
-    const paxNetwork = this.calculatePaxNetwork(userBackblasts, paxName);
+    const paxNetwork = await this.calculatePaxNetwork(userBackblasts, paxName);
     const qStats =
         await this.calculateQStats(userBackblasts, paxName, year, totalPosts);
     const workoutTypeBreakdown =

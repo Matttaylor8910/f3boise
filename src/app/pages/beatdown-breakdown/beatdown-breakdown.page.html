@@ -149,6 +149,20 @@
         backgroundGradient="linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)">
       </app-pax-network>
 
+      <!-- Bestie -->
+      <app-stat-card
+        *ngIf="wrappedData.paxNetwork.topWorkoutBuddies && wrappedData.paxNetwork.topWorkoutBuddies.length > 0"
+        [photoUrl]="bestiePhotoUrl"
+        eyebrow="YOUR BESTIE"
+        [paxName]="wrappedData.paxNetwork.topWorkoutBuddies[0].name"
+        [bigStat]="wrappedData.paxNetwork.topWorkoutBuddies[0].posts"
+        statLabel="BDs together"
+        [description]="getBestieDescription()"
+        [hugeStat]="true"
+        backgroundGradient="linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)"
+        decorationIcon="">
+      </app-stat-card>
+
       <!-- Narrative: Fellowship -->
       <app-narrative-slide
         title="Q1.7: SHIELD LOCK"
