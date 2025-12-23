@@ -1,7 +1,9 @@
 .stat-slide {
   width: 100%;
-  height: 100vh;
-  min-height: 100vh;
+  height: 100vh; /* Fallback for browsers that don't support dvh */
+  height: 100dvh; /* Use dynamic viewport height for mobile Safari */
+  min-height: 100vh; /* Fallback for browsers that don't support dvh */
+  min-height: 100dvh; /* Use dynamic viewport height for mobile Safari */
   display: flex;
   flex-direction: column;
   justify-content: center;

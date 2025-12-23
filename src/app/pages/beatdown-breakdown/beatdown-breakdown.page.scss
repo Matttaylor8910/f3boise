@@ -30,7 +30,8 @@
 }
 
 .wrapped-slides {
-  height: 100vh;
+  height: 100vh; /* Fallback for browsers that don't support dvh */
+  height: 100dvh; /* Use dynamic viewport height for mobile Safari */
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
@@ -51,7 +52,8 @@
   app-combined-breakdown {
     scroll-snap-align: start;
     scroll-snap-stop: always;
-    min-height: 100vh;
+    min-height: 100vh; /* Fallback for browsers that don't support dvh */
+    min-height: 100dvh; /* Use dynamic viewport height for mobile Safari */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -63,7 +65,8 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  min-height: 100vh; /* Fallback for browsers that don't support dvh */
+  min-height: 100dvh; /* Use dynamic viewport height for mobile Safari */
   text-align: center;
   padding: 0;
   background-image: url('../../../assets/boise-dusk.jpg');
