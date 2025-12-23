@@ -289,6 +289,19 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
     return `THAT'S ${minutes} MINUTES OF PURE GLOOM.`;
   }
 
+  getMinutesCallout(): string {
+    if (!this.wrappedData) return '';
+    const AVERAGE_ANNUAL_MINUTES = 6240;
+    if (this.wrappedData.totalMinutesInGloom > AVERAGE_ANNUAL_MINUTES) {
+      const percentageAbove = Math.round(
+          ((this.wrappedData.totalMinutesInGloom - AVERAGE_ANNUAL_MINUTES) /
+           AVERAGE_ANNUAL_MINUTES) *
+          100);
+      return `🏆 YOU WORKED OUT ${percentageAbove}% MORE THAN THE AVERAGE AMERICAN MAN!`;
+    }
+    return '';
+  }
+
   getTopAODescription(): string {
     if (!this.wrappedData) return '';
     return `YOU CLAIMED THIS AO AS YOUR OWN. THAT'S ${

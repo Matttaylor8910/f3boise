@@ -65,22 +65,9 @@
       <app-narrative-slide
         title="DISRUPTION"
         message="Q Source tells us that disruption is the foundation. When your bed wanted you to stay, you disrupted your comfort zone. You chose the Gloom."
-        leadIn="How much time did you spend in gloom this year, you ask?"
         imageUrl="/assets/disruption.webp"
         backgroundGradient="linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)">
       </app-narrative-slide>
-
-      <!-- Total Minutes in Gloom -->
-      <app-stat-card
-        eyebrow="TIME IN THE GLOOM"
-        [bigStat]="formatMinutes(wrappedData.totalMinutesInGloom)"
-        statLabel="MINUTES"
-        [description]="getMinutesDescription()"
-        leadIn='"Only 40 more minutes!"'
-        [hugeStat]="true"
-        backgroundGradient="linear-gradient(135deg, rgb(15 37 87) 0%, rgb(98 88 98) 100%)"
-        decorationIcon="">
-      </app-stat-card>
 
       <!-- Combined breakdown -->
       <app-combined-breakdown
@@ -97,28 +84,21 @@
         backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
       </app-narrative-slide>
 
-      <!-- Workout Type Breakdown -->
-      <app-workout-type-breakdown
-        *ngIf="wrappedData.workoutTypeBreakdown.length > 0"
-        [workoutTypes]="wrappedData.workoutTypeBreakdown"
-        backgroundGradient="linear-gradient(139deg, #609a69 0%, rgb(28 15 40) 100%)">
-      </app-workout-type-breakdown>
-
-      <!-- Narrative: Pushing Limits -->
-      <app-narrative-slide
-        *ngIf="wrappedData.workoutTypeBreakdown.length > 0"
-        title="Q1.8: WHETSTONE"
-        message="Q1.8 teaches us about the Whetstone. The thing that sharpens you. You found what challenges you. You didn't stay comfortable. You sought out what makes you better."
-        imageUrl="/assets/whetstone.webp"
-        backgroundGradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
-      </app-narrative-slide>
-
       <!-- Top AOs Breakdown -->
       <app-top-aos-breakdown
         *ngIf="wrappedData.topAOs.length > 0"
         [topAOs]="wrappedData.topAOs"
         backgroundGradient="linear-gradient(135deg, rgb(11 55 28) 0%, rgb(88 108 93) 100%)">
       </app-top-aos-breakdown>
+
+      <!-- Narrative: Home Base -->
+      <app-narrative-slide
+        title="F3: THE GROUP"
+        message="F3 teaches us that the Group is foundational. This AO became your Group. It's where you found Shield Lock (Q1.7). Where you built Mutual Competence (Q3.2) with the men beside you."
+        leadIn="Who's in your shield lock?"
+        imageUrl="/assets/group.webp"
+        backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
+      </app-narrative-slide>
 
       <!-- Top AO -->
       <app-home-base
@@ -133,14 +113,21 @@
         backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
       </app-home-base>
 
-      <!-- Narrative: Home Base -->
+      <!-- Narrative: Pushing Limits -->
       <app-narrative-slide
-        title="F3: THE GROUP"
-        message="F3 teaches us that the Group is foundational. This AO became your Group. It's where you found Shield Lock (Q1.7). Where you built Mutual Competence (Q3.2) with the men beside you."
-        leadIn="Who's in your shield lock?"
-        imageUrl="/assets/group.webp"
-        backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
+        *ngIf="wrappedData.workoutTypeBreakdown.length > 0"
+        title="Q1.8: WHETSTONE"
+        message="Q1.8 teaches us about the Whetstone. The thing that sharpens you. You found what challenges you. You didn't stay comfortable. You sought out what makes you better."
+        imageUrl="/assets/whetstone.webp"
+        backgroundGradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
       </app-narrative-slide>
+
+      <!-- Workout Type Breakdown -->
+      <app-workout-type-breakdown
+        *ngIf="wrappedData.workoutTypeBreakdown.length > 0"
+        [workoutTypes]="wrappedData.workoutTypeBreakdown"
+        backgroundGradient="linear-gradient(139deg, #609a69 0%, rgb(28 15 40) 100%)">
+      </app-workout-type-breakdown>
 
       <!-- PAX Network -->
       <app-pax-network
@@ -148,6 +135,15 @@
         [workoutBuddies]="wrappedData.paxNetwork.topWorkoutBuddies"
         backgroundGradient="linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)">
       </app-pax-network>
+
+      <!-- Narrative: Fellowship -->
+      <app-narrative-slide
+        title="Q1.7: SHIELD LOCK"
+        message="Q1.7 teaches us about Shield Lock. Locking shields with the men beside you. We don't show up at F3 for ourselves. We show up for the man standing beside each of us. The workout is the magnet. Shield Lock is what matters."
+        imageUrl="/assets/shield-lock.webp"
+        backgroundGradient="linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)"
+        leadIn="Do you know who stuck by your side all year?">
+      </app-narrative-slide>
 
       <!-- Bestie -->
       <app-stat-card
@@ -159,17 +155,8 @@
         statLabel="BDs together"
         [description]="getBestieDescription()"
         [hugeStat]="true"
-        backgroundGradient="linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)"
-        decorationIcon="">
-      </app-stat-card>
-
-      <!-- Narrative: Fellowship -->
-      <app-narrative-slide
-        title="Q1.7: SHIELD LOCK"
-        message="Q1.7 teaches us about Shield Lock. Locking shields with the men beside you. We don't show up at F3 for ourselves. We show up for the man standing beside each of us. The workout is the magnet. Shield Lock is what matters."
-        imageUrl="/assets/shield-lock.webp"
         backgroundGradient="linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)">
-      </app-narrative-slide>
+      </app-stat-card>
 
       <!-- Narrative: Leadership -->
       <app-narrative-slide
@@ -189,6 +176,23 @@
         [metrics]="wrappedData.qStats.metrics"
         backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
       </app-leadership-impact>
+
+      <!-- Total Minutes in Gloom -->
+      <app-stat-card
+        eyebrow="TIME IN THE GLOOM"
+        [bigStat]="formatMinutes(wrappedData.totalMinutesInGloom)"
+        statLabel="MINUTES"
+        [description]="getMinutesDescription()"
+        [callout]="getMinutesCallout()"
+        leadIn='"Only 40 more minutes!"'
+        [hugeStat]="true"
+        backgroundGradient="linear-gradient(135deg, rgb(15 37 87) 0%, rgb(98 88 98) 100%)"
+        decorationIcon="">
+      </app-stat-card>
+
+      <!-- TODO Insert a video slide of Sheets saying "Only 40 more minutes" -->
+
+
     </ng-container>
   </div>
 

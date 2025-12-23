@@ -21,6 +21,7 @@ export class StatCardComponent {
   @Input() isFirstYear: boolean = false;
   @Input() year: number = 0;
   @Input() leadIn: string = '';
+  @Input() callout: string = '';
 
   constructor(private readonly utilService: UtilService) {}
 
