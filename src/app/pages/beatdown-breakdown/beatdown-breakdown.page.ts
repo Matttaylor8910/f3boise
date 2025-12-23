@@ -253,6 +253,9 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
 
   getTotalPostsDescription(): string {
     if (!this.wrappedData) return '';
+    if (this.wrappedData.isFirstYear) {
+      return `WE'RE GLAD YOU STARTED MAKING FITNESS, FELLOWSHIP, AND FAITH A PART OF YOUR MORNING IN ${this.wrappedData.year}`;
+    }
     return `THAT'S ${
         this.wrappedData
             .totalPosts} MORNINGS YOU CONQUERED THE GLOOM WHEN YOUR BED WANTED YOU TO STAY.`;

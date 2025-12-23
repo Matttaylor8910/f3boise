@@ -16,6 +16,8 @@ export class StatCardComponent {
   @Input() photoUrl: string|null = null;
   @Input() paxName: string = '';
   @Input() largeStat: boolean = false;
+  @Input() isFirstYear: boolean = false;
+  @Input() year: number = 0;
 
   constructor(private readonly utilService: UtilService) {}
 

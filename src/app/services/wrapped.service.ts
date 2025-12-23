@@ -72,6 +72,19 @@ export class WrappedService {
     const allBackblasts = await this.backblastService.getBackblastsForPax(
         paxName, BBType.BACKBLAST);
 
+    // Check if this is their first year (find their very first BD ever)
+    let isFirstYear = false;
+    if (allBackblasts.length > 0) {
+      const sortedAllByDate = [...allBackblasts].sort(
+          (a, b) => moment(a.date).diff(moment(b.date)));
+      const veryFirstBDDate = moment(sortedAllByDate[0].date);
+      const yearStart = moment(`${year}-01-01`);
+      const yearEnd = moment(`${year}-12-31`).endOf('day');
+      // Check if their first BD ever is within this year
+      isFirstYear = veryFirstBDDate.isSameOrAfter(yearStart, 'day') &&
+          veryFirstBDDate.isSameOrBefore(yearEnd, 'day');
+    }
+
     // Filter to the specified year
     const yearStart = moment(`${year}-01-01`);
     const yearEnd = moment(`${year}-12-31`).endOf('day');
@@ -81,13 +94,21 @@ export class WrappedService {
           bbDate.isSameOrBefore(yearEnd, 'day');
     });
 
+    // Find the first backblast date in this year (if any)
+    let firstBDDate: moment.Moment|null = null;
+    if (userBackblasts.length > 0) {
+      const sortedByDate = [...userBackblasts].sort(
+          (a, b) => moment(a.date).diff(moment(b.date)));
+      firstBDDate = moment(sortedByDate[0].date);
+    }
+
     // Calculate all stats
     const totalPosts = userBackblasts.length;
     const monthlyBreakdown =
         this.calculateMonthlyBreakdown(userBackblasts, year);
     const dayOfWeekBreakdown = this.calculateDayOfWeekBreakdown(userBackblasts);
     const topAOs = this.calculateTopAOs(userBackblasts);
-    const topAO = await this.calculateTopAO(userBackblasts, year);
+    const topAO = await this.calculateTopAO(userBackblasts, year, firstBDDate);
     const estimatedBurpees = this.calculateEstimatedBurpees(totalPosts);
     const paxNetwork = this.calculatePaxNetwork(userBackblasts, paxName);
     const qStats = this.calculateQStats(userBackblasts, paxName);
@@ -105,6 +126,7 @@ export class WrappedService {
       totalPosts,
       paxPhotoUrl,
       paxName,
+      isFirstYear,
       monthlyBreakdown,
       workoutTypeBreakdown,
       dayOfWeekBreakdown,
@@ -199,7 +221,9 @@ export class WrappedService {
     });
   }
 
-  private async calculateTopAO(backblasts: Backblast[], year: number): Promise<{
+  private async calculateTopAO(
+      backblasts: Backblast[], year: number,
+      firstBDDate: moment.Moment|null): Promise<{
     name: string; posts: number; percentage: number; address: string | null;
     map_location_url: string | null;
     consistencyRate: number;
@@ -264,13 +288,21 @@ export class WrappedService {
         const daysPerWeek = Object.keys(workoutDates).length;
 
         if (daysPerWeek > 0) {
-          // Calculate number of weeks in the year
           const yearStart = moment(`${year}-01-01`);
           const yearEnd = moment(`${year}-12-31`);
-          const weeksInYear = yearEnd.diff(yearStart, 'weeks') + 1;
 
-          // Calculate total possible slots
-          possibleSlots = daysPerWeek * weeksInYear;
+          // If pax had their first BD in this year, calculate from that date
+          // onward
+          let startDate = yearStart;
+          if (firstBDDate && firstBDDate.isSameOrAfter(yearStart, 'day')) {
+            startDate = firstBDDate;
+          }
+
+          // Calculate number of weeks from start date to end of year
+          const weeksFromStart = yearEnd.diff(startDate, 'weeks') + 1;
+
+          // Calculate total possible slots from start date onward
+          possibleSlots = daysPerWeek * weeksFromStart;
 
           // Calculate consistency rate
           if (possibleSlots > 0) {

@@ -46,6 +46,22 @@
   opacity: 0.95;
 }
 
+.first-year-message {
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  opacity: 0.95;
+  color: rgba(255, 255, 255, 0.95);
+  font-style: italic;
+  line-height: 1.4;
+  max-width: 90%;
+  text-align: center;
+}
+
 @media (max-width: 768px) {
   .profile-photo {
     width: 100px;
@@ -54,6 +70,11 @@
 
   .pax-name {
     font-size: 1.25rem;
+    letter-spacing: 1.5px;
+  }
+
+  .first-year-message {
+    font-size: 0.75rem;
     letter-spacing: 1.5px;
   }
 }
@@ -68,7 +89,7 @@
   text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
-.big-stat {
+.huge-stat {
   font-size: 6rem;
   font-weight: 900;
   line-height: 1;
@@ -78,18 +99,18 @@
   letter-spacing: 2px;
 }
 
-.large-stat-card .big-stat {
+.large-stat-card .huge-stat {
   font-size: 8rem;
 }
 
 @media (max-width: 768px) {
-  .big-stat {
+  .huge-stat {
     font-size: 3rem;
     letter-spacing: 1px;
   }
 
-  .large-stat-card .big-stat {
-    font-size: 4.5rem;
+  .large-stat-card .huge-stat {
+    font-size: 6.5rem;
   }
 }
 
