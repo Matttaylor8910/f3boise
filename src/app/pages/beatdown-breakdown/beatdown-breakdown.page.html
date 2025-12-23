@@ -101,7 +101,7 @@
       <app-workout-type-breakdown
         *ngIf="wrappedData.workoutTypeBreakdown.length > 0"
         [workoutTypes]="wrappedData.workoutTypeBreakdown"
-        backgroundGradient="linear-gradient(139deg, #609a69 0%, rgb(28 15 40) 100%);">
+        backgroundGradient="linear-gradient(139deg, #609a69 0%, rgb(28 15 40) 100%)">
       </app-workout-type-breakdown>
 
       <!-- Narrative: Pushing Limits -->
@@ -156,16 +156,6 @@
         imageUrl="/assets/shield-lock.webp"
         backgroundGradient="linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)">
       </app-narrative-slide>
-
-      <!-- Percentile rank -->
-      <app-stat-card
-        eyebrow="TOP 15%"
-        bigStat="YOU OUTPOSTED"
-        [statLabel]="wrappedData.percentileRank + '% OF F3 BOISE PAX'"
-        description="YOU'RE IN THE TOP TIER OF GLOOM CRUSADERS."
-        backgroundGradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)"
-        decorationIcon="">
-      </app-stat-card>
 
       <!-- Narrative: Leadership -->
       <app-narrative-slide

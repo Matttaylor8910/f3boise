@@ -462,22 +462,14 @@ export class WrappedService {
       });
     });
 
-    // Get top 3 workout buddies
+    // Get top 50 workout buddies (sorted by posts descending)
     const sortedBuddies = Array.from(paxCounts.entries())
                               .sort(([, a], [, b]) => b - a)
-                              .slice(0, 3);
+                              .slice(0, 50);
 
     const topWorkoutBuddies: WorkoutBuddy[] =
-        sortedBuddies.map(([name, count], index) => {
-          let description = '';
-          if (index === 0) {
-            description = 'Your #1 Workout Buddy';
-          } else if (index === 1) {
-            description = 'The Closer';
-          } else {
-            description = 'Early Bird Partner';
-          }
-          return {name, posts: count, description};
+        sortedBuddies.map(([name, count]) => {
+          return {name, posts: count, description: ''};
         });
 
     return {

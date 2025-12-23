@@ -2,11 +2,21 @@
   <div class="pax-content">
     <div class="eyebrow">YOUR PAX NETWORK</div>
     <h2>POSTED WITH {{totalPax}} DIFFERENT PAX</h2>
-    <div class="pax-highlights">
-      <div class="pax-card" *ngFor="let buddy of workoutBuddies">
-        <div class="pax-name">{{buddy.name | uppercase}}</div>
-        <div class="pax-stat">{{buddy.posts}} POSTS TOGETHER</div>
-        <div class="pax-label">{{buddy.description | uppercase}}</div>
+
+    <div class="bubble-container" #bubbleContainer>
+      <div class="center-label">YOU</div>
+      <div
+        class="pax-bubble"
+        *ngFor="let bubble of bubbles"
+        [style.left.px]="bubble.x"
+        [style.top.px]="bubble.y"
+        [style.width.px]="bubble.size"
+        [style.height.px]="bubble.size"
+        [style.animation-delay.s]="bubble.animationDelay"
+        [style.animation-duration.s]="bubble.animationDuration"
+        [style.animation-name]="bubble.animationName"
+        [title]="bubble.name + ' - ' + bubble.posts + ' posts'">
+        <img [src]="bubble.avatarUrl" [alt]="bubble.name" class="bubble-avatar" />
       </div>
     </div>
   </div>
