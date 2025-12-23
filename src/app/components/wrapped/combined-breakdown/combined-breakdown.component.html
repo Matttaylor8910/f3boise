@@ -1,4 +1,4 @@
-<div class="combined-slide" [style.background]="backgroundGradient">
+<div class="combined-slide" [style.background]="backgroundGradient" #slideElement>
   <div class="combined-content">
     <div class="eyebrow">YOUR PRIME TIME:</div>
 
@@ -46,4 +46,5 @@
       </div>
     </div>
   </div>
+  <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
 </div>

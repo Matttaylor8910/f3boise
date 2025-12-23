@@ -1,4 +1,4 @@
-<div class="narrative-slide" [style.background]="backgroundGradient">
+<div class="narrative-slide" [style.background]="backgroundGradient" #slideElement>
   <div class="narrative-content">
     <div class="narrative-image-container" *ngIf="imageUrl">
       <img [src]="imageUrl" [alt]="title" class="narrative-image" />
@@ -6,6 +6,8 @@
     <div class="narrative-icon" *ngIf="icon && !imageUrl">{{icon}}</div>
     <h1 class="narrative-title" *ngIf="!imageUrl">{{title}}</h1>
     <p class="narrative-message">{{message}}</p>
+    <p class="narrative-lead-in" *ngIf="leadIn">{{leadIn}}</p>
   </div>
+  <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
 </div>
 

@@ -1,4 +1,4 @@
-<div class="pax-slide" [style.background]="backgroundGradient">
+<div class="pax-slide" [style.background]="backgroundGradient" #slideElement>
   <div class="pax-content">
     <div class="eyebrow">YOUR PAX NETWORK</div>
     <h2>POSTED WITH {{totalPax}} DIFFERENT PAX</h2>
@@ -10,4 +10,5 @@
       </div>
     </div>
   </div>
+  <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
 </div>

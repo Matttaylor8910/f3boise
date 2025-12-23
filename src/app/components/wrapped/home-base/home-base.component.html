@@ -1,4 +1,4 @@
-<div class="home-base-slide" [style.background]="backgroundGradient">
+<div class="home-base-slide" [style.background]="backgroundGradient" #slideElement>
   <div class="home-base-content">
     <div class="eyebrow">YOUR HOME AO</div>
     <div class="big-stat">{{aoName | uppercase}}</div>
@@ -39,5 +39,6 @@
       </div>
     </div>
   </div>
+  <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
 </div>
 

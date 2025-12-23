@@ -2,11 +2,10 @@
   <!-- Wrapped data slides -->
   <div class="wrapped-slides" #slidesContainer>
     <!-- Intro slide (first slide, shown for all users) -->
-    <div class="intro-slide-in-slides" [class.email-shown]="showEmailInput && !user">
+    <div class="intro-slide-in-slides" [class.email-shown]="showEmailInput && !user" #introSlideElement>
       <div class="title-section">
         <p class="subtitle">Your {{year}}</p>
         <h1>Beatdown Breakdown</h1>
-        <p class="subtitle">Another year in the Gloom</p>
       </div>
 
       <!-- Email input form (shown when user clicks "Let's Roll" and is not authenticated) -->
@@ -44,6 +43,7 @@
           Let's Roll
         </ion-button>
       </div>
+      <app-slide-chevron [slideElement]="introSlideElement"></app-slide-chevron>
     </div>
 
     <!-- Data slides (only shown when wrappedData exists) -->
@@ -64,7 +64,8 @@
       <!-- Narrative: Showing Up -->
       <app-narrative-slide
         title="DISRUPTION"
-        message="Q Source teaches us that disruption is the foundation. When your bed wanted you to stay, you disrupted your comfort zone. You chose the Gloom. That's the first step."
+        message="Q Source teaches us that disruption is the foundation. When your bed wanted you to stay, you disrupted your comfort zone. You chose the Gloom."
+        leadIn="How much time did you spend in gloom this year, you ask?"
         imageUrl="/assets/disruption.webp"
         backgroundGradient="linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)">
       </app-narrative-slide>

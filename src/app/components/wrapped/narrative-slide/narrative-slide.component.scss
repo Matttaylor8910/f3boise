@@ -73,6 +73,17 @@
   letter-spacing: 0.5px;
 }
 
+.narrative-lead-in {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  opacity: 0.9;
+  letter-spacing: 0.5px;
+  margin-top: 2rem;
+  font-style: italic;
+}
+
 @media (max-width: 768px) {
   .narrative-content {
     padding: 1.5rem;
@@ -97,6 +108,11 @@
   .narrative-message {
     font-size: 1.25rem;
     line-height: 1.5;
+  }
+
+  .narrative-lead-in {
+    font-size: 1.1rem;
+    margin-top: 1.5rem;
   }
 }
 

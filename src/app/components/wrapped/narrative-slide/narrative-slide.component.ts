@@ -11,5 +11,6 @@ export class NarrativeSlideComponent {
   @Input() backgroundGradient: string = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
   @Input() icon: string = '';
   @Input() imageUrl: string = '';
+  @Input() leadIn: string = '';
 }
 

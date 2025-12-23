@@ -1,4 +1,4 @@
-<div class="top-aos-slide" [style.background]="backgroundGradient">
+<div class="top-aos-slide" [style.background]="backgroundGradient" #slideElement>
   <div class="top-aos-content">
     <div class="eyebrow">YOUR TOP AOS</div>
     <h2>WHERE YOU POSTED</h2>
@@ -22,5 +22,6 @@
       </div>
     </div>
   </div>
+  <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
 </div>
 

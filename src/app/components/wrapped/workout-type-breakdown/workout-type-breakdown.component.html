@@ -1,4 +1,4 @@
-<div class="workout-type-slide" [style.background]="backgroundGradient">
+<div class="workout-type-slide" [style.background]="backgroundGradient" #slideElement>
   <div class="workout-type-content">
     <div class="eyebrow">YOUR WORKOUT TYPES</div>
     <div class="top-type-graphic" *ngIf="topTypeIcon">
@@ -28,5 +28,6 @@
       </div>
     </div>
   </div>
+  <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
 </div>
 
