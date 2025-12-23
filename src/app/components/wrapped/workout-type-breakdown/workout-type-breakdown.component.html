@@ -1,6 +1,11 @@
 <div class="workout-type-slide" [style.background]="backgroundGradient">
   <div class="workout-type-content">
     <div class="eyebrow">YOUR WORKOUT TYPES</div>
+    <div class="top-type-graphic" *ngIf="topTypeIcon">
+      <div class="icon-container">
+        <span class="workout-icon">{{topTypeIcon}}</span>
+      </div>
+    </div>
     <h2>{{topType | uppercase}}</h2>
     <div class="workout-type-label" *ngIf="!isSingleType">YOUR TOP WORKOUT TYPE</div>
     <div class="workout-type-label cheeky-message" *ngIf="isSingleType">

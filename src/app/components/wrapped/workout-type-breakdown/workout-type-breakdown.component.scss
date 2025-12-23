@@ -32,6 +32,37 @@
   text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
+.top-type-graphic {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.icon-container {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  transition: transform 0.3s ease;
+}
+
+.icon-container:hover {
+  transform: scale(1.05);
+}
+
+.workout-icon {
+  font-size: 4rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+}
+
 h2 {
   font-size: 2.5rem;
   font-weight: 900;
@@ -39,6 +70,21 @@ h2 {
   text-transform: uppercase;
   letter-spacing: 2px;
   text-shadow: 0 3px 8px rgba(0,0,0,0.4);
+}
+
+@media (max-width: 768px) {
+  .icon-container {
+    width: 100px;
+    height: 100px;
+  }
+
+  .workout-icon {
+    font-size: 3rem;
+  }
+
+  h2 {
+    font-size: 2rem;
+  }
 }
 
 .workout-type-label {

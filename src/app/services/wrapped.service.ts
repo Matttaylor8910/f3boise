@@ -371,6 +371,17 @@ export class WrappedService {
     // Load workouts to get workout_type for each AO
     const workouts = await this.workoutService.getAllData();
 
+    // Log all unique workout types found in workouts
+    const uniqueWorkoutTypes =
+        new Set(workouts.map(w => w.workout_type).filter(Boolean));
+    console.log('=== WORKOUT TYPES FROM WORKOUTS DATA ===');
+    console.log('Unique workout types:', Array.from(uniqueWorkoutTypes));
+    console.log('Total workouts:', workouts.length);
+    workouts.forEach(workout => {
+      console.log(
+          `  AO: ${workout.name}, Type: ${workout.workout_type || 'MISSING'}`);
+    });
+
     // Create a map of normalized AO name to workout type
     const aoToWorkoutType = new Map<string, string>();
     workouts.forEach(workout => {
@@ -383,6 +394,9 @@ export class WrappedService {
     const typeCounts = new Map<string, number>();
     let totalMatched = 0;
 
+    console.log('=== MATCHING BACKBLASTS TO WORKOUT TYPES ===');
+    console.log('Total backblasts:', backblasts.length);
+
     backblasts.forEach(bb => {
       const normalizedAo = this.utilService.normalizeName(bb.ao).toLowerCase();
       const workoutType = aoToWorkoutType.get(normalizedAo);
@@ -390,8 +404,15 @@ export class WrappedService {
       if (workoutType) {
         typeCounts.set(workoutType, (typeCounts.get(workoutType) || 0) + 1);
         totalMatched++;
+      } else {
+        console.log(
+            `  No match found for AO: ${bb.ao} (normalized: ${normalizedAo})`);
       }
     });
+
+    console.log('Matched backblasts:', totalMatched);
+    console.log('Unmatched backblasts:', backblasts.length - totalMatched);
+    console.log('Type counts:', Array.from(typeCounts.entries()));
 
     if (typeCounts.size === 0) {
       return [];
@@ -412,6 +433,11 @@ export class WrappedService {
                 (a, b) => b.percentage -
                     a.percentage);  // Sort by percentage descending
 
+    console.log('=== FINAL WORKOUT TYPE BREAKDOWN ===');
+    workoutTypes.forEach(wt => {
+      console.log(`  ${wt.type}: ${wt.count} posts (${wt.percentage}%)`);
+    });
+
     return workoutTypes;
   }
 
@@ -420,7 +446,8 @@ export class WrappedService {
     const colorMap: {[key: string]: string} = {
       'High Intensity': '#FF6B6B',
       'Running': '#4ECDC4',
-      'Ruck/Hike': '#FFE66D',
+      'Ruck/Sandbag': '#FFE66D',
+      'Ruck/Hike': '#FFE66D',  // Legacy support
       'Bootcamp': '#95E1D3',
       'Other': '#A8E6CF',
     };
