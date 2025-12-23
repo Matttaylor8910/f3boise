@@ -116,7 +116,6 @@ export class WrappedService {
     const qStats = this.calculateQStats(userBackblasts, paxName);
     const workoutTypeBreakdown =
         await this.calculateWorkoutTypeBreakdown(userBackblasts);
-    const weatherStats = this.getMockWeatherStats();
     const percentileRank = this.getMockPercentileRank();
 
     // Get pax photo URL
@@ -132,7 +131,6 @@ export class WrappedService {
       monthlyBreakdown,
       workoutTypeBreakdown,
       dayOfWeekBreakdown,
-      weatherStats,
       topAO,
       topAOs,
       estimatedBurpees,
@@ -380,12 +378,9 @@ export class WrappedService {
     const matchedDetails: Array<{ao: string, day: string, duration: number}> =
         [];
 
-    console.log('aoToWorkout', aoToWorkout);
-
     backblasts.forEach(bb => {
       // Convert backblast AO name to workout ID format
       const workoutId = nameToWorkoutId(bb.ao);
-      console.log(`looking for workoutId: ${workoutId} for ao: ${bb.ao}`);
       const workout = aoToWorkout.get(workoutId);
 
       if (workout) {
@@ -434,27 +429,17 @@ export class WrappedService {
           matchedCount++;
           matchedDetails.push({ao: bb.ao, day: dayKey, duration: 60});
         } else {
-          console.log('First else');
           unmatchedCount++;
           unmatchedAOs.add(`${bb.ao} (workoutId: ${workoutId}, dayKey: ${
               dayKey || 'invalid'})`);
         }
       } else {
-        console.log('Second else');
         unmatchedCount++;
         unmatchedAOs.add(
             `${bb.ao} (workoutId: ${workoutId} - workout not found)`);
       }
     });
 
-    console.log('=== TOTAL MINUTES IN GLOOM CALCULATION ===');
-    console.log(`Total backblasts: ${backblasts.length}`);
-    console.log(`Matched: ${matchedCount}`);
-    console.log(`Unmatched: ${unmatchedCount}`);
-    console.log(`Total minutes: ${totalMinutes}`);
-    console.log(
-        'Available workout IDs:', Array.from(aoToWorkout.keys()).slice(0, 10));
-    console.log('Matched details (first 10):', matchedDetails.slice(0, 10));
     if (unmatchedAOs.size > 0) {
       console.log('Unmatched AOs:', Array.from(unmatchedAOs));
     }
@@ -554,9 +539,6 @@ export class WrappedService {
     const typeCounts = new Map<string, number>();
     let totalMatched = 0;
 
-    console.log('=== MATCHING BACKBLASTS TO WORKOUT TYPES ===');
-    console.log('Total backblasts:', backblasts.length);
-
     backblasts.forEach(bb => {
       // Convert backblast AO name to workout ID format
       const workoutId = nameToWorkoutId(bb.ao);
@@ -575,10 +557,6 @@ export class WrappedService {
             `  No match found for AO: ${bb.ao} (workoutId: ${workoutId})`);
       }
     });
-
-    console.log('Matched backblasts:', totalMatched);
-    console.log('Unmatched backblasts:', backblasts.length - totalMatched);
-    console.log('Type counts:', Array.from(typeCounts.entries()));
 
     if (typeCounts.size === 0) {
       return [];
@@ -599,11 +577,6 @@ export class WrappedService {
                 (a, b) => b.percentage -
                     a.percentage);  // Sort by percentage descending
 
-    console.log('=== FINAL WORKOUT TYPE BREAKDOWN ===');
-    workoutTypes.forEach(wt => {
-      console.log(`  ${wt.type}: ${wt.count} posts (${wt.percentage}%)`);
-    });
-
     return workoutTypes;
   }
 
@@ -612,32 +585,14 @@ export class WrappedService {
     const colorMap: {[key: string]: string} = {
       'High Intensity': '#FF6B6B',
       'Running': '#4ECDC4',
-      'Ruck/Sandbag': '#FFE66D',
+      'Ruck/Sandbag': '#d51d14',
       'Ruck/Hike': '#FFE66D',  // Legacy support
-      'Bootcamp': '#95E1D3',
+      'Bootcamp': '#ffd456',
       'Black Ops': '#000',  // Black color for Black Ops
       'Other': '#A8E6CF',
     };
 
     return colorMap[workoutType] || '#CCCCCC';
-  }
-
-  private getMockWeatherStats() {
-    return [
-      {
-        condition: 'Below Freezing',
-        icon: '❄️',
-        count: 23,
-        description: 'Below Freezing Days',
-      },
-      {
-        condition: 'Rainy',
-        icon: '🌧️',
-        count: 17,
-        description: 'Rainy Mornings',
-      },
-      {condition: 'Hot', icon: '🔥', count: 31, description: 'Over 80°F Days'},
-    ];
   }
 
   private getMockPercentileRank(): number {

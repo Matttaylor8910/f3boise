@@ -64,7 +64,7 @@
       <!-- Narrative: Showing Up -->
       <app-narrative-slide
         title="DISRUPTION"
-        message="Q Source teaches us that disruption is the foundation. When your bed wanted you to stay, you disrupted your comfort zone. You chose the Gloom."
+        message="Q Source tells us that disruption is the foundation. When your bed wanted you to stay, you disrupted your comfort zone. You chose the Gloom."
         leadIn="How much time did you spend in gloom this year, you ask?"
         imageUrl="/assets/disruption.webp"
         backgroundGradient="linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)">
@@ -76,8 +76,9 @@
         [bigStat]="formatMinutes(wrappedData.totalMinutesInGloom)"
         statLabel="MINUTES"
         [description]="getMinutesDescription()"
+        leadIn='"Only 40 more minutes!"'
         [hugeStat]="true"
-        backgroundGradient="linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)"
+        backgroundGradient="linear-gradient(135deg, rgb(15 37 87) 0%, rgb(98 88 98) 100%)"
         decorationIcon="">
       </app-stat-card>
 
@@ -91,7 +92,7 @@
       <!-- Narrative: Consistency -->
       <app-narrative-slide
         title="Q3.10: CONSISTENCY"
-        message="Q3.10 teaches that consistency is a leadership virtue. Rain or shine, you showed up. You made a commitment. Consistency builds trust. Your brothers knew they could count on you."
+        message="Q3.10 talks about how consistency is a leadership virtue. That's why we HC. Consistency builds trust. Your brothers need to know they can count on you."
         imageUrl="/assets/consistency.webp"
         backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
       </app-narrative-slide>
@@ -100,7 +101,7 @@
       <app-workout-type-breakdown
         *ngIf="wrappedData.workoutTypeBreakdown.length > 0"
         [workoutTypes]="wrappedData.workoutTypeBreakdown"
-        backgroundGradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+        backgroundGradient="linear-gradient(139deg, #609a69 0%, rgb(28 15 40) 100%);">
       </app-workout-type-breakdown>
 
       <!-- Narrative: Pushing Limits -->
@@ -116,7 +117,7 @@
       <app-top-aos-breakdown
         *ngIf="wrappedData.topAOs.length > 0"
         [topAOs]="wrappedData.topAOs"
-        backgroundGradient="linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)">
+        backgroundGradient="linear-gradient(135deg, rgb(11 55 28) 0%, rgb(88 108 93) 100%)">
       </app-top-aos-breakdown>
 
       <!-- Top AO -->
@@ -135,7 +136,8 @@
       <!-- Narrative: Home Base -->
       <app-narrative-slide
         title="F3: THE GROUP"
-        message="F3 teaches us that the Group is foundational. This AO became your Group. It's where you found Shield Lock (Q1.7). Where you built Mutual Competence (Q3.2) with the men beside you. This is where you belong."
+        message="F3 teaches us that the Group is foundational. This AO became your Group. It's where you found Shield Lock (Q1.7). Where you built Mutual Competence (Q3.2) with the men beside you."
+        leadIn="Who's in your shield lock?"
         imageUrl="/assets/group.webp"
         backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
       </app-narrative-slide>

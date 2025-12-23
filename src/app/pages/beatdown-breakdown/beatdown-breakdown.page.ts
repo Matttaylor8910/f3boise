@@ -273,10 +273,10 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
     const hours = Math.floor(this.wrappedData.totalMinutesInGloom / 60);
     const minutes = this.wrappedData.totalMinutesInGloom % 60;
     if (hours > 0) {
-      if (minutes === 0) {
-        return `THAT'S ${hours} HOURS OF PURE GLOOM.`;
+      if (minutes > 0) {
+        return `THAT'S ${hours} HOURS AND ${minutes} MINUTES OF PURE GLOOM.`;
       }
-      return `THAT'S ${hours} HOURS AND ${minutes} MINUTES OF PURE GLOOM.`;
+      return `THAT'S ${hours} HOURS OF PURE GLOOM.`;
     }
     return `THAT'S ${minutes} MINUTES OF PURE GLOOM.`;
   }

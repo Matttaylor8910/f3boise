@@ -9,7 +9,6 @@ export interface WrappedData {
   monthlyBreakdown: MonthlyData[];
   workoutTypeBreakdown: WorkoutType[];
   dayOfWeekBreakdown: DayOfWeek[];
-  weatherStats: WeatherStat[];
 
   topAO: {
     name: string,

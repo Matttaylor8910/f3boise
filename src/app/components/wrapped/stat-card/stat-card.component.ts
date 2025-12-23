@@ -20,6 +20,7 @@ export class StatCardComponent {
   @Input() hugeStat: boolean = false;
   @Input() isFirstYear: boolean = false;
   @Input() year: number = 0;
+  @Input() leadIn: string = '';
 
   constructor(private readonly utilService: UtilService) {}
 
