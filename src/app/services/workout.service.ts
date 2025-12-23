@@ -27,13 +27,11 @@ export class WorkoutService {
   ) {}
 
   async loadAllData(): Promise<Workout[]> {
-    this.allData =
-        (await this.http.get(URL) as Workout[])
-            .filter(workout => Object.keys(workout.workout_dates).length > 0)
-            .map(this.mapWorkout.bind(this))
-            .sort((a, b) => {
-              return a.name.localeCompare(b.name);
-            });
+    this.allData = (await this.http.get(URL) as Workout[])
+                       .map(this.mapWorkout.bind(this))
+                       .sort((a, b) => {
+                         return a.name.localeCompare(b.name);
+                       });
     return this.allData;
   }
 

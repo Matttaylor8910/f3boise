@@ -28,6 +28,7 @@ export interface WrappedData {
   }>;
 
   estimatedBurpees: number;
+  totalMinutesInGloom: number;
 
   paxNetwork: {
     totalPaxEncountered: number,

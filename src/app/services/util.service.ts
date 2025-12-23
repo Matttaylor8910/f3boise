@@ -43,7 +43,7 @@ export class UtilService {
     ao.split(/(?=[A-Z])/).forEach(splitUppercase => {
       splitUppercase.split('-').forEach(splitHyphen => {
         splitHyphen.split(' ').forEach(word => {
-          sections.push(word);
+          if (word !== '') sections.push(word);
         });
       });
     });

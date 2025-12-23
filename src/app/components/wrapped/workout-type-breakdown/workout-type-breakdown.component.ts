@@ -28,6 +28,7 @@ export class WorkoutTypeBreakdownComponent implements OnInit {
       'High Intensity': '🔥',
       'Ruck/Sandbag': '🎒',
       'Running': '🏃',
+      'Black Ops': '⚫',
     };
     return iconMap[type] || '💪';
   }

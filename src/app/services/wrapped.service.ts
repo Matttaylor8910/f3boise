@@ -110,6 +110,8 @@ export class WrappedService {
     const topAOs = this.calculateTopAOs(userBackblasts);
     const topAO = await this.calculateTopAO(userBackblasts, year, firstBDDate);
     const estimatedBurpees = this.calculateEstimatedBurpees(totalPosts);
+    const totalMinutesInGloom =
+        await this.calculateTotalMinutesInGloom(userBackblasts);
     const paxNetwork = this.calculatePaxNetwork(userBackblasts, paxName);
     const qStats = this.calculateQStats(userBackblasts, paxName);
     const workoutTypeBreakdown =
@@ -134,6 +136,7 @@ export class WrappedService {
       topAO,
       topAOs,
       estimatedBurpees,
+      totalMinutesInGloom,
       paxNetwork,
       percentileRank,
       qStats,
@@ -331,6 +334,134 @@ export class WrappedService {
     return totalPosts * 20;
   }
 
+  private async calculateTotalMinutesInGloom(backblasts: Backblast[]):
+      Promise<number> {
+    if (backblasts.length === 0) {
+      return 0;
+    }
+
+    // Load workouts to get workout_dates for each AO
+    const workouts = await this.workoutService.getAllData();
+
+    // Helper to convert name to workout ID format
+    // Lowercase, spaces replaced by hyphens, non-alphanumeric chars removed
+    const nameToWorkoutId = (name: string): string => {
+      return name.toLowerCase()
+          .replace(/\s+/g, '-')  // Replace spaces with hyphens
+          .replace(
+              /[^a-z0-9-]/g, '');  // Remove any non-alphanumeric/hyphen chars
+    };
+
+    // Create a map of workout ID to workout
+    // Workout IDs are standardized: lowercase with hyphens (e.g.,
+    // "camels-back")
+    const aoToWorkout = new Map<string, any>();
+    workouts.forEach(workout => {
+      if (workout.id) {
+        aoToWorkout.set(workout.id, workout);
+      }
+    });
+
+    // Day of week mapping (moment uses 0=Sunday, 6=Saturday)
+    const dayMap: {[key: number]: string} = {
+      0: 'Sun',
+      1: 'Mon',
+      2: 'Tue',
+      3: 'Wed',
+      4: 'Thu',
+      5: 'Fri',
+      6: 'Sat',
+    };
+
+    let totalMinutes = 0;
+    let matchedCount = 0;
+    let unmatchedCount = 0;
+    const unmatchedAOs = new Set<string>();
+    const matchedDetails: Array<{ao: string, day: string, duration: number}> =
+        [];
+
+    console.log('aoToWorkout', aoToWorkout);
+
+    backblasts.forEach(bb => {
+      // Convert backblast AO name to workout ID format
+      const workoutId = nameToWorkoutId(bb.ao);
+      console.log(`looking for workoutId: ${workoutId} for ao: ${bb.ao}`);
+      const workout = aoToWorkout.get(workoutId);
+
+      if (workout) {
+        // Get day of week from backblast date
+        const bbDate = moment(bb.date);
+        const dayOfWeek = bbDate.day();  // 0-6 (Sunday-Saturday)
+        const dayKey = dayMap[dayOfWeek];
+
+        // Check if workout_dates exists and has entries
+        const hasWorkoutDates = workout.workout_dates &&
+            Object.keys(workout.workout_dates).length > 0;
+
+        if (hasWorkoutDates && dayKey && workout.workout_dates[dayKey]) {
+          const times = workout.workout_dates[dayKey];
+          if (times && times.length >= 2) {
+            const [startTime, endTime] = times;
+            // Parse times (format: "HH:mm:ss")
+            const startParts = startTime.split(':').map(Number);
+            const endParts = endTime.split(':').map(Number);
+
+            const startMinutes =
+                startParts[0] * 60 + startParts[1] + startParts[2] / 60;
+            const endMinutes =
+                endParts[0] * 60 + endParts[1] + endParts[2] / 60;
+
+            const duration = endMinutes - startMinutes;
+            totalMinutes += duration;
+            matchedCount++;
+            matchedDetails.push({ao: bb.ao, day: dayKey, duration});
+          } else {
+            // Times array exists but doesn't have 2 elements, default to 60 min
+            totalMinutes += 60;
+            matchedCount++;
+            matchedDetails.push(
+                {ao: bb.ao, day: dayKey || 'unknown', duration: 60});
+          }
+        } else if (!hasWorkoutDates) {
+          // Workout exists but has no workout_dates, default to 60 minutes
+          totalMinutes += 60;
+          matchedCount++;
+          matchedDetails.push(
+              {ao: bb.ao, day: dayKey || 'unknown', duration: 60});
+        } else if (dayKey && !workout.workout_dates[dayKey]) {
+          // Workout exists but doesn't have this day, default to 60 minutes
+          totalMinutes += 60;
+          matchedCount++;
+          matchedDetails.push({ao: bb.ao, day: dayKey, duration: 60});
+        } else {
+          console.log('First else');
+          unmatchedCount++;
+          unmatchedAOs.add(`${bb.ao} (workoutId: ${workoutId}, dayKey: ${
+              dayKey || 'invalid'})`);
+        }
+      } else {
+        console.log('Second else');
+        unmatchedCount++;
+        unmatchedAOs.add(
+            `${bb.ao} (workoutId: ${workoutId} - workout not found)`);
+      }
+    });
+
+    console.log('=== TOTAL MINUTES IN GLOOM CALCULATION ===');
+    console.log(`Total backblasts: ${backblasts.length}`);
+    console.log(`Matched: ${matchedCount}`);
+    console.log(`Unmatched: ${unmatchedCount}`);
+    console.log(`Total minutes: ${totalMinutes}`);
+    console.log(
+        'Available workout IDs:', Array.from(aoToWorkout.keys()).slice(0, 10));
+    console.log('Matched details (first 10):', matchedDetails.slice(0, 10));
+    if (unmatchedAOs.size > 0) {
+      console.log('Unmatched AOs:', Array.from(unmatchedAOs));
+    }
+
+    return Math.round(totalMinutes);
+  }
+
   private calculatePaxNetwork(backblasts: Backblast[], paxName: string):
       {totalPaxEncountered: number; topWorkoutBuddies: WorkoutBuddy[];} {
     const paxCounts = new Map<string, number>();
@@ -403,23 +534,20 @@ export class WrappedService {
     // Load workouts to get workout_type for each AO
     const workouts = await this.workoutService.getAllData();
 
-    // Log all unique workout types found in workouts
-    const uniqueWorkoutTypes =
-        new Set(workouts.map(w => w.workout_type).filter(Boolean));
-    console.log('=== WORKOUT TYPES FROM WORKOUTS DATA ===');
-    console.log('Unique workout types:', Array.from(uniqueWorkoutTypes));
-    console.log('Total workouts:', workouts.length);
-    workouts.forEach(workout => {
-      console.log(
-          `  AO: ${workout.name}, Type: ${workout.workout_type || 'MISSING'}`);
-    });
+    // Helper to convert name to workout ID format (same as minutes calculation)
+    const nameToWorkoutId = (name: string): string => {
+      return name.toLowerCase()
+          .replace(/\s+/g, '-')  // Replace spaces with hyphens
+          .replace(
+              /[^a-z0-9-]/g, '');  // Remove any non-alphanumeric/hyphen chars
+    };
 
-    // Create a map of normalized AO name to workout type
+    // Create a map of workout ID to workout type
     const aoToWorkoutType = new Map<string, string>();
     workouts.forEach(workout => {
-      const normalizedAo =
-          this.utilService.normalizeName(workout.name).toLowerCase();
-      aoToWorkoutType.set(normalizedAo, workout.workout_type);
+      if (workout.id) {
+        aoToWorkoutType.set(workout.id, workout.workout_type);
+      }
     });
 
     // Count workout types from backblasts
@@ -430,15 +558,21 @@ export class WrappedService {
     console.log('Total backblasts:', backblasts.length);
 
     backblasts.forEach(bb => {
-      const normalizedAo = this.utilService.normalizeName(bb.ao).toLowerCase();
-      const workoutType = aoToWorkoutType.get(normalizedAo);
+      // Convert backblast AO name to workout ID format
+      const workoutId = nameToWorkoutId(bb.ao);
+      let workoutType = aoToWorkoutType.get(workoutId);
+
+      // Special handling: if AO is "Black Ops", use "Black Ops" as the type
+      if (workoutId === 'black-ops') {
+        workoutType = 'Black Ops';
+      }
 
       if (workoutType) {
         typeCounts.set(workoutType, (typeCounts.get(workoutType) || 0) + 1);
         totalMatched++;
       } else {
         console.log(
-            `  No match found for AO: ${bb.ao} (normalized: ${normalizedAo})`);
+            `  No match found for AO: ${bb.ao} (workoutId: ${workoutId})`);
       }
     });
 
@@ -481,6 +615,7 @@ export class WrappedService {
       'Ruck/Sandbag': '#FFE66D',
       'Ruck/Hike': '#FFE66D',  // Legacy support
       'Bootcamp': '#95E1D3',
+      'Black Ops': '#000',  // Black color for Black Ops
       'Other': '#A8E6CF',
     };
 

@@ -29,10 +29,13 @@ export class WorkoutsPage {
   async setWorkouts() {
     const aos = await this.workoutService.getAllData();
 
+    const filteredAos = aos.filter(
+        ao => ao.workout_dates && Object.keys(ao.workout_dates).length > 0);
+
     // separate the aos into buckets
     const tomorrow: AoGrouping = {title: 'JOIN US TOMORROW', aos: []};
     const thisWeek: AoGrouping = {title: 'JOIN US THIS WEEK', aos: []};
-    for (const ao of aos) {
+    for (const ao of filteredAos) {
       if (ao.is_tomorrow) {
         tomorrow.aos.push(ao);
       } else {

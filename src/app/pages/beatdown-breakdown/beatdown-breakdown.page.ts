@@ -261,6 +261,22 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
             .totalPosts} MORNINGS YOU CONQUERED THE GLOOM WHEN YOUR BED WANTED YOU TO STAY.`;
   }
 
+  formatMinutes(minutes: number): string {
+    if (!minutes) return '0';
+    // Format with comma separators for thousands
+    return minutes.toLocaleString();
+  }
+
+  getMinutesDescription(): string {
+    if (!this.wrappedData) return '';
+    const hours = Math.floor(this.wrappedData.totalMinutesInGloom / 60);
+    const minutes = this.wrappedData.totalMinutesInGloom % 60;
+    if (hours > 0) {
+      return `THAT'S ${hours} HOURS AND ${minutes} MINUTES OF PURE GLOOM.`;
+    }
+    return `THAT'S ${minutes} MINUTES OF PURE GLOOM.`;
+  }
+
   getTopAODescription(): string {
     if (!this.wrappedData) return '';
     return `YOU CLAIMED THIS AO AS YOUR OWN. THAT'S ${
