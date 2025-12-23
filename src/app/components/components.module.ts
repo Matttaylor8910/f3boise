@@ -26,6 +26,7 @@ import {TimeFilterComponent} from './time-filter/time-filter.component';
 import {UserMenuPopoverComponent} from './user-menu-popover/user-menu-popover.component';
 import {YearGridComponent} from './year-grid/year-grid.component';
 import {StatCardComponent} from './wrapped/stat-card/stat-card.component';
+import {LeadershipImpactComponent} from './wrapped/leadership-impact/leadership-impact.component';
 import {MonthlyChartComponent} from './wrapped/monthly-chart/monthly-chart.component';
 import {DayBreakdownComponent} from './wrapped/day-breakdown/day-breakdown.component';
 import {PaxNetworkComponent} from './wrapped/pax-network/pax-network.component';
@@ -60,6 +61,7 @@ import {SlideChevronComponent} from './wrapped/slide-chevron/slide-chevron.compo
     UserMenuPopoverComponent,
     YearGridComponent,
     StatCardComponent,
+    LeadershipImpactComponent,
     MonthlyChartComponent,
     DayBreakdownComponent,
     PaxNetworkComponent,
@@ -98,6 +100,7 @@ import {SlideChevronComponent} from './wrapped/slide-chevron/slide-chevron.compo
     UserMenuPopoverComponent,
     YearGridComponent,
     StatCardComponent,
+    LeadershipImpactComponent,
     MonthlyChartComponent,
     DayBreakdownComponent,
     PaxNetworkComponent,

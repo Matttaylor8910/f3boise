@@ -166,14 +166,15 @@
       </app-narrative-slide>
 
       <!-- Q Stats -->
-      <app-stat-card
+      <app-leadership-impact
+        *ngIf="wrappedData.qStats"
         eyebrow="LEADERSHIP IMPACT"
         [bigStat]="wrappedData.qStats.timesAsQ"
         statLabel="TIMES AS Q"
         [description]="getQStatsDescription()"
-        backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)"
-        decorationIcon="">
-      </app-stat-card>
+        [metrics]="wrappedData.qStats.metrics"
+        backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
+      </app-leadership-impact>
     </ng-container>
   </div>
 

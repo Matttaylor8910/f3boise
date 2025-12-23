@@ -36,7 +36,20 @@ export interface WrappedData {
 
   percentileRank: number;
 
-  qStats: {timesAsQ: number; totalPaxLed: number; averagePaxPerQ: number;};
+  qStats: {
+    timesAsQ: number;
+    totalPaxLed: number;
+    averagePaxPerQ: number;
+    metrics: Array<{
+      type: 'ao' | 'region' | 'overall' | 'diversity' | 'attendance' | 'bd_overall' | 'bd_region' | 'q_overall' | 'participation' | 'consistency';
+      label: string;
+      rank?: number;
+      total?: number;
+      percentile?: number;
+      value?: number;
+      priority: number;
+    }>;
+  };
 }
 
 export interface MonthlyData {
