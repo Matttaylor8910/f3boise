@@ -4,20 +4,10 @@
     <div class="big-stat">{{bigStat}}</div>
     <div class="stat-label" *ngIf="statLabel">{{statLabel}}</div>
 
-    <!-- Metrics cards - horizontal swipeable -->
-    <div class="metrics-scroll-container" *ngIf="metrics && metrics.length > 0">
-      <div class="metrics-scroll-wrapper" #metricsScroll>
-        <div class="metric-card" *ngFor="let metric of metrics; let i = index" [attr.data-index]="i">
-          <div class="metric-icon" [innerHTML]="getMetricIcon(metric.type)"></div>
-          <div class="metric-content">
-            <div class="metric-label">{{metric.label}}</div>
-            <div class="metric-rank" *ngIf="metric.rank">
-              <span class="rank-number">#{{metric.rank}}</span>
-              <span class="rank-total" *ngIf="metric.total"> of {{metric.total}}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+    <!-- Callout badges for top Q achievements grouped by rank -->
+    <div *ngFor="let callout of callouts" [class]="getCalloutClass(callout.rank)">
+      <ion-icon name="trophy" class="trophy-icon"></ion-icon>
+      <span>{{callout.message}}</span>
     </div>
 
     <div class="description" *ngIf="description">{{description}}</div>

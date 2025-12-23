@@ -7,11 +7,6 @@ import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
 import {WrappedService} from 'src/app/services/wrapped.service';
 
-interface BestieWithPhoto {
-  name: string;
-  posts: number;
-  photoUrl: string|null;
-}
 
 type FirebaseUser = any;
 
@@ -35,6 +30,7 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   email = '';
   isSendingEmail = false;
   bestiePhotoUrl: string|null = null;
+  qCallouts: Array<{message: string; rank: number}> = [];
 
   constructor(
       public readonly utilService: UtilService,
@@ -114,6 +110,7 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
       this.wrappedService.getWrappedData(identifier, yearNum).subscribe({
         next: (data) => {
           this.wrappedData = data;
+          this.qCallouts = this.calculateQCallouts();
           this.loadBestiePhoto();
           // Auto-scroll past intro slide
           setTimeout(() => {
@@ -137,6 +134,7 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
     this.wrappedService.getWrappedData(this.userId, yearNum).subscribe({
       next: (data) => {
         this.wrappedData = data;
+        this.qCallouts = this.calculateQCallouts();
       },
       error: (error) => {
         console.error('Error loading wrapped data:', error);
@@ -297,7 +295,8 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
           ((this.wrappedData.totalMinutesInGloom - AVERAGE_ANNUAL_MINUTES) /
            AVERAGE_ANNUAL_MINUTES) *
           100);
-      return `🏆 YOU WORKED OUT ${percentageAbove}% MORE THAN THE AVERAGE AMERICAN MAN!`;
+      return `🏆 YOU WORKED OUT ${
+          percentageAbove}% MORE THAN THE AVERAGE AMERICAN MAN!`;
     }
     return '';
   }
@@ -364,6 +363,158 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
     return `YOU LED ${this.wrappedData.qStats.timesAsQ} BEATDOWNS AND PUSHED ${
         this.wrappedData.qStats.totalPaxLed} TOTAL PAX. YOUR AVERAGE Q HAD ${
         this.wrappedData.qStats.averagePaxPerQ} PAX SHOW UP.`;
+  }
+
+  private calculateQCallouts(): Array<{message: string; rank: number}> {
+    if (!this.wrappedData?.qStats?.topQBadges || !this.wrappedData.paxName)
+      return [];
+    const wrappedData = this.wrappedData;
+    const badges = wrappedData.qStats.topQBadges;
+    const paxName = wrappedData.paxName;
+    const qCountMaps = wrappedData.qStats.qCountMaps;
+
+    // Group achievements by rank (1, 2, or 3)
+    const achievementsByRank: {[rank: number]: string[]} = {
+      1: [],
+      2: [],
+      3: [],
+    };
+
+    // Check overall (top 10)
+    if (badges.overall) {
+      // Find the rank in overall
+      const overallSorted =
+          Array.from(qCountMaps.overall.entries()).sort((a, b) => b[1] - a[1]);
+      const rank =
+          overallSorted.findIndex(
+              ([name]) => name.toLowerCase() === paxName.toLowerCase()) +
+          1;
+
+      if (rank >= 1 && rank <= 3) {
+        if (rank === 1) {
+          achievementsByRank[1].push(
+              `YOU WERE THE TOP Q ACROSS THE VALLEY IN ${wrappedData.year}`);
+        } else {
+          const suffix = this.getOrdinalSuffix(rank);
+          achievementsByRank[rank].push(
+              `YOU HAD THE ${rank}${suffix.toUpperCase()} MOST QS OVERALL`);
+        }
+      }
+    }
+
+    // Check regions (top 3)
+    if (badges.regions && badges.regions.length > 0) {
+      const regionNames = badges.regions.map(r => {
+        const regionMap: {[key: string]: string} = {
+          'city-of-trees': 'City of Trees',
+          'high-desert': 'High Desert',
+          'settlers': 'Settlers',
+          'canyon': 'Canyon',
+        };
+        return regionMap[r] || r;
+      });
+
+      // Find ranks for each region
+      badges.regions.forEach((region, index) => {
+        const regionMap = qCountMaps.regions.get(region);
+        if (regionMap) {
+          const regionSorted =
+              Array.from(regionMap.entries()).sort((a, b) => b[1] - a[1]);
+          const rank =
+              regionSorted.findIndex(
+                  ([name]) => name.toLowerCase() === paxName.toLowerCase()) +
+              1;
+
+          if (rank >= 1 && rank <= 3) {
+            const regionDisplayName = regionNames[index];
+            if (rank === 1) {
+              achievementsByRank[1].push(`YOU WERE THE TOP Q IN THE ${
+                  regionDisplayName.toUpperCase()} REGION`);
+            } else {
+              const suffix = this.getOrdinalSuffix(rank);
+              achievementsByRank[rank].push(
+                  `YOU HAD THE ${rank}${suffix.toUpperCase()} MOST QS IN THE ${
+                      regionDisplayName.toUpperCase()} REGION`);
+            }
+          }
+        }
+      });
+    }
+
+    // Check AOs (top 3)
+    if (badges.aos && badges.aos.length > 0) {
+      badges.aos.forEach(aoName => {
+        const aoMap = qCountMaps.aos.get(aoName);
+        if (aoMap) {
+          const aoSorted =
+              Array.from(aoMap.entries()).sort((a, b) => b[1] - a[1]);
+          const rank =
+              aoSorted.findIndex(
+                  ([name]) => name.toLowerCase() === paxName.toLowerCase()) +
+              1;
+
+          if (rank >= 1 && rank <= 3) {
+            const aoDisplayName =
+                this.utilService.normalizeName(aoName).toUpperCase();
+            if (rank === 1) {
+              achievementsByRank[1].push(
+                  `YOU WERE THE TOP Q AT ${aoDisplayName}`);
+            } else {
+              const suffix = this.getOrdinalSuffix(rank);
+              achievementsByRank[rank].push(`YOU HAD THE ${rank}${
+                  suffix.toUpperCase()} MOST QS AT ${aoDisplayName}`);
+            }
+          }
+        }
+      });
+    }
+
+    // Build callouts grouped by rank
+    const callouts: Array<{message: string; rank: number}> = [];
+
+    // Add gold callout (rank 1)
+    if (achievementsByRank[1].length > 0) {
+      const message = achievementsByRank[1].length === 1 ?
+          achievementsByRank[1][0] + '!' :
+          achievementsByRank[1].slice(0, -1).join(', ') + ', AND ALSO ' +
+              achievementsByRank[1][achievementsByRank[1].length - 1] + '!';
+      callouts.push({message, rank: 1});
+    }
+
+    // Add silver callout (rank 2)
+    if (achievementsByRank[2].length > 0) {
+      const message = achievementsByRank[2].length === 1 ?
+          achievementsByRank[2][0] + '!' :
+          achievementsByRank[2].slice(0, -1).join(', ') + ', AND ALSO ' +
+              achievementsByRank[2][achievementsByRank[2].length - 1] + '!';
+      callouts.push({message, rank: 2});
+    }
+
+    // Add bronze callout (rank 3)
+    if (achievementsByRank[3].length > 0) {
+      const message = achievementsByRank[3].length === 1 ?
+          achievementsByRank[3][0] + '!' :
+          achievementsByRank[3].slice(0, -1).join(', ') + ', AND ALSO ' +
+              achievementsByRank[3][achievementsByRank[3].length - 1] + '!';
+      callouts.push({message, rank: 3});
+    }
+
+    return callouts;
+  }
+
+  private getOrdinalSuffix(num: number): string {
+    const j = num % 10;
+    const k = num % 100;
+    if (j === 1 && k !== 11) {
+      return 'st';
+    }
+    if (j === 2 && k !== 12) {
+      return 'nd';
+    }
+    if (j === 3 && k !== 13) {
+      return 'rd';
+    }
+    return 'th';
   }
 
   private setupScrollListener() {

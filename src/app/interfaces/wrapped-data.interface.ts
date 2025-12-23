@@ -37,18 +37,11 @@ export interface WrappedData {
   percentileRank: number;
 
   qStats: {
-    timesAsQ: number;
-    totalPaxLed: number;
-    averagePaxPerQ: number;
-    metrics: Array<{
-      type: 'ao' | 'region' | 'overall' | 'diversity' | 'attendance' | 'bd_overall' | 'bd_region' | 'q_overall' | 'participation' | 'consistency';
-      label: string;
-      rank?: number;
-      total?: number;
-      percentile?: number;
-      value?: number;
-      priority: number;
-    }>;
+    timesAsQ: number; totalPaxLed: number; averagePaxPerQ: number; qCountMaps: {
+      overall: Map<string, number>; regions: Map<string, Map<string, number>>;
+      aos: Map<string, Map<string, number>>;
+    };
+    topQBadges: {overall?: boolean; regions?: string[]; aos?: string[];};
   };
 }
 

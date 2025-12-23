@@ -169,6 +169,78 @@
   text-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
+.callout-badge {
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1.4;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  letter-spacing: 1px;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  text-transform: uppercase;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  .trophy-icon {
+    font-size: 1.75rem;
+    flex-shrink: 0;
+  }
+}
+
+.callout-gold {
+  background: #ffd70066;
+  border: 2px solid rgba(255, 215, 0, 0.6);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(255, 215, 0, 0.4);
+
+  .trophy-icon {
+    color: rgba(255, 215, 0, 0.6);
+  }
+}
+
+.callout-silver {
+  background: #c0c0c066;
+  border: 2px solid rgba(192, 192, 192, 0.6);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(192, 192, 192, 0.4);
+
+  .trophy-icon {
+    color: rgba(192, 192, 192, 0.6);
+  }
+}
+
+.callout-bronze {
+  background: #cd7f3266;
+  border: 2px solid rgba(205, 127, 50, 0.6);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(205, 127, 50, 0.4);
+
+  .trophy-icon {
+    color: rgba(205, 127, 50, 0.6);
+  }
+}
+
+@media (max-width: 768px) {
+  .callout-badge {
+    font-size: 0.95rem;
+    padding: 0.6rem 1.2rem;
+    letter-spacing: 0.5px;
+
+    .trophy-icon {
+      font-size: 1.5rem;
+    }
+  }
+}
+
 .description {
   font-size: 1rem;
   opacity: 0.95;

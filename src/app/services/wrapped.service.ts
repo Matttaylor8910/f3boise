@@ -487,24 +487,25 @@ export class WrappedService {
       backblasts: Backblast[], paxName: string, year: number,
       userTotalPosts: number): Promise<{
     timesAsQ: number; totalPaxLed: number; averagePaxPerQ: number;
-    metrics: Array<{
-      type: 'ao' | 'region' | 'overall' | 'diversity' | 'attendance' |
-          'bd_overall' | 'bd_region' | 'q_overall' | 'participation' |
-          'consistency';
-      label: string;
-      rank?: number;
-      total?: number;
-      percentile?: number;
-      value?: number; priority: number;
-    }>;
+    qCountMaps: {
+      overall: Map<string, number>;
+      regions: Map<string, Map<string, number>>;
+      aos: Map<string, Map<string, number>>;
+    };
+    topQBadges: {
+      overall?: boolean;
+      regions?: string[];
+      aos?: string[];
+    };
   }> {
     let timesAsQ = 0;
     let totalPaxLed = 0;
     const userQBackblasts: Backblast[] = [];
+    const normalizedPaxName = paxName.toLowerCase();
 
     // Calculate user's Q stats
     backblasts.forEach(bb => {
-      const isQ = bb.qs.some(q => q.toLowerCase() === paxName.toLowerCase());
+      const isQ = bb.qs.some(q => q.toLowerCase() === normalizedPaxName);
       if (isQ) {
         timesAsQ++;
         // Total pax minus Qs (don't count Qs in the pax count)
@@ -527,29 +528,130 @@ export class WrappedService {
           bbDate.isSameOrBefore(yearEnd, 'day');
     });
 
-    // If user has no Qs, show participation/consistency metrics instead
-    // Showing up consistently IS a form of leadership
-    if (timesAsQ === 0) {
-      const participationMetrics = await this.calculateParticipationMetrics(
-          yearBackblasts, paxName, userTotalPosts, backblasts);
-      return {
-        timesAsQ,
-        totalPaxLed,
-        averagePaxPerQ,
-        metrics: participationMetrics,
-      };
+    // Helper to normalize AO name
+    const normalizeAO = (ao: string): string => {
+      return this.utilService.normalizeName(ao).toLowerCase();
+    };
+
+    // Maps to store Q counts
+    const overallQCounts = new Map<string, number>();
+    const regionQCounts = new Map<string, Map<string, number>>();
+    const aoQCounts = new Map<string, Map<string, number>>();
+
+    // Calculate Q counts for all PAX
+    yearBackblasts.forEach(bb => {
+      const normalizedAO = normalizeAO(bb.ao);
+
+      // Process each Q in this backblast
+      bb.qs.forEach(qName => {
+        const normalizedQ = qName.toLowerCase();
+
+        // Overall Q count
+        overallQCounts.set(
+            normalizedQ, (overallQCounts.get(normalizedQ) || 0) + 1);
+
+        // Region-specific Q count
+        let region: string|null = null;
+        if (CITY_OF_TREES_AOS.has(normalizedAO)) {
+          region = REGION.CITY_OF_TREES;
+        } else if (HIGH_DESERT_AOS.has(normalizedAO)) {
+          region = REGION.HIGH_DESERT;
+        } else if (SETTLERS_AOS.has(normalizedAO)) {
+          region = REGION.SETTLERS;
+        } else if (CANYON_AOS.has(normalizedAO)) {
+          region = REGION.CANYON;
+        }
+
+        if (region) {
+          if (!regionQCounts.has(region)) {
+            regionQCounts.set(region, new Map());
+          }
+          const regionMap = regionQCounts.get(region)!;
+          regionMap.set(normalizedQ, (regionMap.get(normalizedQ) || 0) + 1);
+        }
+
+        // AO-specific Q count
+        if (!aoQCounts.has(normalizedAO)) {
+          aoQCounts.set(normalizedAO, new Map());
+        }
+        const aoMap = aoQCounts.get(normalizedAO)!;
+        aoMap.set(normalizedQ, (aoMap.get(normalizedQ) || 0) + 1);
+      });
+    });
+
+    // Console log the Q maps for debugging
+    const regionsObj: {[key: string]: Array<[string, number]>} = {};
+    regionQCounts.forEach((map, region) => {
+      regionsObj[region] = Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+    });
+
+    const aosObj: {[key: string]: Array<[string, number]>} = {};
+    aoQCounts.forEach((map, ao) => {
+      aosObj[ao] = Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+    });
+
+    console.log('Q Count Maps:', {
+      overall: Array.from(overallQCounts.entries()).sort((a, b) => b[1] - a[1]),
+      regions: regionsObj,
+      aos: aosObj,
+    });
+
+    // Determine top Q badges - top 10 overall, top 3 for regions/AOs
+    const topQBadges: {
+      overall?: boolean;
+      regions?: string[];
+      aos?: string[];
+    } = {};
+
+    // Check overall - top 10
+    const overallSorted = Array.from(overallQCounts.entries())
+                                 .sort((a, b) => b[1] - a[1])
+                                 .slice(0, 10);
+    const overallTop10 = new Set(overallSorted.map(([name]) => name));
+    if (overallTop10.has(normalizedPaxName)) {
+      topQBadges.overall = true;
     }
 
-    // Calculate all metrics using Maps and Sets for efficiency
-    const metrics = await this.calculateQMetrics(
-        yearBackblasts, paxName, timesAsQ, totalPaxLed, averagePaxPerQ,
-        userQBackblasts, backblasts, userTotalPosts);
+    // Check regions - top 3
+    const topRegions: string[] = [];
+    regionQCounts.forEach((countMap, region) => {
+      const regionSorted = Array.from(countMap.entries())
+                                  .sort((a, b) => b[1] - a[1])
+                                  .slice(0, 3);
+      const regionTop3 = new Set(regionSorted.map(([name]) => name));
+      if (regionTop3.has(normalizedPaxName)) {
+        topRegions.push(region);
+      }
+    });
+    if (topRegions.length > 0) {
+      topQBadges.regions = topRegions;
+    }
+
+    // Check AOs - top 3
+    const topAOs: string[] = [];
+    aoQCounts.forEach((countMap, aoName) => {
+      const aoSorted = Array.from(countMap.entries())
+                              .sort((a, b) => b[1] - a[1])
+                              .slice(0, 3);
+      const aoTop3 = new Set(aoSorted.map(([name]) => name));
+      if (aoTop3.has(normalizedPaxName)) {
+        topAOs.push(aoName);
+      }
+    });
+    if (topAOs.length > 0) {
+      topQBadges.aos = topAOs;
+    }
 
     return {
       timesAsQ,
       totalPaxLed,
       averagePaxPerQ,
-      metrics,
+      qCountMaps: {
+        overall: overallQCounts,
+        regions: regionQCounts,
+        aos: aoQCounts,
+      },
+      topQBadges,
     };
   }
 
