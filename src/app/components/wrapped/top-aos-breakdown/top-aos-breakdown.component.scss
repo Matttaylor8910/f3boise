@@ -35,10 +35,29 @@
 h2 {
   font-size: 2.5rem;
   font-weight: 900;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   text-transform: uppercase;
   letter-spacing: 2px;
   text-shadow: 0 3px 8px rgba(0,0,0,0.4);
+}
+
+.ao-label {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.9;
+  margin-bottom: 2rem;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.cheeky-message {
+  font-size: 1rem;
+  letter-spacing: 1.5px;
+  opacity: 0.95;
+  font-weight: 700;
+  font-style: italic;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .aos-list {

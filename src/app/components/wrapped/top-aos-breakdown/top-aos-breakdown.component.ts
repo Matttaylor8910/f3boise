@@ -9,8 +9,10 @@ export class TopAosBreakdownComponent implements OnInit {
   @Input() topAOs: Array<{name: string; posts: number; percentage: number}> = [];
   @Input() backgroundGradient: string = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
 
+  isSingleAO = false;
+
   ngOnInit() {
-    // Component initialized
+    this.isSingleAO = this.topAOs.length === 1;
   }
 }
 
