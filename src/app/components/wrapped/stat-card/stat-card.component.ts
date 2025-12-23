@@ -8,14 +8,16 @@ import {UtilService} from 'src/app/services/util.service';
 })
 export class StatCardComponent {
   @Input() eyebrow: string = '';
-  @Input() bigStat: string | number = '';
+  @Input() bigStat: string|number = '';
   @Input() statLabel: string = '';
   @Input() description: string = '';
-  @Input() backgroundGradient: string = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+  @Input()
+  backgroundGradient: string =
+      'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
   @Input() decorationIcon: string = '';
   @Input() photoUrl: string|null = null;
   @Input() paxName: string = '';
-  @Input() largeStat: boolean = false;
+  @Input() hugeStat: boolean = false;
   @Input() isFirstYear: boolean = false;
   @Input() year: number = 0;
 

@@ -59,7 +59,7 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
     this.handleEmailLinkSignIn();
 
     // Get user ID from auth service
-      this.authService.authState$.subscribe(user => {
+    this.authService.authState$.subscribe(user => {
       this.user = user;
       if (user?.uid) {
         this.userId = user.email || user.uid;  // Prefer email, fallback to UID
@@ -254,7 +254,8 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   getTotalPostsDescription(): string {
     if (!this.wrappedData) return '';
     if (this.wrappedData.isFirstYear) {
-      return `WE'RE GLAD YOU STARTED MAKING FITNESS, FELLOWSHIP, AND FAITH A PART OF YOUR MORNING IN ${this.wrappedData.year}`;
+      return `WE'RE GLAD YOU STARTED MAKING FITNESS, FELLOWSHIP, AND FAITH A PART OF YOUR MORNING IN ${
+          this.wrappedData.year}`;
     }
     return `THAT'S ${
         this.wrappedData
@@ -272,6 +273,9 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
     const hours = Math.floor(this.wrappedData.totalMinutesInGloom / 60);
     const minutes = this.wrappedData.totalMinutesInGloom % 60;
     if (hours > 0) {
+      if (minutes === 0) {
+        return `THAT'S ${hours} HOURS OF PURE GLOOM.`;
+      }
       return `THAT'S ${hours} HOURS AND ${minutes} MINUTES OF PURE GLOOM.`;
     }
     return `THAT'S ${minutes} MINUTES OF PURE GLOOM.`;

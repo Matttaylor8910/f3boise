@@ -33,6 +33,7 @@ import {CombinedBreakdownComponent} from './wrapped/combined-breakdown/combined-
 import {WorkoutTypeBreakdownComponent} from './wrapped/workout-type-breakdown/workout-type-breakdown.component';
 import {HomeBaseComponent} from './wrapped/home-base/home-base.component';
 import {TopAosBreakdownComponent} from './wrapped/top-aos-breakdown/top-aos-breakdown.component';
+import {NarrativeSlideComponent} from './wrapped/narrative-slide/narrative-slide.component';
 
 @NgModule({
   declarations: [
@@ -65,6 +66,7 @@ import {TopAosBreakdownComponent} from './wrapped/top-aos-breakdown/top-aos-brea
     WorkoutTypeBreakdownComponent,
     HomeBaseComponent,
     TopAosBreakdownComponent,
+    NarrativeSlideComponent,
   ],
   imports: [
     IonicModule,
@@ -101,6 +103,7 @@ import {TopAosBreakdownComponent} from './wrapped/top-aos-breakdown/top-aos-brea
     WorkoutTypeBreakdownComponent,
     HomeBaseComponent,
     TopAosBreakdownComponent,
+    NarrativeSlideComponent,
   ],
   providers: [
     CurrencyPipe,

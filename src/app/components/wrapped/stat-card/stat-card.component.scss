@@ -89,7 +89,7 @@
   text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
-.huge-stat {
+.big-stat {
   font-size: 6rem;
   font-weight: 900;
   line-height: 1;
@@ -99,17 +99,17 @@
   letter-spacing: 2px;
 }
 
-.large-stat-card .huge-stat {
+.huge-stat .big-stat {
   font-size: 8rem;
 }
 
 @media (max-width: 768px) {
-  .huge-stat {
+  .big-stat {
     font-size: 3rem;
     letter-spacing: 1px;
   }
 
-  .large-stat-card .huge-stat {
+  .huge-stat .big-stat {
     font-size: 6.5rem;
   }
 }
