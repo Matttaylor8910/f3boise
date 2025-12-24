@@ -570,9 +570,10 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
         const currentIndex = Math.round(currentScrollTop / slideHeight);
         const expectedScrollTop = currentIndex * slideHeight;
 
-        // If user tried to scroll away, snap back
-        if (Math.abs(currentScrollTop - expectedScrollTop) > 10) {
-          container.scrollTo({top: expectedScrollTop, behavior: 'smooth'});
+        // If user tried to scroll away, snap back immediately (no smooth
+        // scroll)
+        if (Math.abs(currentScrollTop - expectedScrollTop) > 5) {
+          container.scrollTop = expectedScrollTop;
         }
         return;
       }

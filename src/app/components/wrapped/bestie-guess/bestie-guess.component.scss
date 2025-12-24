@@ -16,8 +16,19 @@
   transition: background 0.5s ease;
 
   &.prevent-navigation {
-    pointer-events: auto;
     touch-action: none;
+
+    // Prevent scrolling during delay
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1000;
+      pointer-events: none;
+    }
   }
 }
 

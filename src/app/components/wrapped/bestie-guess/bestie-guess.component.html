@@ -1,5 +1,5 @@
-<div class="guess-slide" [style.background]="currentBackgroundGradient" [class.prevent-navigation]="isWaitingForDelay" #slideElement (click)="onSlideClick($event)">
-  <div class="guess-content">
+<div class="guess-slide" [style.background]="currentBackgroundGradient" [class.prevent-navigation]="isWaitingForDelay" #slideElement>
+  <div class="guess-content" (click)="onContentClick($event)">
     <h2 class="guess-title">CAN YOU GUESS?</h2>
     <p class="guess-prompt">We won't tell them if you get it wrong.</p>
 
@@ -11,7 +11,7 @@
         [class.correct]="showFeedback && option.isCorrect"
         [class.incorrect]="showFeedback && selectedOption === i && !option.isCorrect"
         [class.disabled]="selectedOption !== null"
-        (click)="selectOption(i)"
+        (click)="selectOption(i, $event)"
         [disabled]="selectedOption !== null">
         <div class="option-avatar" *ngIf="option.photoUrl">
           <img [src]="option.photoUrl" [alt]="utilService.normalizeName(option.buddy.name)">

@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, Input, Output, ViewChild, EventEmitter} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, Output, ViewChild, EventEmitter, OnDestroy} from '@angular/core';
 import {WorkoutBuddy} from 'src/app/interfaces/wrapped-data.interface';
 import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
@@ -8,7 +8,7 @@ import {UtilService} from 'src/app/services/util.service';
   templateUrl: './bestie-guess.component.html',
   styleUrls: ['./bestie-guess.component.scss'],
 })
-export class BestieGuessComponent implements AfterViewInit {
+export class BestieGuessComponent implements AfterViewInit, OnDestroy {
   @Input() workoutBuddies: WorkoutBuddy[] = [];
   @Input() backgroundGradient: string = 'linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)';
   @Output() guessComplete = new EventEmitter<void>();
@@ -21,6 +21,8 @@ export class BestieGuessComponent implements AfterViewInit {
   correctAnswerName = '';
   private correctIndex = 0;
   isWaitingForDelay = false;
+  private scrollLockPosition: number = 0;
+  private scrollLockAnimationFrame?: number;
 
   // Dynamic background gradient
   currentBackgroundGradient = 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)'; // Neutral gray
@@ -69,8 +71,17 @@ export class BestieGuessComponent implements AfterViewInit {
     );
   }
 
-  selectOption(index: number) {
+  selectOption(index: number, event?: Event) {
     if (this.selectedOption !== null) return; // Already selected
+
+    // Prevent event bubbling and default behavior
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    // Lock scroll position immediately
+    this.lockScrollPosition();
 
     this.selectedOption = index;
     this.isCorrect = this.options[index].isCorrect;
@@ -86,16 +97,46 @@ export class BestieGuessComponent implements AfterViewInit {
 
     // Auto-advance after delay
     setTimeout(() => {
+      this.unlockScrollPosition();
       this.isWaitingForDelay = false;
       this.guessComplete.emit();
     }, 2000); // 2 second delay
+  }
+
+  private lockScrollPosition() {
+    if (this.slideElement?.nativeElement) {
+      const slide = this.slideElement.nativeElement;
+      const container = slide.closest('.wrapped-slides') as HTMLElement;
+      if (container) {
+        // Store current scroll position
+        this.scrollLockPosition = container.scrollTop;
+
+        // Lock scroll position using requestAnimationFrame
+        const lockScroll = () => {
+          if (this.isWaitingForDelay && container) {
+            if (Math.abs(container.scrollTop - this.scrollLockPosition) > 1) {
+              container.scrollTop = this.scrollLockPosition;
+            }
+            this.scrollLockAnimationFrame = requestAnimationFrame(lockScroll);
+          }
+        };
+        this.scrollLockAnimationFrame = requestAnimationFrame(lockScroll);
+      }
+    }
+  }
+
+  private unlockScrollPosition() {
+    if (this.scrollLockAnimationFrame) {
+      cancelAnimationFrame(this.scrollLockAnimationFrame);
+      this.scrollLockAnimationFrame = undefined;
+    }
   }
 
   canAdvance(): boolean {
     return !this.isWaitingForDelay;
   }
 
-  onSlideClick(event: MouseEvent) {
+  onContentClick(event: MouseEvent) {
     // Prevent navigation during the 2-second delay period
     if (this.isWaitingForDelay) {
       event.preventDefault();
@@ -103,6 +144,10 @@ export class BestieGuessComponent implements AfterViewInit {
       return false;
     }
     return true;
+  }
+
+  ngOnDestroy() {
+    this.unlockScrollPosition();
   }
 }
 
