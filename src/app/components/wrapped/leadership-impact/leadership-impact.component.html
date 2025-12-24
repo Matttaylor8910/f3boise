@@ -1,7 +1,7 @@
 <div class="stat-slide huge-stat" [style.background]="backgroundGradient" #slideElement>
   <div class="stat-card-content">
     <div class="eyebrow" *ngIf="eyebrow">{{eyebrow}}</div>
-    <div class="big-stat">{{bigStat}}</div>
+    <div class="big-stat">{{getDisplayedStat()}}</div>
     <div class="stat-label" *ngIf="statLabel">{{statLabel}}</div>
 
     <!-- Callout badges for top Q achievements grouped by rank -->

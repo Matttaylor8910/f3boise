@@ -299,7 +299,7 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
           ((this.wrappedData.totalMinutesInGloom - AVERAGE_ANNUAL_MINUTES) /
            AVERAGE_ANNUAL_MINUTES) *
           100);
-      return `🏆 YOU WORKED OUT ${
+      return `YOU WORKED OUT ${
           percentageAbove}% MORE THAN THE AVERAGE AMERICAN MAN!`;
     }
     return '';
