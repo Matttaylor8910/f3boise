@@ -49,7 +49,17 @@
   app-monthly-chart,
   app-day-breakdown,
   app-pax-network,
-  app-combined-breakdown {
+  app-combined-breakdown,
+  app-narrative-slide,
+  app-workout-type-breakdown,
+  app-top-aos-breakdown,
+  app-home-base,
+  app-regional-growth-stats,
+  app-video-slide,
+  app-bestie-guess,
+  app-leadership-impact,
+  app-streaks,
+  app-you-vs-you {
     scroll-snap-align: start;
     scroll-snap-stop: always;
     min-height: 100vh; /* Fallback for browsers that don't support dvh */

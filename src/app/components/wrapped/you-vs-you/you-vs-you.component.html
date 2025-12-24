@@ -30,7 +30,7 @@
       </div>
     </div>
 
-    <div class="stats-container" *ngIf="totalPosts || totalMinutes || timesAsQ || totalPaxEncountered">
+    <div class="stats-container" *ngIf="totalPosts || totalMinutes || timesAsQ || totalPaxEncountered || uniqueAOs">
       <!-- Total Posts -->
       <div class="stat-row">
         <div class="stat-label">Total Beatdowns</div>
@@ -86,12 +86,21 @@
           </div>
         </div>
       </div>
+
+      <!-- Unique AOs -->
+      <div class="stat-row">
+        <div class="stat-label">Unique AOs</div>
+        <div class="stat-values">
+          <span class="current-value">{{formatNumber(uniqueAOs?.current || getCurrentYearStats().uniqueAOs)}}</span>
+          <div class="comparison-group" *ngIf="hasComparisonData() && uniqueAOs">
+            <span class="change-indicator" [style.color]="getChangeColor(uniqueAOs.changePercent)">
+              {{getChangeIcon(uniqueAOs.changePercent)}} {{Math.abs(uniqueAOs.changePercent)}}%
+            </span>
+            <span class="vs-text">vs. {{previousYear}}</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-
-  <!-- Download button in bottom left -->
-  <button #downloadButton class="download-button" (click)="downloadScreenshot()" *ngIf="showStats">
-    <ion-icon name="download-outline"></ion-icon>
-  </button>
 </div>
 

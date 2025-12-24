@@ -27,7 +27,6 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   paxName: string|undefined;
   wrappedData: WrappedData|null = null;
   currentSlideIndex = 0;
-  totalSlides = 7;  // Intro slide + 6 content slides
   showEmailInput = false;
   email = '';
   isSendingEmail = false;
@@ -566,9 +565,8 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
           const slideHeight = window.innerHeight;
           const newIndex = Math.round(scrollTop / slideHeight);
 
-          if (newIndex !== this.currentSlideIndex) {
-            this.currentSlideIndex =
-                Math.max(0, Math.min(newIndex, this.totalSlides - 1));
+          if (newIndex !== this.currentSlideIndex && newIndex >= 0) {
+            this.currentSlideIndex = newIndex;
           }
 
           isScrolling = false;
@@ -601,10 +599,10 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
 
       if (Math.abs(deltaY) > threshold) {
         if (deltaY > 0) {
-          // Swipe up - next slide
+          // Swipe up (finger moved up) - scroll down to next slide
           this.nextSlide();
         } else {
-          // Swipe down - previous slide
+          // Swipe down (finger moved down) - scroll up to previous slide
           this.previousSlide();
         }
       }
@@ -612,16 +610,28 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   }
 
   nextSlide() {
-    if (this.currentSlideIndex < this.totalSlides - 1) {
-      this.currentSlideIndex++;
-      this.scrollToSlide(this.currentSlideIndex);
+    if (this.slidesContainer) {
+      const container = this.slidesContainer.nativeElement;
+      const slideHeight = window.innerHeight;
+      const currentScrollTop = container.scrollTop;
+      const nextScrollTop = currentScrollTop + slideHeight;
+      const maxScroll = container.scrollHeight - container.clientHeight;
+
+      // Only scroll if we're not at the bottom
+      if (nextScrollTop <= maxScroll) {
+        container.scrollTo({top: nextScrollTop, behavior: 'smooth'});
+      }
     }
   }
 
   previousSlide() {
-    if (this.currentSlideIndex > 0) {
-      this.currentSlideIndex--;
-      this.scrollToSlide(this.currentSlideIndex);
+    if (this.slidesContainer) {
+      const container = this.slidesContainer.nativeElement;
+      const slideHeight = window.innerHeight;
+      const currentScrollTop = container.scrollTop;
+      const prevScrollTop = Math.max(0, currentScrollTop - slideHeight);
+
+      container.scrollTo({top: prevScrollTop, behavior: 'smooth'});
     }
   }
 
@@ -748,6 +758,21 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
       changePercent: 0,
     } :
                                           null;
+  }
+
+  getComparisonUniqueAOs() {
+    if (this.wrappedData?.comparisonStats?.uniqueAOs) {
+      return this.wrappedData.comparisonStats.uniqueAOs;
+    }
+    // Calculate current year unique AOs from topAOs
+    const currentUniqueAOs = this.wrappedData?.topAOs?.length || 0;
+    return currentUniqueAOs > 0 ? {
+      current: currentUniqueAOs,
+      previous: 0,
+      change: currentUniqueAOs,
+      changePercent: 0,
+    } :
+                                  null;
   }
 
   /**

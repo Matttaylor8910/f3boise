@@ -193,45 +193,9 @@
   font-size: 0.75rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.6);
-  text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.download-button {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 1.5rem;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-radius: 50%;
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  z-index: 100;
-  padding: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.6);
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-
-  ion-icon {
-    font-size: 1.5rem;
-  }
-}
 
 @media (max-width: 768px) {
   .trading-card-header {

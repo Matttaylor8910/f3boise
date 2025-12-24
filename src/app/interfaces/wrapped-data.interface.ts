@@ -68,6 +68,7 @@ export interface WrappedData {
     totalMinutes: {current: number; previous: number; change: number; changePercent: number};
     timesAsQ: {current: number; previous: number; change: number; changePercent: number};
     totalPaxEncountered: {current: number; previous: number; change: number; changePercent: number};
+    uniqueAOs: {current: number; previous: number; change: number; changePercent: number};
   };
 }
 

@@ -123,10 +123,17 @@ export class WrappedService {
     const regionalGrowthStats = await this.calculateRegionalGrowthStats(
         paxName, year);
 
+    // Calculate unique AOs for current year
+    const uniqueAOsSet = new Set<string>();
+    userBackblasts.forEach(bb => {
+      uniqueAOsSet.add(bb.ao);
+    });
+    const currentUniqueAOs = uniqueAOsSet.size;
+
     // Calculate year-over-year comparison stats
     const comparisonStats = await this.calculateComparisonStats(
         paxName, year, totalPosts, totalMinutesInGloom, qStats.timesAsQ,
-        paxNetwork.totalPaxEncountered);
+        paxNetwork.totalPaxEncountered, currentUniqueAOs);
 
     // Calculate actual percentile rank based on BD count for the year
     const percentileRank =
@@ -1918,12 +1925,13 @@ export class WrappedService {
   private async calculateComparisonStats(
       paxName: string, currentYear: number, currentTotalPosts: number,
       currentTotalMinutes: number, currentTimesAsQ: number,
-      currentTotalPaxEncountered: number): Promise<{
+      currentTotalPaxEncountered: number, currentUniqueAOs: number): Promise<{
     previousYear: number;
     totalPosts: {current: number; previous: number; change: number; changePercent: number};
     totalMinutes: {current: number; previous: number; change: number; changePercent: number};
     timesAsQ: {current: number; previous: number; change: number; changePercent: number};
     totalPaxEncountered: {current: number; previous: number; change: number; changePercent: number};
+    uniqueAOs: {current: number; previous: number; change: number; changePercent: number};
   }|undefined> {
     const previousYear = currentYear - 1;
 
@@ -1970,6 +1978,13 @@ export class WrappedService {
     });
     const previousTotalPaxEncountered = previousPaxSet.size;
 
+    // Calculate unique AOs for previous year
+    const previousUniqueAOsSet = new Set<string>();
+    previousYearBackblasts.forEach(bb => {
+      previousUniqueAOsSet.add(bb.ao);
+    });
+    const previousUniqueAOs = previousUniqueAOsSet.size;
+
     // Helper to calculate change and percentage
     const calculateChange = (current: number, previous: number) => {
       const change = current - previous;
@@ -1981,6 +1996,7 @@ export class WrappedService {
     const minutesChange = calculateChange(currentTotalMinutes, previousTotalMinutes);
     const qChange = calculateChange(currentTimesAsQ, previousTimesAsQ);
     const paxChange = calculateChange(currentTotalPaxEncountered, previousTotalPaxEncountered);
+    const uniqueAOsChange = calculateChange(currentUniqueAOs, previousUniqueAOs);
 
     return {
       previousYear,
@@ -2007,6 +2023,12 @@ export class WrappedService {
         previous: previousTotalPaxEncountered,
         change: paxChange.change,
         changePercent: paxChange.changePercent,
+      },
+      uniqueAOs: {
+        current: currentUniqueAOs,
+        previous: previousUniqueAOs,
+        change: uniqueAOsChange.change,
+        changePercent: uniqueAOsChange.changePercent,
       },
     };
   }
