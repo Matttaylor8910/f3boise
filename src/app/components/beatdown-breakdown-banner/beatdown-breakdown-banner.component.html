@@ -1,0 +1,13 @@
+<ion-toolbar class="banner-toolbar" *ngIf="showBanner" (click)="navigateToBeatdownBreakdown()">
+  <div class="banner-content">
+    <div class="banner-text">
+      <span class="banner-title">🎁 Your {{currentYear}} Beatdown Breakdown is here!</span>
+      <span class="banner-subtitle">See your year in review</span>
+    </div>
+    <ion-button fill="clear" class="banner-button">
+      View Now
+      <ion-icon name="arrow-forward" slot="end"></ion-icon>
+    </ion-button>
+  </div>
+</ion-toolbar>
+

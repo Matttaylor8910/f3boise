@@ -41,6 +41,7 @@ import {VideoSlideComponent} from './wrapped/video-slide/video-slide.component';
 import {BestieGuessComponent} from './wrapped/bestie-guess/bestie-guess.component';
 import {RegionalGrowthStatsComponent} from './wrapped/regional-growth-stats/regional-growth-stats.component';
 import {YouVsYouComponent} from './wrapped/you-vs-you/you-vs-you.component';
+import {BeatdownBreakdownBannerComponent} from './beatdown-breakdown-banner/beatdown-breakdown-banner.component';
 
 @NgModule({
   declarations: [
@@ -81,6 +82,7 @@ import {YouVsYouComponent} from './wrapped/you-vs-you/you-vs-you.component';
     BestieGuessComponent,
     RegionalGrowthStatsComponent,
     YouVsYouComponent,
+    BeatdownBreakdownBannerComponent,
   ],
   imports: [
     IonicModule,
@@ -125,6 +127,7 @@ import {YouVsYouComponent} from './wrapped/you-vs-you/you-vs-you.component';
     BestieGuessComponent,
     RegionalGrowthStatsComponent,
     YouVsYouComponent,
+    BeatdownBreakdownBannerComponent,
   ],
   providers: [
     CurrencyPipe,
