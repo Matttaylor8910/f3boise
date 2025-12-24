@@ -1,0 +1,43 @@
+.slide-chevron {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease-in-out;
+  z-index: 10;
+  color: rgba(255, 255, 255, 0.4);
+  animation: subtle-bounce 2s ease-in-out infinite;
+
+  &.visible {
+    opacity: 1;
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  }
+}
+
+@keyframes subtle-bounce {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(8px);
+  }
+}
+
+@media (max-width: 768px) {
+  .slide-chevron {
+    bottom: 1.5rem;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+

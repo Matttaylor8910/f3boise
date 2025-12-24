@@ -25,6 +25,22 @@ import {SidebarComponent} from './sidebar/sidebar.component';
 import {TimeFilterComponent} from './time-filter/time-filter.component';
 import {UserMenuPopoverComponent} from './user-menu-popover/user-menu-popover.component';
 import {YearGridComponent} from './year-grid/year-grid.component';
+import {StatCardComponent} from './wrapped/stat-card/stat-card.component';
+import {LeadershipImpactComponent} from './wrapped/leadership-impact/leadership-impact.component';
+import {MonthlyChartComponent} from './wrapped/monthly-chart/monthly-chart.component';
+import {DayBreakdownComponent} from './wrapped/day-breakdown/day-breakdown.component';
+import {PaxNetworkComponent} from './wrapped/pax-network/pax-network.component';
+import {CombinedBreakdownComponent} from './wrapped/combined-breakdown/combined-breakdown.component';
+import {WorkoutTypeBreakdownComponent} from './wrapped/workout-type-breakdown/workout-type-breakdown.component';
+import {HomeBaseComponent} from './wrapped/home-base/home-base.component';
+import {TopAosBreakdownComponent} from './wrapped/top-aos-breakdown/top-aos-breakdown.component';
+import {NarrativeSlideComponent} from './wrapped/narrative-slide/narrative-slide.component';
+import {SlideChevronComponent} from './wrapped/slide-chevron/slide-chevron.component';
+import {StreaksComponent} from './wrapped/streaks/streaks.component';
+import {VideoSlideComponent} from './wrapped/video-slide/video-slide.component';
+import {BestieGuessComponent} from './wrapped/bestie-guess/bestie-guess.component';
+import {RegionalGrowthStatsComponent} from './wrapped/regional-growth-stats/regional-growth-stats.component';
+import {YouVsYouComponent} from './wrapped/you-vs-you/you-vs-you.component';
 
 @NgModule({
   declarations: [
@@ -49,6 +65,22 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     TimeFilterComponent,
     UserMenuPopoverComponent,
     YearGridComponent,
+    StatCardComponent,
+    LeadershipImpactComponent,
+    MonthlyChartComponent,
+    DayBreakdownComponent,
+    PaxNetworkComponent,
+    CombinedBreakdownComponent,
+    WorkoutTypeBreakdownComponent,
+    HomeBaseComponent,
+    TopAosBreakdownComponent,
+    NarrativeSlideComponent,
+    SlideChevronComponent,
+    StreaksComponent,
+    VideoSlideComponent,
+    BestieGuessComponent,
+    RegionalGrowthStatsComponent,
+    YouVsYouComponent,
   ],
   imports: [
     IonicModule,
@@ -77,6 +109,22 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     TimeFilterComponent,
     UserMenuPopoverComponent,
     YearGridComponent,
+    StatCardComponent,
+    LeadershipImpactComponent,
+    MonthlyChartComponent,
+    DayBreakdownComponent,
+    PaxNetworkComponent,
+    CombinedBreakdownComponent,
+    WorkoutTypeBreakdownComponent,
+    HomeBaseComponent,
+    TopAosBreakdownComponent,
+    NarrativeSlideComponent,
+    SlideChevronComponent,
+    StreaksComponent,
+    VideoSlideComponent,
+    BestieGuessComponent,
+    RegionalGrowthStatsComponent,
+    YouVsYouComponent,
   ],
   providers: [
     CurrencyPipe,

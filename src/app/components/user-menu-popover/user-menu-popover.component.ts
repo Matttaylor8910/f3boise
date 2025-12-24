@@ -32,10 +32,10 @@ export class UserMenuPopoverComponent {
   }
 
   async goToBeatdownBreakdown() {
-    if (this.user?.uid) {
-      await this.popoverController.dismiss();
-      this.router.navigateByUrl(`/beatdown-breakdown/${this.user.uid}`);
-    }
+    await this.popoverController.dismiss();
+    // Navigate to current year's breakdown
+    const currentYear = new Date().getFullYear();
+    this.router.navigateByUrl(`/${currentYear}`);
   }
 
   async signOut() {

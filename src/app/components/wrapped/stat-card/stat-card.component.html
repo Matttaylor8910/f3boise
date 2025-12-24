@@ -1,0 +1,33 @@
+<div class="stat-slide" [class.huge-stat]="hugeStat" [style.background]="backgroundGradient" #slideElement>
+  <div class="decoration" *ngIf="decorationIcon">{{decorationIcon}}</div>
+  <div class="stat-card-content">
+    <div class="profile-photo-container" *ngIf="photoUrl">
+      <img [src]="photoUrl" alt="Profile" class="profile-photo" />
+    </div>
+    <div class="pax-name" *ngIf="normalizedName">{{normalizedName}}</div>
+    <div class="eyebrow" *ngIf="eyebrow">{{eyebrow}}</div>
+
+    <!-- Clock animation for Time in the Gloom -->
+    <div class="clock-container" *ngIf="animateClock && clockMinutes > 0">
+      <div class="clock-face">
+        <!-- Hour hand (animated at 1/12 speed) -->
+        <div #hourHand class="clock-hand hour-hand" [style.--hour-rotation]="getHourHandRotation() + 'deg'">
+          <div class="hand-line hour-line"></div>
+        </div>
+        <!-- Minute hand (animated) -->
+        <div #clockHand class="clock-hand minute-hand" [style.--rotation]="getClockRotation() + 'deg'">
+          <div class="hand-line minute-line"></div>
+        </div>
+        <!-- Center dot -->
+        <div class="clock-center"></div>
+      </div>
+    </div>
+
+    <div class="big-stat">{{getDisplayedStat()}}</div>
+    <div class="stat-label" *ngIf="statLabel">{{statLabel}}</div>
+    <div class="callout-badge" *ngIf="callout">{{callout}}</div>
+    <div class="description" *ngIf="description">{{description}}</div>
+    <div class="stat-lead-in" *ngIf="leadIn">{{leadIn}}</div>
+  </div>
+  <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
+</div>

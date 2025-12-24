@@ -27,12 +27,6 @@ const routes: Routes = [
         import('./pages/pax/pax.module').then(m => m.PaxPageModule)
   },
   {
-    path: 'beatdown-breakdown/:userId',
-    loadChildren: () =>
-        import('./pages/beatdown-breakdown/beatdown-breakdown.module')
-            .then(m => m.BeatdownBreakdownPageModule)
-  },
-  {
     path: 'fng',
     loadChildren: () =>
         import('./pages/fng/fng.module').then(m => m.FNGPageModule)
@@ -92,6 +86,12 @@ const routes: Routes = [
     path: 'exicon',
     loadChildren: () =>
         import('./pages/exicon/exicon.module').then(m => m.ExiconPageModule)
+  },
+  {
+    path: ':year',
+    loadChildren: () =>
+        import('./pages/beatdown-breakdown/beatdown-breakdown.module')
+            .then(m => m.BeatdownBreakdownPageModule)
   }
 ];
 

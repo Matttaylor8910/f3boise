@@ -1,0 +1,32 @@
+<div class="workout-type-slide" [style.background]="backgroundGradient" #slideElement>
+  <div class="workout-type-content">
+    <div class="top-type-graphic" *ngIf="topTypeIcon">
+      <div class="icon-container">
+        <span class="workout-icon">{{topTypeIcon}}</span>
+      </div>
+    </div>
+    <h2>{{topType | uppercase}}</h2>
+    <div class="workout-type-label" *ngIf="!isSingleType">YOUR TOP WORKOUT TYPE</div>
+    <div class="workout-type-label cheeky-message" *ngIf="isSingleType">
+      YOU KNOW WHAT YOU LIKE. VARIETY IS OVERRATED.
+    </div>
+
+    <div class="workout-types-list">
+      <div class="workout-type-item" *ngFor="let workoutType of workoutTypes">
+        <div class="workout-type-header">
+          <span class="workout-type-name">{{workoutType.type | uppercase}}</span>
+          <span class="workout-type-stats">{{workoutType.count}} POSTS ({{workoutType.percentage}}%)</span>
+        </div>
+        <div class="workout-type-bar-container">
+          <div
+            class="workout-type-bar"
+            [style.width.%]="workoutType.percentage"
+            [style.background]="workoutType.color">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
+</div>
+

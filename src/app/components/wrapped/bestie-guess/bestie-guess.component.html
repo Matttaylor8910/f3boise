@@ -1,0 +1,48 @@
+<div class="guess-slide" [style.background]="currentBackgroundGradient" [class.prevent-navigation]="isWaitingForDelay" #slideElement>
+  <div class="guess-content" (click)="onContentClick($event)">
+    <h2 class="guess-title">TAP TO GUESS</h2>
+    <p class="guess-prompt">Can you guess your bestie? We won't tell them if you get it wrong.</p>
+
+    <div class="options-container">
+      <button
+        *ngFor="let option of options; let i = index"
+        class="option-button"
+        [class.selected]="selectedOption === i"
+        [class.correct]="showFeedback && option.isCorrect"
+        [class.incorrect]="showFeedback && selectedOption === i && !option.isCorrect"
+        [class.disabled]="selectedOption !== null"
+        (click)="selectOption(i, $event)"
+        [disabled]="selectedOption !== null">
+        <div class="option-avatar" *ngIf="option.photoUrl">
+          <img [src]="option.photoUrl" [alt]="utilService.normalizeName(option.buddy.name)">
+        </div>
+        <div class="option-avatar-placeholder" *ngIf="!option.photoUrl">
+          <ion-icon name="person"></ion-icon>
+        </div>
+        <div class="option-info">
+          <span class="option-name">{{utilService.normalizeName(option.buddy.name)}}</span>
+          <span class="option-bd-count" *ngIf="showFeedback">{{option.buddy.posts}} BDs</span>
+        </div>
+        <ion-icon
+          *ngIf="showFeedback && option.isCorrect"
+          name="checkmark-circle"
+          class="check-icon">
+        </ion-icon>
+        <ion-icon
+          *ngIf="showFeedback && selectedOption === i && !option.isCorrect"
+          name="close-circle"
+          class="close-icon">
+        </ion-icon>
+      </button>
+    </div>
+
+    <div class="feedback-message" *ngIf="showFeedback">
+      <p *ngIf="isCorrect" class="correct-message">That's right! 🎉</p>
+      <p *ngIf="!isCorrect" class="incorrect-message">
+        Close! It was {{correctAnswerName}}.
+      </p>
+    </div>
+  </div>
+  <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
+</div>
+

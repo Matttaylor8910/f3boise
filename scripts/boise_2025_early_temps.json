@@ -1,0 +1,2115 @@
+{
+  "meta": {
+    "source": "open-meteo archive",
+    "latitude": 43.620384,
+    "longitude": -116.29518,
+    "timezone": "America/Boise",
+    "units_in": {
+      "time": "iso8601",
+      "temperature_2m": "°C"
+    },
+    "rule": "Weekdays use 05:00, weekends use 06:00 (local time). Temps converted to °F."
+  },
+  "daily": [
+    {
+      "date": "2025-01-01",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 33.1
+    },
+    {
+      "date": "2025-01-02",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 34.9
+    },
+    {
+      "date": "2025-01-03",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 36.3
+    },
+    {
+      "date": "2025-01-04",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 34.7
+    },
+    {
+      "date": "2025-01-05",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 37.9
+    },
+    {
+      "date": "2025-01-06",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 35.2
+    },
+    {
+      "date": "2025-01-07",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 27.5
+    },
+    {
+      "date": "2025-01-08",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 29.8
+    },
+    {
+      "date": "2025-01-09",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 29.3
+    },
+    {
+      "date": "2025-01-10",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 29.8
+    },
+    {
+      "date": "2025-01-11",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 30.9
+    },
+    {
+      "date": "2025-01-12",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 28.2
+    },
+    {
+      "date": "2025-01-13",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 26.4
+    },
+    {
+      "date": "2025-01-14",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 28.9
+    },
+    {
+      "date": "2025-01-15",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 29.3
+    },
+    {
+      "date": "2025-01-16",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 29.7
+    },
+    {
+      "date": "2025-01-17",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 27.3
+    },
+    {
+      "date": "2025-01-18",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 24.4
+    },
+    {
+      "date": "2025-01-19",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 24.3
+    },
+    {
+      "date": "2025-01-20",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 21.4
+    },
+    {
+      "date": "2025-01-21",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 23.5
+    },
+    {
+      "date": "2025-01-22",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 22.6
+    },
+    {
+      "date": "2025-01-23",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 25.5
+    },
+    {
+      "date": "2025-01-24",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 29.8
+    },
+    {
+      "date": "2025-01-25",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 27.3
+    },
+    {
+      "date": "2025-01-26",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 16.7
+    },
+    {
+      "date": "2025-01-27",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 20.7
+    },
+    {
+      "date": "2025-01-28",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 24.3
+    },
+    {
+      "date": "2025-01-29",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 21.4
+    },
+    {
+      "date": "2025-01-30",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 24.4
+    },
+    {
+      "date": "2025-01-31",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 36.9
+    },
+    {
+      "date": "2025-02-01",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 36.5
+    },
+    {
+      "date": "2025-02-02",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 35.8
+    },
+    {
+      "date": "2025-02-03",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 32.9
+    },
+    {
+      "date": "2025-02-04",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 41.7
+    },
+    {
+      "date": "2025-02-05",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 37.4
+    },
+    {
+      "date": "2025-02-06",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 31.6
+    },
+    {
+      "date": "2025-02-07",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 32.2
+    },
+    {
+      "date": "2025-02-08",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 16.5
+    },
+    {
+      "date": "2025-02-09",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 25.3
+    },
+    {
+      "date": "2025-02-10",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 16
+    },
+    {
+      "date": "2025-02-11",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 10.9
+    },
+    {
+      "date": "2025-02-12",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 7
+    },
+    {
+      "date": "2025-02-13",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 9
+    },
+    {
+      "date": "2025-02-14",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 35.4
+    },
+    {
+      "date": "2025-02-15",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 25
+    },
+    {
+      "date": "2025-02-16",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 30
+    },
+    {
+      "date": "2025-02-17",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 34
+    },
+    {
+      "date": "2025-02-18",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 31.3
+    },
+    {
+      "date": "2025-02-19",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 29.1
+    },
+    {
+      "date": "2025-02-20",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 31.3
+    },
+    {
+      "date": "2025-02-21",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 26.8
+    },
+    {
+      "date": "2025-02-22",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 33.4
+    },
+    {
+      "date": "2025-02-23",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 42.8
+    },
+    {
+      "date": "2025-02-24",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 40.8
+    },
+    {
+      "date": "2025-02-25",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 32.7
+    },
+    {
+      "date": "2025-02-26",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 29.3
+    },
+    {
+      "date": "2025-02-27",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 30.7
+    },
+    {
+      "date": "2025-02-28",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 32.2
+    },
+    {
+      "date": "2025-03-01",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 32.5
+    },
+    {
+      "date": "2025-03-02",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 32.4
+    },
+    {
+      "date": "2025-03-03",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 37.6
+    },
+    {
+      "date": "2025-03-04",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 34.9
+    },
+    {
+      "date": "2025-03-05",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 31.5
+    },
+    {
+      "date": "2025-03-06",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 36.7
+    },
+    {
+      "date": "2025-03-07",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 32.2
+    },
+    {
+      "date": "2025-03-08",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 31.8
+    },
+    {
+      "date": "2025-03-09",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 38.3
+    },
+    {
+      "date": "2025-03-10",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 40.1
+    },
+    {
+      "date": "2025-03-11",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 41
+    },
+    {
+      "date": "2025-03-12",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 43.9
+    },
+    {
+      "date": "2025-03-13",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 44.8
+    },
+    {
+      "date": "2025-03-14",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 29.7
+    },
+    {
+      "date": "2025-03-15",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 34.9
+    },
+    {
+      "date": "2025-03-16",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 41.2
+    },
+    {
+      "date": "2025-03-17",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 39.6
+    },
+    {
+      "date": "2025-03-18",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 30.7
+    },
+    {
+      "date": "2025-03-19",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 29.3
+    },
+    {
+      "date": "2025-03-20",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 37.8
+    },
+    {
+      "date": "2025-03-21",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 37.9
+    },
+    {
+      "date": "2025-03-22",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 37.4
+    },
+    {
+      "date": "2025-03-23",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 40.8
+    },
+    {
+      "date": "2025-03-24",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 45.1
+    },
+    {
+      "date": "2025-03-25",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 43.2
+    },
+    {
+      "date": "2025-03-26",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 45
+    },
+    {
+      "date": "2025-03-27",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 54.7
+    },
+    {
+      "date": "2025-03-28",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 44.2
+    },
+    {
+      "date": "2025-03-29",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 40.5
+    },
+    {
+      "date": "2025-03-30",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 33.1
+    },
+    {
+      "date": "2025-03-31",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 42.6
+    },
+    {
+      "date": "2025-04-01",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 33.3
+    },
+    {
+      "date": "2025-04-02",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 30.9
+    },
+    {
+      "date": "2025-04-03",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 31.5
+    },
+    {
+      "date": "2025-04-04",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 29.7
+    },
+    {
+      "date": "2025-04-05",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 34
+    },
+    {
+      "date": "2025-04-06",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 38.3
+    },
+    {
+      "date": "2025-04-07",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 54.9
+    },
+    {
+      "date": "2025-04-08",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 45.3
+    },
+    {
+      "date": "2025-04-09",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 40.3
+    },
+    {
+      "date": "2025-04-10",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 47.3
+    },
+    {
+      "date": "2025-04-11",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 51.8
+    },
+    {
+      "date": "2025-04-12",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 45
+    },
+    {
+      "date": "2025-04-13",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 35.8
+    },
+    {
+      "date": "2025-04-14",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 37.9
+    },
+    {
+      "date": "2025-04-15",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 45.3
+    },
+    {
+      "date": "2025-04-16",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 48.9
+    },
+    {
+      "date": "2025-04-17",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 39.7
+    },
+    {
+      "date": "2025-04-18",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 36.9
+    },
+    {
+      "date": "2025-04-19",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 39.2
+    },
+    {
+      "date": "2025-04-20",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 40.8
+    },
+    {
+      "date": "2025-04-21",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 41.4
+    },
+    {
+      "date": "2025-04-22",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 39.2
+    },
+    {
+      "date": "2025-04-23",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 44.2
+    },
+    {
+      "date": "2025-04-24",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 42.4
+    },
+    {
+      "date": "2025-04-25",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 44.1
+    },
+    {
+      "date": "2025-04-26",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 46.9
+    },
+    {
+      "date": "2025-04-27",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 48.6
+    },
+    {
+      "date": "2025-04-28",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 44.4
+    },
+    {
+      "date": "2025-04-29",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 45.7
+    },
+    {
+      "date": "2025-04-30",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 42.1
+    },
+    {
+      "date": "2025-05-01",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 46.2
+    },
+    {
+      "date": "2025-05-02",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 49.6
+    },
+    {
+      "date": "2025-05-03",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 53.2
+    },
+    {
+      "date": "2025-05-04",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 47.7
+    },
+    {
+      "date": "2025-05-05",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 45.5
+    },
+    {
+      "date": "2025-05-06",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 42.6
+    },
+    {
+      "date": "2025-05-07",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 50
+    },
+    {
+      "date": "2025-05-08",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 56.8
+    },
+    {
+      "date": "2025-05-09",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 58.5
+    },
+    {
+      "date": "2025-05-10",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 61.9
+    },
+    {
+      "date": "2025-05-11",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 63.1
+    },
+    {
+      "date": "2025-05-12",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 55.4
+    },
+    {
+      "date": "2025-05-13",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 46.2
+    },
+    {
+      "date": "2025-05-14",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 43.9
+    },
+    {
+      "date": "2025-05-15",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 44.4
+    },
+    {
+      "date": "2025-05-16",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 50.2
+    },
+    {
+      "date": "2025-05-17",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 50.4
+    },
+    {
+      "date": "2025-05-18",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 46.6
+    },
+    {
+      "date": "2025-05-19",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 38.8
+    },
+    {
+      "date": "2025-05-20",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 45.7
+    },
+    {
+      "date": "2025-05-21",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 42.4
+    },
+    {
+      "date": "2025-05-22",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 53.2
+    },
+    {
+      "date": "2025-05-23",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 47.3
+    },
+    {
+      "date": "2025-05-24",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 51.6
+    },
+    {
+      "date": "2025-05-25",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 55.8
+    },
+    {
+      "date": "2025-05-26",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 61.2
+    },
+    {
+      "date": "2025-05-27",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 57.2
+    },
+    {
+      "date": "2025-05-28",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 55.6
+    },
+    {
+      "date": "2025-05-29",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 64.6
+    },
+    {
+      "date": "2025-05-30",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 60.8
+    },
+    {
+      "date": "2025-05-31",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 61.7
+    },
+    {
+      "date": "2025-06-01",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 58.5
+    },
+    {
+      "date": "2025-06-02",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 54.9
+    },
+    {
+      "date": "2025-06-03",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 52.2
+    },
+    {
+      "date": "2025-06-04",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 49.8
+    },
+    {
+      "date": "2025-06-05",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 55.2
+    },
+    {
+      "date": "2025-06-06",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 57.4
+    },
+    {
+      "date": "2025-06-07",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 61.7
+    },
+    {
+      "date": "2025-06-08",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 65.5
+    },
+    {
+      "date": "2025-06-09",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 66.6
+    },
+    {
+      "date": "2025-06-10",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 67.3
+    },
+    {
+      "date": "2025-06-11",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 70.5
+    },
+    {
+      "date": "2025-06-12",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 62.1
+    },
+    {
+      "date": "2025-06-13",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 61.9
+    },
+    {
+      "date": "2025-06-14",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 58.6
+    },
+    {
+      "date": "2025-06-15",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 59.9
+    },
+    {
+      "date": "2025-06-16",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 60.6
+    },
+    {
+      "date": "2025-06-17",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 61.3
+    },
+    {
+      "date": "2025-06-18",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 61.5
+    },
+    {
+      "date": "2025-06-19",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 63
+    },
+    {
+      "date": "2025-06-20",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 62.8
+    },
+    {
+      "date": "2025-06-21",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 48.2
+    },
+    {
+      "date": "2025-06-22",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 48.9
+    },
+    {
+      "date": "2025-06-23",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 47.1
+    },
+    {
+      "date": "2025-06-24",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 54.5
+    },
+    {
+      "date": "2025-06-25",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 60.8
+    },
+    {
+      "date": "2025-06-26",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 68.5
+    },
+    {
+      "date": "2025-06-27",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 64.4
+    },
+    {
+      "date": "2025-06-28",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 63.1
+    },
+    {
+      "date": "2025-06-29",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 61.7
+    },
+    {
+      "date": "2025-06-30",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 63.9
+    },
+    {
+      "date": "2025-07-01",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 68
+    },
+    {
+      "date": "2025-07-02",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 73.6
+    },
+    {
+      "date": "2025-07-03",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 70.2
+    },
+    {
+      "date": "2025-07-04",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 63.5
+    },
+    {
+      "date": "2025-07-05",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 57.4
+    },
+    {
+      "date": "2025-07-06",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 57.4
+    },
+    {
+      "date": "2025-07-07",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 61.7
+    },
+    {
+      "date": "2025-07-08",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 66.6
+    },
+    {
+      "date": "2025-07-09",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 68.2
+    },
+    {
+      "date": "2025-07-10",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 68.2
+    },
+    {
+      "date": "2025-07-11",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 68.9
+    },
+    {
+      "date": "2025-07-12",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 66.4
+    },
+    {
+      "date": "2025-07-13",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 68.2
+    },
+    {
+      "date": "2025-07-14",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 73.2
+    },
+    {
+      "date": "2025-07-15",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 73
+    },
+    {
+      "date": "2025-07-16",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 66.4
+    },
+    {
+      "date": "2025-07-17",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 68.5
+    },
+    {
+      "date": "2025-07-18",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 71.6
+    },
+    {
+      "date": "2025-07-19",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 69.8
+    },
+    {
+      "date": "2025-07-20",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 66.6
+    },
+    {
+      "date": "2025-07-21",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 65.8
+    },
+    {
+      "date": "2025-07-22",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 61.3
+    },
+    {
+      "date": "2025-07-23",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 62.2
+    },
+    {
+      "date": "2025-07-24",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 65.5
+    },
+    {
+      "date": "2025-07-25",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 67.1
+    },
+    {
+      "date": "2025-07-26",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 67.6
+    },
+    {
+      "date": "2025-07-27",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 65.5
+    },
+    {
+      "date": "2025-07-28",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 68
+    },
+    {
+      "date": "2025-07-29",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 70.5
+    },
+    {
+      "date": "2025-07-30",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 69.4
+    },
+    {
+      "date": "2025-07-31",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 72.7
+    },
+    {
+      "date": "2025-08-01",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 68.5
+    },
+    {
+      "date": "2025-08-02",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 66.2
+    },
+    {
+      "date": "2025-08-03",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 66.2
+    },
+    {
+      "date": "2025-08-04",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 68.2
+    },
+    {
+      "date": "2025-08-05",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 61.5
+    },
+    {
+      "date": "2025-08-06",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 67.5
+    },
+    {
+      "date": "2025-08-07",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 66.7
+    },
+    {
+      "date": "2025-08-08",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 58.8
+    },
+    {
+      "date": "2025-08-09",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 57.6
+    },
+    {
+      "date": "2025-08-10",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 59.7
+    },
+    {
+      "date": "2025-08-11",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 66.7
+    },
+    {
+      "date": "2025-08-12",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 70.7
+    },
+    {
+      "date": "2025-08-13",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 71.2
+    },
+    {
+      "date": "2025-08-14",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 71.4
+    },
+    {
+      "date": "2025-08-15",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 68.5
+    },
+    {
+      "date": "2025-08-16",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 66.2
+    },
+    {
+      "date": "2025-08-17",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 65.3
+    },
+    {
+      "date": "2025-08-18",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 65.7
+    },
+    {
+      "date": "2025-08-19",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 68.4
+    },
+    {
+      "date": "2025-08-20",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 69.1
+    },
+    {
+      "date": "2025-08-21",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 67.5
+    },
+    {
+      "date": "2025-08-22",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 65.1
+    },
+    {
+      "date": "2025-08-23",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 66
+    },
+    {
+      "date": "2025-08-24",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 71.4
+    },
+    {
+      "date": "2025-08-25",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 72
+    },
+    {
+      "date": "2025-08-26",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 68.7
+    },
+    {
+      "date": "2025-08-27",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 64.4
+    },
+    {
+      "date": "2025-08-28",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 60.8
+    },
+    {
+      "date": "2025-08-29",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 62.1
+    },
+    {
+      "date": "2025-08-30",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 59.4
+    },
+    {
+      "date": "2025-08-31",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 65.3
+    },
+    {
+      "date": "2025-09-01",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 73.9
+    },
+    {
+      "date": "2025-09-02",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 72.9
+    },
+    {
+      "date": "2025-09-03",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 71.6
+    },
+    {
+      "date": "2025-09-04",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 71.2
+    },
+    {
+      "date": "2025-09-05",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 67.1
+    },
+    {
+      "date": "2025-09-06",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 69.8
+    },
+    {
+      "date": "2025-09-07",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 62.6
+    },
+    {
+      "date": "2025-09-08",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 61.5
+    },
+    {
+      "date": "2025-09-09",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 65.1
+    },
+    {
+      "date": "2025-09-10",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 62.4
+    },
+    {
+      "date": "2025-09-11",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 59.5
+    },
+    {
+      "date": "2025-09-12",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 55.6
+    },
+    {
+      "date": "2025-09-13",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 55.9
+    },
+    {
+      "date": "2025-09-14",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 65.5
+    },
+    {
+      "date": "2025-09-15",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 54
+    },
+    {
+      "date": "2025-09-16",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 54
+    },
+    {
+      "date": "2025-09-17",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 57.7
+    },
+    {
+      "date": "2025-09-18",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 59.4
+    },
+    {
+      "date": "2025-09-19",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 64.2
+    },
+    {
+      "date": "2025-09-20",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 61.3
+    },
+    {
+      "date": "2025-09-21",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 70.3
+    },
+    {
+      "date": "2025-09-22",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 54.3
+    },
+    {
+      "date": "2025-09-23",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 55.2
+    },
+    {
+      "date": "2025-09-24",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 55.6
+    },
+    {
+      "date": "2025-09-25",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 57.9
+    },
+    {
+      "date": "2025-09-26",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 59
+    },
+    {
+      "date": "2025-09-27",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 50.5
+    },
+    {
+      "date": "2025-09-28",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 54.9
+    },
+    {
+      "date": "2025-09-29",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 67.5
+    },
+    {
+      "date": "2025-09-30",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 57
+    },
+    {
+      "date": "2025-10-01",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 55.2
+    },
+    {
+      "date": "2025-10-02",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 55.4
+    },
+    {
+      "date": "2025-10-03",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 52.5
+    },
+    {
+      "date": "2025-10-04",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 49.5
+    },
+    {
+      "date": "2025-10-05",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 43.5
+    },
+    {
+      "date": "2025-10-06",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 42.1
+    },
+    {
+      "date": "2025-10-07",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 44.1
+    },
+    {
+      "date": "2025-10-08",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 50.5
+    },
+    {
+      "date": "2025-10-09",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 52.3
+    },
+    {
+      "date": "2025-10-10",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 69.3
+    },
+    {
+      "date": "2025-10-11",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 50.2
+    },
+    {
+      "date": "2025-10-12",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 43.2
+    },
+    {
+      "date": "2025-10-13",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 46
+    },
+    {
+      "date": "2025-10-14",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 42.1
+    },
+    {
+      "date": "2025-10-15",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 42.3
+    },
+    {
+      "date": "2025-10-16",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 39.6
+    },
+    {
+      "date": "2025-10-17",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 43
+    },
+    {
+      "date": "2025-10-18",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 39.7
+    },
+    {
+      "date": "2025-10-19",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 54.5
+    },
+    {
+      "date": "2025-10-20",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 40.5
+    },
+    {
+      "date": "2025-10-21",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 37.2
+    },
+    {
+      "date": "2025-10-22",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 40.3
+    },
+    {
+      "date": "2025-10-23",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 42.4
+    },
+    {
+      "date": "2025-10-24",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 41.9
+    },
+    {
+      "date": "2025-10-25",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 51.6
+    },
+    {
+      "date": "2025-10-26",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 40.6
+    },
+    {
+      "date": "2025-10-27",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 37.6
+    },
+    {
+      "date": "2025-10-28",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 29.8
+    },
+    {
+      "date": "2025-10-29",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 37.8
+    },
+    {
+      "date": "2025-10-30",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 33.1
+    },
+    {
+      "date": "2025-10-31",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 34.3
+    },
+    {
+      "date": "2025-11-01",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 40.1
+    },
+    {
+      "date": "2025-11-02",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 48.7
+    },
+    {
+      "date": "2025-11-03",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 38.1
+    },
+    {
+      "date": "2025-11-04",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 48.6
+    },
+    {
+      "date": "2025-11-05",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 49.5
+    },
+    {
+      "date": "2025-11-06",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 46.2
+    },
+    {
+      "date": "2025-11-07",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 49.5
+    },
+    {
+      "date": "2025-11-08",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 34
+    },
+    {
+      "date": "2025-11-09",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 34.5
+    },
+    {
+      "date": "2025-11-10",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 37.9
+    },
+    {
+      "date": "2025-11-11",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 38.7
+    },
+    {
+      "date": "2025-11-12",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 41.9
+    },
+    {
+      "date": "2025-11-13",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 50.2
+    },
+    {
+      "date": "2025-11-14",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 50.4
+    },
+    {
+      "date": "2025-11-15",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 42.1
+    },
+    {
+      "date": "2025-11-16",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 48
+    },
+    {
+      "date": "2025-11-17",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 49.6
+    },
+    {
+      "date": "2025-11-18",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 41.5
+    },
+    {
+      "date": "2025-11-19",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 41.2
+    },
+    {
+      "date": "2025-11-20",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 40.8
+    },
+    {
+      "date": "2025-11-21",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 35.4
+    },
+    {
+      "date": "2025-11-22",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 33.1
+    },
+    {
+      "date": "2025-11-23",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 31.1
+    },
+    {
+      "date": "2025-11-24",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 40.8
+    },
+    {
+      "date": "2025-11-25",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 28.2
+    },
+    {
+      "date": "2025-11-26",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 34.5
+    },
+    {
+      "date": "2025-11-27",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 34.9
+    },
+    {
+      "date": "2025-11-28",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 35.8
+    },
+    {
+      "date": "2025-11-29",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 30.2
+    },
+    {
+      "date": "2025-11-30",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 32
+    },
+    {
+      "date": "2025-12-01",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 26.2
+    },
+    {
+      "date": "2025-12-02",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 32.5
+    },
+    {
+      "date": "2025-12-03",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 29.7
+    },
+    {
+      "date": "2025-12-04",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 28.6
+    },
+    {
+      "date": "2025-12-05",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 33.6
+    },
+    {
+      "date": "2025-12-06",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 40.5
+    },
+    {
+      "date": "2025-12-07",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 36.9
+    },
+    {
+      "date": "2025-12-08",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 36.7
+    },
+    {
+      "date": "2025-12-09",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 48
+    },
+    {
+      "date": "2025-12-10",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 47.7
+    },
+    {
+      "date": "2025-12-11",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 45.7
+    },
+    {
+      "date": "2025-12-12",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 39.4
+    },
+    {
+      "date": "2025-12-13",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 34.5
+    },
+    {
+      "date": "2025-12-14",
+      "targetTime": "06:00",
+      "isWeekend": true,
+      "tempF": 32
+    },
+    {
+      "date": "2025-12-15",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 34.2
+    },
+    {
+      "date": "2025-12-16",
+      "targetTime": "05:00",
+      "isWeekend": false,
+      "tempF": 39.4
+    }
+  ]
+}

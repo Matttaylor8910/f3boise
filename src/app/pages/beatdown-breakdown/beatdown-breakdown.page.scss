@@ -1,7 +1,280 @@
-.coming-soon-container {
+.loading-container,
+.error-container {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100%;
-  max-height: 500px;
+  height: 100vh;
+  padding: 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+
+  ion-spinner {
+    --color: white;
+    margin-bottom: 2rem;
+  }
+
+  ion-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.8;
+  }
+
+  p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    max-width: 300px;
+    line-height: 1.6;
+  }
+}
+
+.wrapped-slides {
+  height: 100vh; /* Fallback for browsers that don't support dvh */
+  height: 100dvh; /* Use dynamic viewport height for mobile Safari */
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+
+  // Hide scrollbar but keep functionality
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .intro-slide-in-slides,
+  app-stat-card,
+  app-monthly-chart,
+  app-day-breakdown,
+  app-pax-network,
+  app-combined-breakdown,
+  app-narrative-slide,
+  app-workout-type-breakdown,
+  app-top-aos-breakdown,
+  app-home-base,
+  app-regional-growth-stats,
+  app-video-slide,
+  app-bestie-guess,
+  app-leadership-impact,
+  app-streaks,
+  app-you-vs-you {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    min-height: 100vh; /* Fallback for browsers that don't support dvh */
+    min-height: 100dvh; /* Use dynamic viewport height for mobile Safari */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.intro-slide-in-slides {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* Fallback for browsers that don't support dvh */
+  min-height: 100dvh; /* Use dynamic viewport height for mobile Safari */
+  text-align: center;
+  padding: 0;
+  background-image: url('../../../assets/boise-dusk.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  width: 100%;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+  }
+
+  .title-section {
+    margin-bottom: 3rem;
+    position: relative;
+    z-index: 2;
+    transition: transform 0.5s ease-out, margin-bottom 0.5s ease-out;
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 900;
+      margin: 0;
+      color: #ffffff;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+
+    .subtitle {
+      font-size: 1.4rem;
+      color: #ffffff;
+      margin-top: 1rem;
+      font-weight: 600;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  }
+
+  // When email input is shown, move title section up
+  &.email-shown .title-section {
+    transform: translateY(-40px);
+    margin-bottom: 1rem;
+  }
+
+  .action-section {
+    width: 100%;
+    max-width: 300px;
+    position: relative;
+    z-index: 2;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0s 0s;
+    margin: 0 auto;
+
+    &.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0s 0.3s;
+    }
+
+    .lets-roll-button {
+      --background: #d32f2f;
+      --background-hover: #b71c1c;
+      --color: white;
+      font-size: 1.4rem;
+      font-weight: 800;
+      height: 64px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      border: 3px solid #ffffff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  .email-input-section {
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    z-index: 2;
+    padding: 0 2rem;
+    margin: 0 auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease-out 0.2s, transform 0.5s ease-out 0.2s, visibility 0s 0.5s;
+    pointer-events: none;
+
+    &.visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      transition: opacity 0.5s ease-out 0.2s, transform 0.5s ease-out 0.2s, visibility 0s 0s;
+      pointer-events: auto;
+    }
+
+    .email-prompt {
+      font-size: 1.6rem;
+      color: #ffffff;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    .slack-email-note {
+      font-size: 1rem;
+      color: #ffffff;
+      margin-bottom: 1.5rem;
+      opacity: 0.9;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    }
+
+    .email-input-item {
+      --background: rgba(255, 255, 255, 0.95);
+      --border-radius: 8px;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+
+      ion-input {
+        --color: #333;
+        --placeholder-color: #999;
+      }
+    }
+
+    .send-link-button {
+      --background: #d32f2f;
+      --background-hover: #b71c1c;
+      --color: white;
+      font-size: 1.2rem;
+      font-weight: 700;
+      height: 56px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      margin-bottom: 1rem;
+    }
+
+    .help-text {
+      font-size: 0.9rem;
+      color: #ffffff;
+      opacity: 0.85;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+      margin-top: 1rem;
+    }
+  }
+}
+
+
+// Disable scrolling when user is not authenticated
+:host ::ng-deep ion-content.no-scroll {
+  --overflow: hidden;
+  overflow: hidden !important;
+  touch-action: none;
+
+  .scroll-content {
+    overflow: hidden !important;
+    touch-action: none;
+  }
+}
+
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.close-fab-container {
+  top: 0;
+  left: 0;
+}
+
+.close-fab {
+  --background: rgba(0, 0, 0, 0.3);
+  --background-hover: rgba(0, 0, 0, 0.5);
+  --background-focused: rgba(0, 0, 0, 0.4);
+  --color: white;
+  --border-radius: 50%;
+  margin: 12px;
+  width: 32px;
+  height: 32px;
 }

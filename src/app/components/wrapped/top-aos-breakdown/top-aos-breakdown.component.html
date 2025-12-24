@@ -1,0 +1,27 @@
+<div class="top-aos-slide" [style.background]="backgroundGradient" #slideElement>
+  <div class="top-aos-content">
+    <div class="eyebrow">YOUR TOP AOS</div>
+    <h2>WHERE YOU POSTED</h2>
+    <div class="ao-label" *ngIf="!isSingleAO">YOUR TOP POSTING LOCATIONS</div>
+    <div class="ao-label cheeky-message" *ngIf="isSingleAO">
+      LOYALTY IS A VIRTUE. YOU FOUND YOUR HOME BASE AND STUCK WITH IT.
+    </div>
+
+    <div class="aos-list">
+      <div class="ao-item" *ngFor="let ao of topAOs">
+        <div class="ao-header">
+          <span class="ao-name">{{ao.name | uppercase}}</span>
+          <span class="ao-stats">{{ao.posts}} POSTS</span>
+        </div>
+        <div class="ao-bar-container">
+          <div
+            class="ao-bar"
+            [style.width.%]="ao.percentage">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
+</div>
+

@@ -1,0 +1,49 @@
+<div class="combined-slide" [style.background]="backgroundGradient" #slideElement>
+  <div class="combined-content">
+
+    <!-- Monthly Section -->
+    <div class="section">
+      <div class="section-label">Most Active Month</div>
+      <div class="section-value">{{strongestMonth}}</div>
+      <div class="chart-grid monthly-grid">
+        <div
+          class="chart-bar-wrapper"
+          [class.zero-value]="item.posts === 0"
+          *ngFor="let item of monthlyPercentages">
+          <div class="bar-count" *ngIf="item.posts > 0">{{item.posts}}</div>
+          <div
+            class="chart-item"
+            [class.highlighted]="item.isHighest"
+            [style.height.%]="item.posts === 0 ? 5 : item.scaledHeight">
+          </div>
+        </div>
+      </div>
+      <div class="chart-labels">
+        <span *ngFor="let item of monthlyPercentages">{{item.month}}</span>
+      </div>
+    </div>
+
+    <!-- Daily Section -->
+    <div class="section">
+      <div class="section-label">Favorite Day</div>
+      <div class="section-value">{{strongestDay}}</div>
+      <div class="chart-grid daily-grid">
+        <div
+          class="chart-bar-wrapper"
+          [class.zero-value]="item.posts === 0"
+          *ngFor="let item of dayPercentages">
+          <div class="bar-count" *ngIf="item.posts > 0">{{item.posts}}</div>
+          <div
+            class="chart-item"
+            [class.highlighted]="item.isHighest"
+            [style.height.%]="item.posts === 0 ? 5 : item.scaledHeight">
+          </div>
+        </div>
+      </div>
+      <div class="chart-labels">
+        <span *ngFor="let item of dayPercentages">{{item.day}}</span>
+      </div>
+    </div>
+  </div>
+  <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
+</div>

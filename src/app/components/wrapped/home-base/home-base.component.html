@@ -1,0 +1,44 @@
+<div class="home-base-slide" [style.background]="backgroundGradient" #slideElement>
+  <div class="home-base-content">
+    <div class="eyebrow">YOUR HOME AO</div>
+    <div class="big-stat">{{aoName | uppercase}}</div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{posts}}</div>
+        <div class="stat-label">POSTS</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{uniquePaxEncountered || 0}}</div>
+        <div class="stat-label">UNIQUE PAX</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{averagePaxPerWorkout || 0}}</div>
+        <div class="stat-label">AVG PAX PER BD</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{percentage || 0}}%</div>
+        <div class="stat-label">OF YOUR POSTS</div>
+      </div>
+    </div>
+
+    <div class="map-container" *ngIf="mapEmbedUrl || useJavaScriptApi">
+      <div class="map-overlay" *ngIf="!useJavaScriptApi"></div>
+      <iframe
+        *ngIf="mapEmbedUrl && !useJavaScriptApi"
+        [src]="mapEmbedUrl"
+        frameborder="0"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        class="map-embed">
+      </iframe>
+      <div
+        *ngIf="useJavaScriptApi"
+        #mapContainer
+        class="map-embed map-js">
+      </div>
+    </div>
+  </div>
+  <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
+</div>
+

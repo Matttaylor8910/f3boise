@@ -1,0 +1,120 @@
+.narrative-slide {
+  width: 100%;
+  height: 100vh; /* Fallback for browsers that don't support dvh */
+  height: 100dvh; /* Use dynamic viewport height for mobile Safari */
+  min-height: 100vh; /* Fallback for browsers that don't support dvh */
+  min-height: 100dvh; /* Use dynamic viewport height for mobile Safari */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  color: white;
+  box-sizing: border-box;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.narrative-content {
+  text-align: center;
+  z-index: 2;
+  max-width: 700px;
+  width: 100%;
+  padding: 2rem;
+}
+
+.narrative-image-container {
+  margin-bottom: 2.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.narrative-image {
+  max-width: 450px;
+  max-height: 450px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+  border-radius: 8px;
+}
+
+.narrative-icon {
+  font-size: 5rem;
+  margin-bottom: 2rem;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .narrative-image {
+    max-width: 200px;
+    max-height: 200px;
+  }
+}
+
+.narrative-title {
+  font-size: 3rem;
+  font-weight: 900;
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  line-height: 1.2;
+}
+
+.narrative-message {
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.6;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  opacity: 0.95;
+  letter-spacing: 0.5px;
+}
+
+.narrative-lead-in {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  opacity: 0.9;
+  letter-spacing: 0.5px;
+  margin-top: 2rem;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .narrative-content {
+    padding: 0;
+  }
+
+  .narrative-image {
+    max-width: 300px;
+    max-height: 300px;
+  }
+
+  .narrative-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .narrative-title {
+    font-size: 2rem;
+    letter-spacing: 2px;
+    margin-bottom: 1.5rem;
+  }
+
+  .narrative-message {
+    font-size: 1.25rem;
+    line-height: 1.5;
+  }
+
+  .narrative-lead-in {
+    font-size: 1.1rem;
+    margin-top: 1.5rem;
+  }
+}
+

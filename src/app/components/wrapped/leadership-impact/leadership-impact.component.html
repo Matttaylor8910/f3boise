@@ -1,0 +1,25 @@
+<div class="stat-slide huge-stat" [style.background]="backgroundGradient" #slideElement>
+  <div class="stat-card-content">
+    <div class="eyebrow" *ngIf="eyebrow">{{eyebrow}}</div>
+    <div class="big-stat">{{getDisplayedStat()}}</div>
+    <div class="stat-label" *ngIf="statLabel">{{statLabel}}</div>
+
+    <!-- Callout badges for top Q achievements grouped by rank -->
+    <div *ngFor="let callout of callouts" [class]="getCalloutClass(callout.rank)">
+      <ion-icon name="trophy" class="trophy-icon"></ion-icon>
+      <span>{{callout.message}}</span>
+    </div>
+
+    <!-- Simple callout for encouragement messages -->
+    <div class="callout-badge" *ngIf="simpleCallout">{{simpleCallout}}</div>
+
+    <!-- Favorite AO to lead at (shown when no callouts but they have Q'd) -->
+    <div class="callout-badge favorite-ao-callout" *ngIf="callouts.length === 0 && !simpleCallout && favoriteAOToLead">
+      {{getFavoriteAOMessage()}}
+    </div>
+
+    <div class="description" *ngIf="description">{{description}}</div>
+  </div>
+  <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
+</div>
+

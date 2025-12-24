@@ -1,0 +1,10 @@
+<div class="stat-slide huge-stat" [style.background]="backgroundGradient" #slideElement>
+  <div class="stat-card-content">
+    <div class="eyebrow" *ngIf="bestie">YOUR BESTIE</div>
+    <div class="big-stat" *ngIf="bestie">{{bestie.posts}}</div>
+    <div class="stat-label" *ngIf="bestie">{{normalizedBestieName}}</div>
+    <div class="description" *ngIf="bestie && bestie.description">{{bestie.description}}</div>
+  </div>
+  <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
+</div>
+

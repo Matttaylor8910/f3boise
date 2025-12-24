@@ -1,0 +1,106 @@
+<div class="you-vs-you-slide" [style.background]="backgroundGradient" #slideElement>
+  <!-- Video overlay (shown first 6 seconds) -->
+  <div class="video-overlay" *ngIf="showVideo && videoSrc">
+    <video
+      #videoElement
+      [src]="videoSrc"
+      class="video-player"
+      playsinline
+      preload="auto"
+      (click)="enableSoundAndPlay($event)">
+      Your browser does not support the video tag.
+    </video>
+  </div>
+
+  <!-- Stats content (shown after video) -->
+  <div class="you-vs-you-content" [class.visible]="showStats">
+    <!-- Trading Card Header -->
+    <div class="trading-card-header">
+      <div class="pax-photo-container" *ngIf="paxPhotoUrl">
+        <img [src]="paxPhotoUrl" [alt]="paxName" class="pax-photo">
+      </div>
+      <div class="pax-photo-placeholder" *ngIf="!paxPhotoUrl">
+        <ion-icon name="person" class="placeholder-icon"></ion-icon>
+      </div>
+      <div class="card-title-section">
+        <h1 class="main-title">{{hasComparisonData() ? "It's You vs You" : "Summary"}}</h1>
+        <p class="pax-name">{{paxName}}</p>
+        <p class="subtitle" *ngIf="hasComparisonData()">{{currentYear}} vs {{previousYear}}</p>
+        <p class="subtitle" *ngIf="!hasComparisonData()">{{currentYear}}</p>
+      </div>
+    </div>
+
+    <div class="stats-container" *ngIf="totalPosts || totalMinutes || timesAsQ || totalPaxEncountered || uniqueAOs">
+      <!-- Total Posts -->
+      <div class="stat-row">
+        <div class="stat-label">Total Beatdowns</div>
+        <div class="stat-values">
+          <span class="current-value">{{formatNumber(totalPosts?.current || getCurrentYearStats().totalPosts)}}</span>
+          <div class="comparison-group" *ngIf="hasComparisonData() && totalPosts">
+            <span class="change-indicator" [style.color]="getChangeColor(totalPosts.changePercent)">
+              {{getChangeIcon(totalPosts.changePercent)}} {{Math.abs(totalPosts.changePercent)}}%
+            </span>
+            <span class="vs-text">vs. {{previousYear}}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Minutes -->
+      <div class="stat-row">
+        <div class="stat-label">Total Minutes</div>
+        <div class="stat-values">
+          <span class="current-value">{{formatMinutes(totalMinutes?.current || getCurrentYearStats().totalMinutes)}}</span>
+          <div class="comparison-group" *ngIf="hasComparisonData() && totalMinutes">
+            <span class="change-indicator" [style.color]="getChangeColor(totalMinutes.changePercent)">
+              {{getChangeIcon(totalMinutes.changePercent)}} {{Math.abs(totalMinutes.changePercent)}}%
+            </span>
+            <span class="vs-text">vs. {{previousYear}}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Times as Q -->
+      <div class="stat-row">
+        <div class="stat-label">Times as Q</div>
+        <div class="stat-values">
+          <span class="current-value">{{formatNumber(timesAsQ?.current || getCurrentYearStats().timesAsQ)}}</span>
+          <div class="comparison-group" *ngIf="hasComparisonData() && timesAsQ">
+            <span class="change-indicator" [style.color]="getChangeColor(timesAsQ.changePercent)">
+              {{getChangeIcon(timesAsQ.changePercent)}} {{Math.abs(timesAsQ.changePercent)}}%
+            </span>
+            <span class="vs-text">vs. {{previousYear}}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total PAX Encountered -->
+      <div class="stat-row">
+        <div class="stat-label">PAX Posted with</div>
+        <div class="stat-values">
+          <span class="current-value">{{formatNumber(totalPaxEncountered?.current || getCurrentYearStats().totalPaxEncountered)}}</span>
+          <div class="comparison-group" *ngIf="hasComparisonData() && totalPaxEncountered">
+            <span class="change-indicator" [style.color]="getChangeColor(totalPaxEncountered.changePercent)">
+              {{getChangeIcon(totalPaxEncountered.changePercent)}} {{Math.abs(totalPaxEncountered.changePercent)}}%
+            </span>
+            <span class="vs-text">vs. {{previousYear}}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Unique AOs -->
+      <div class="stat-row">
+        <div class="stat-label">Unique AOs</div>
+        <div class="stat-values">
+          <span class="current-value">{{formatNumber(uniqueAOs?.current || getCurrentYearStats().uniqueAOs)}}</span>
+          <div class="comparison-group" *ngIf="hasComparisonData() && uniqueAOs">
+            <span class="change-indicator" [style.color]="getChangeColor(uniqueAOs.changePercent)">
+              {{getChangeIcon(uniqueAOs.changePercent)}} {{Math.abs(uniqueAOs.changePercent)}}%
+            </span>
+            <span class="vs-text">vs. {{previousYear}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
