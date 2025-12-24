@@ -694,7 +694,8 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   }
 
   /**
-   * Helper methods to get comparison stats, falling back to current year stats if no comparison
+   * Helper methods to get comparison stats, falling back to current year stats
+   * if no comparison
    */
   getComparisonTotalPosts() {
     if (this.wrappedData?.comparisonStats?.totalPosts) {
@@ -706,7 +707,8 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
       previous: 0,
       change: this.wrappedData.totalPosts,
       changePercent: 0,
-    } : null;
+    } :
+                              null;
   }
 
   getComparisonTotalMinutes() {
@@ -718,7 +720,8 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
       previous: 0,
       change: this.wrappedData.totalMinutesInGloom,
       changePercent: 0,
-    } : null;
+    } :
+                              null;
   }
 
   getComparisonTimesAsQ() {
@@ -730,7 +733,8 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
       previous: 0,
       change: this.wrappedData.qStats.timesAsQ,
       changePercent: 0,
-    } : null;
+    } :
+                                      null;
   }
 
   getComparisonTotalPaxEncountered() {
@@ -742,7 +746,8 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
       previous: 0,
       change: this.wrappedData.paxNetwork.totalPaxEncountered,
       changePercent: 0,
-    } : null;
+    } :
+                                          null;
   }
 
   /**

@@ -9,6 +9,7 @@ export class VideoSlideComponent implements AfterViewInit, OnDestroy {
   @Input() videoSrc: string = '';
   @Input() backgroundGradient: string = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
   @Input() showCountdown: boolean = true; // Show countdown timer (default true for regional videos)
+  @Input() enableFadeOut: boolean = false; // Enable fade-out on video end (default false, only for final video)
   @Output() videoEnded = new EventEmitter<void>();
   @ViewChild('videoElement', {static: false}) videoElement!: ElementRef<HTMLVideoElement>;
   @ViewChild('slideElement', {static: false}) slideElement!: ElementRef<HTMLDivElement>;
@@ -32,8 +33,13 @@ export class VideoSlideComponent implements AfterViewInit, OnDestroy {
       video.addEventListener('ended', () => {
         this.remainingSeconds = 0;
         this.clearTimeUpdate();
-        // Fade out the video
-        this.fadeOut();
+        // Only fade out if enabled (for final video)
+        if (this.enableFadeOut) {
+          this.fadeOut();
+        } else {
+          // For regional videos, just emit the event without fading
+          this.videoEnded.emit();
+        }
       });
 
       // Listen for loadedmetadata to get video duration
