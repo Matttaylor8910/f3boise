@@ -22,6 +22,133 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+}
+
+.clock-container {
+  width: 150px;
+  height: 150px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .clock-container {
+    width: 130px;
+    height: 130px;
+    margin-bottom: 1rem;
+  }
+}
+
+.clock-face {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.clock-hand {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hour-hand {
+  transform: rotate(0deg);
+  z-index: 1;
+  --hour-rotation: 0deg;
+  
+  &.clock-animating {
+    animation: hourHandRotate 5s linear forwards;
+  }
+  
+  .hour-line {
+    position: absolute;
+    width: 3px;
+    height: 30%;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 2px;
+    top: 20%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.minute-hand {
+  transform: rotate(0deg);
+  z-index: 2;
+  --rotation: 0deg;
+
+  &.clock-animating {
+    animation: clockRotate 5s linear forwards;
+  }
+
+  .hand-line {
+    position: absolute;
+    width: 2px;
+    height: 40%;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 2px;
+    top: 10%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+}
+
+.clock-center {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 3;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+  .hour-hand .hour-line {
+    width: 2.5px;
+    height: 28%;
+  }
+  
+  .minute-hand .minute-line {
+    width: 2px;
+    height: 38%;
+  }
+  
+  .clock-center {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+@keyframes clockRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(var(--rotation));
+  }
+}
+
+@keyframes hourHandRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(var(--hour-rotation));
+  }
 }
 
 .profile-photo-container {

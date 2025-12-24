@@ -223,6 +223,8 @@
         statLabel="MINUTES"
         [description]="getMinutesDescription()"
         [callout]="getMinutesCallout()"
+        [animateClock]="true"
+        [clockMinutes]="wrappedData.totalMinutesInGloom"
         leadIn='And remember 👇'
         [hugeStat]="true"
         backgroundGradient="linear-gradient(135deg, rgb(15 37 87) 0%, rgb(98 88 98) 100%)"
