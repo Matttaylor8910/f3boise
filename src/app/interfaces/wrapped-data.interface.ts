@@ -18,6 +18,8 @@ export interface WrappedData {
     map_location_url: string|null,
     consistencyRate: number,
     possibleSlots: number,
+    uniquePaxEncountered: number,
+    averagePaxPerWorkout: number,
   };
 
   topAOs: Array<{

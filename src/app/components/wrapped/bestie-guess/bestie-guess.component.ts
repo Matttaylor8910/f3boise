@@ -20,6 +20,7 @@ export class BestieGuessComponent implements AfterViewInit {
   isCorrect = false;
   correctAnswerName = '';
   private correctIndex = 0;
+  isWaitingForDelay = false;
 
   // Dynamic background gradient
   currentBackgroundGradient = 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)'; // Neutral gray
@@ -74,6 +75,7 @@ export class BestieGuessComponent implements AfterViewInit {
     this.selectedOption = index;
     this.isCorrect = this.options[index].isCorrect;
     this.showFeedback = true;
+    this.isWaitingForDelay = true;
 
     // Change background gradient based on result
     if (this.isCorrect) {
@@ -84,8 +86,23 @@ export class BestieGuessComponent implements AfterViewInit {
 
     // Auto-advance after delay
     setTimeout(() => {
+      this.isWaitingForDelay = false;
       this.guessComplete.emit();
     }, 2000); // 2 second delay
+  }
+
+  canAdvance(): boolean {
+    return !this.isWaitingForDelay;
+  }
+
+  onSlideClick(event: MouseEvent) {
+    // Prevent navigation during the 2-second delay period
+    if (this.isWaitingForDelay) {
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    }
+    return true;
   }
 }
 

@@ -253,6 +253,8 @@ export class WrappedService {
     map_location_url: string | null;
     consistencyRate: number;
     possibleSlots: number;
+    uniquePaxEncountered: number;
+    averagePaxPerWorkout: number;
   }> {
     const aoCounts = new Map<string, number>();
 
@@ -268,7 +270,9 @@ export class WrappedService {
         address: null,
         map_location_url: null,
         consistencyRate: 0,
-        possibleSlots: 0
+        possibleSlots: 0,
+        uniquePaxEncountered: 0,
+        averagePaxPerWorkout: 0,
       };
     }
 
@@ -285,6 +289,23 @@ export class WrappedService {
     const totalPosts = backblasts.length;
     const percentage =
         totalPosts > 0 ? Math.round((maxPosts / totalPosts) * 100) : 0;
+
+    // Calculate community stats for this AO
+    const topAOBackblasts = backblasts.filter(bb => bb.ao === topAO);
+    const uniquePaxSet = new Set<string>();
+    let totalPaxCount = 0;
+
+    topAOBackblasts.forEach(bb => {
+      bb.pax.forEach(pax => {
+        uniquePaxSet.add(pax.toLowerCase());
+        totalPaxCount++;
+      });
+    });
+
+    const uniquePaxEncountered = uniquePaxSet.size;
+    const averagePaxPerWorkout = topAOBackblasts.length > 0
+        ? Math.round(totalPaxCount / topAOBackblasts.length)
+        : 0;
 
     // Get workout data to find address, map_location_url, and calculate
     // consistency rate
@@ -348,6 +369,8 @@ export class WrappedService {
       map_location_url,
       consistencyRate,
       possibleSlots,
+      uniquePaxEncountered,
+      averagePaxPerWorkout,
     };
   }
 

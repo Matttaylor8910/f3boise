@@ -557,8 +557,26 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   private setupScrollListener() {
     const container = this.slidesContainer.nativeElement;
     let isScrolling = false;
+    let lastScrollTop = 0;
 
     container.addEventListener('scroll', () => {
+      // Check if we're in a bestie-guess slide that's waiting for delay
+      const bestieGuessSlide = container.querySelector(
+          'app-bestie-guess .guess-slide.prevent-navigation');
+      if (bestieGuessSlide) {
+        // Prevent scrolling during the delay - snap back to current position
+        const currentScrollTop = container.scrollTop;
+        const slideHeight = window.innerHeight;
+        const currentIndex = Math.round(currentScrollTop / slideHeight);
+        const expectedScrollTop = currentIndex * slideHeight;
+
+        // If user tried to scroll away, snap back
+        if (Math.abs(currentScrollTop - expectedScrollTop) > 10) {
+          container.scrollTo({top: expectedScrollTop, behavior: 'smooth'});
+        }
+        return;
+      }
+
       if (!isScrolling) {
         requestAnimationFrame(() => {
           const scrollTop = container.scrollTop;
@@ -569,6 +587,7 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
             this.currentSlideIndex = newIndex;
           }
 
+          lastScrollTop = scrollTop;
           isScrolling = false;
         });
         isScrolling = true;
@@ -590,9 +609,17 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
       currentY = e.touches[0].clientY;
     }, {passive: true});
 
-    container.addEventListener('touchend', () => {
+    container.addEventListener('touchend', (e: TouchEvent) => {
       if (!isDragging) return;
       isDragging = false;
+
+      // Check if the touch target is within a bestie-guess slide that's waiting
+      const target = e.target as HTMLElement;
+      const bestieGuessSlide =
+          target.closest('app-bestie-guess .guess-slide.prevent-navigation');
+      if (bestieGuessSlide) {
+        return;  // Don't allow navigation during the delay period
+      }
 
       const deltaY = startY - currentY;
       const threshold = 50;  // Minimum swipe distance
