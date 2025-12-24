@@ -16,6 +16,7 @@ export class LeadershipImpactComponent implements AfterViewInit, OnDestroy {
       'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)';
   @Input() callouts: Array<{message: string; rank: number}> = [];
   @Input() simpleCallout: string = ''; // Simple callout for encouragement messages
+  @Input() favoriteAOToLead?: string; // AO where they Q'd the most
   @Input() qCountMaps: {
     overall: Map<string, number>;
     regions: Map<string, Map<string, number>>;

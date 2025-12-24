@@ -13,6 +13,11 @@
     <!-- Simple callout for encouragement messages -->
     <div class="callout-badge" *ngIf="simpleCallout">{{simpleCallout}}</div>
 
+    <!-- Favorite AO to lead at (shown when no callouts but they have Q'd) -->
+    <div class="callout-badge favorite-ao-callout" *ngIf="callouts.length === 0 && !simpleCallout && favoriteAOToLead">
+      Your favorite place to lead was {{favoriteAOToLead}}
+    </div>
+
     <div class="description" *ngIf="description">{{description}}</div>
   </div>
   <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>

@@ -228,6 +228,14 @@
   }
 }
 
+.favorite-ao-callout {
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-style: italic;
+  text-transform: none;
+}
+
 @media (max-width: 768px) {
   .callout-badge {
     font-size: 0.95rem;

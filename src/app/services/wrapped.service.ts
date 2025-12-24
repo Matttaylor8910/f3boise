@@ -499,6 +499,7 @@ export class WrappedService {
       aos: Map<string, Map<string, number>>;
     };
     topQBadges: {overall?: boolean; regions?: string[]; aos?: string[];};
+    favoriteAOToLead?: string;
   }> {
     let timesAsQ = 0;
     let totalPaxLed = 0;
@@ -636,6 +637,24 @@ export class WrappedService {
       topQBadges.aos = topAOs;
     }
 
+    // Calculate favorite AO to lead at (AO where they Q'd the most)
+    let favoriteAOToLead: string|undefined = undefined;
+    if (userQBackblasts.length > 0) {
+      const aoQCountsForUser = new Map<string, number>();
+      userQBackblasts.forEach(bb => {
+        const ao = bb.ao;
+        aoQCountsForUser.set(ao, (aoQCountsForUser.get(ao) || 0) + 1);
+      });
+
+      let maxCount = 0;
+      aoQCountsForUser.forEach((count, ao) => {
+        if (count > maxCount) {
+          maxCount = count;
+          favoriteAOToLead = ao;
+        }
+      });
+    }
+
     return {
       timesAsQ,
       totalPaxLed,
@@ -646,6 +665,7 @@ export class WrappedService {
         aos: aoQCounts,
       },
       topQBadges,
+      favoriteAOToLead,
     };
   }
 

@@ -42,6 +42,7 @@ export interface WrappedData {
       aos: Map<string, Map<string, number>>;
     };
     topQBadges: {overall?: boolean; regions?: string[]; aos?: string[];};
+    favoriteAOToLead?: string; // AO where they Q'd the most
   };
 
   streaks: {
