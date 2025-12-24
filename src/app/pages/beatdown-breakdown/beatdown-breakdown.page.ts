@@ -7,6 +7,8 @@ import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
 import {WrappedService} from 'src/app/services/wrapped.service';
 
+import {CANYON_AOS, CITY_OF_TREES_AOS, HIGH_DESERT_AOS, SETTLERS_AOS} from '../../../../constants';
+
 
 type FirebaseUser = any;
 
@@ -112,6 +114,7 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
           this.wrappedData = data;
           this.qCallouts = this.calculateQCallouts();
           this.loadBestiePhoto();
+          this.preloadVideos();  // Preload videos when data loads
           // Auto-scroll past intro slide
           setTimeout(() => {
             this.currentSlideIndex = 1;
@@ -135,6 +138,7 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
       next: (data) => {
         this.wrappedData = data;
         this.qCallouts = this.calculateQCallouts();
+        this.preloadVideos();  // Preload videos when data loads
       },
       error: (error) => {
         console.error('Error loading wrapped data:', error);
@@ -593,5 +597,83 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
       const slideHeight = window.innerHeight;
       container.scrollTo({top: index * slideHeight, behavior: 'smooth'});
     }
+  }
+
+  /**
+   * Called when a video finishes playing
+   * Automatically advances to the next slide
+   */
+  onVideoEnded() {
+    // Small delay to ensure smooth transition
+    setTimeout(() => {
+      this.nextSlide();
+    }, 300);
+  }
+
+  /**
+   * Determines which region an AO belongs to
+   * Returns the region name or null if not found
+   */
+  getRegionForAO(aoName: string): string|null {
+    const normalizedAO = aoName.toLowerCase().trim();
+
+    if (CITY_OF_TREES_AOS.has(normalizedAO)) {
+      return 'city-of-trees';
+    } else if (HIGH_DESERT_AOS.has(normalizedAO)) {
+      return 'high-desert';
+    } else if (SETTLERS_AOS.has(normalizedAO)) {
+      return 'settlers';
+    } else if (CANYON_AOS.has(normalizedAO)) {
+      return 'canyon';
+    }
+
+    return null;
+  }
+
+  /**
+   * Gets the video path for the regional nantan video
+   * Returns null if no region is found
+   */
+  getRegionalVideoPath(): string|null {
+    if (!this.wrappedData?.topAO?.name) return null;
+    const region = this.getRegionForAO(this.wrappedData.topAO.name);
+    if (!region) return null;
+    return `/assets/wrapped/videos/${region}.MOV`;
+  }
+
+  /**
+   * Gets the path for the "only 40 more minutes" video
+   */
+  getOnly40MoreMinutesVideoPath(): string {
+    return '/assets/wrapped/videos/only40moreminutes.MOV';
+  }
+
+  /**
+   * Preloads videos when wrappedData is loaded
+   * This ensures videos are ready when users reach those slides
+   */
+  private preloadVideos() {
+    // Preload regional video if available
+    const regionalVideoPath = this.getRegionalVideoPath();
+    if (regionalVideoPath) {
+      this.preloadVideo(regionalVideoPath);
+    }
+
+    // Preload "only 40 more minutes" video
+    const only40VideoPath = this.getOnly40MoreMinutesVideoPath();
+    this.preloadVideo(only40VideoPath);
+  }
+
+  /**
+   * Preloads a single video by creating a video element
+   */
+  private preloadVideo(videoPath: string) {
+    const video = document.createElement('video');
+    video.preload = 'auto';
+    video.src = videoPath;
+    video.load();
+    // Keep reference to prevent garbage collection
+    (this as any)._preloadedVideos = (this as any)._preloadedVideos || [];
+    (this as any)._preloadedVideos.push(video);
   }
 }

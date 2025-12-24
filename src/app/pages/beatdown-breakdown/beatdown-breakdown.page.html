@@ -113,6 +113,14 @@
         backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
       </app-home-base>
 
+      <!-- Regional Nantan Video -->
+      <app-video-slide
+        *ngIf="getRegionalVideoPath()"
+        [videoSrc]="getRegionalVideoPath()!"
+        backgroundGradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)"
+        (videoEnded)="onVideoEnded()">
+      </app-video-slide>
+
       <!-- Narrative: Pushing Limits -->
       <app-narrative-slide
         *ngIf="wrappedData.workoutTypeBreakdown.length > 0"
@@ -205,8 +213,12 @@
         decorationIcon="">
       </app-stat-card>
 
-      <!-- TODO Insert a video slide of Sheets saying "Only 40 more minutes" -->
-
+      <!-- Only 40 More Minutes Video -->
+      <app-video-slide
+        [videoSrc]="getOnly40MoreMinutesVideoPath()"
+        backgroundGradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)"
+        (videoEnded)="onVideoEnded()">
+      </app-video-slide>
 
     </ng-container>
   </div>

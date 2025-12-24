@@ -1,0 +1,15 @@
+<div class="video-slide" [style.background]="backgroundGradient" #slideElement>
+  <div class="video-container">
+    <video
+      #videoElement
+      [src]="videoSrc"
+      class="video-player"
+      playsinline
+      muted
+      preload="auto">
+      Your browser does not support the video tag.
+    </video>
+  </div>
+  <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
+</div>
+

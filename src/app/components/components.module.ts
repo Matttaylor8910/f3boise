@@ -37,6 +37,7 @@ import {TopAosBreakdownComponent} from './wrapped/top-aos-breakdown/top-aos-brea
 import {NarrativeSlideComponent} from './wrapped/narrative-slide/narrative-slide.component';
 import {SlideChevronComponent} from './wrapped/slide-chevron/slide-chevron.component';
 import {StreaksComponent} from './wrapped/streaks/streaks.component';
+import {VideoSlideComponent} from './wrapped/video-slide/video-slide.component';
 
 @NgModule({
   declarations: [
@@ -73,6 +74,7 @@ import {StreaksComponent} from './wrapped/streaks/streaks.component';
     NarrativeSlideComponent,
     SlideChevronComponent,
     StreaksComponent,
+    VideoSlideComponent,
   ],
   imports: [
     IonicModule,
@@ -113,6 +115,7 @@ import {StreaksComponent} from './wrapped/streaks/streaks.component';
     NarrativeSlideComponent,
     SlideChevronComponent,
     StreaksComponent,
+    VideoSlideComponent,
   ],
   providers: [
     CurrencyPipe,
