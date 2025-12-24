@@ -161,7 +161,12 @@ export class VideoSlideComponent implements AfterViewInit, OnDestroy {
    * Enables sound and plays video (called on user interaction)
    * This is needed for mobile Safari which blocks autoplay with sound
    */
-  enableSoundAndPlay() {
+  enableSoundAndPlay(event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
     if (this.videoElement?.nativeElement) {
       const video = this.videoElement.nativeElement;
 

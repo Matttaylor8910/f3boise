@@ -127,7 +127,12 @@ export class YouVsYouComponent implements AfterViewInit, OnDestroy {
     }, 4500);
   }
 
-  enableSoundAndPlay() {
+  enableSoundAndPlay(event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
     if (this.videoElement?.nativeElement) {
       const video = this.videoElement.nativeElement;
       video.muted = false;
