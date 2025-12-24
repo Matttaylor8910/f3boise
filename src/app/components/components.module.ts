@@ -36,6 +36,7 @@ import {HomeBaseComponent} from './wrapped/home-base/home-base.component';
 import {TopAosBreakdownComponent} from './wrapped/top-aos-breakdown/top-aos-breakdown.component';
 import {NarrativeSlideComponent} from './wrapped/narrative-slide/narrative-slide.component';
 import {SlideChevronComponent} from './wrapped/slide-chevron/slide-chevron.component';
+import {StreaksComponent} from './wrapped/streaks/streaks.component';
 
 @NgModule({
   declarations: [
@@ -71,6 +72,7 @@ import {SlideChevronComponent} from './wrapped/slide-chevron/slide-chevron.compo
     TopAosBreakdownComponent,
     NarrativeSlideComponent,
     SlideChevronComponent,
+    StreaksComponent,
   ],
   imports: [
     IonicModule,
@@ -110,6 +112,7 @@ import {SlideChevronComponent} from './wrapped/slide-chevron/slide-chevron.compo
     TopAosBreakdownComponent,
     NarrativeSlideComponent,
     SlideChevronComponent,
+    StreaksComponent,
   ],
   providers: [
     CurrencyPipe,

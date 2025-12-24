@@ -1,0 +1,42 @@
+<div class="streaks-slide" [style.background]="backgroundGradient" #slideElement>
+  <div class="streaks-content">
+    <div class="eyebrow">LONGEST WEEKLY STREAK</div>
+
+    <div class="streak-display">
+      <ion-icon name="flame" class="flame-icon"></ion-icon>
+      <div class="streak-number">{{longestStreak}}</div>
+      <div class="streak-label">WEEKS</div>
+    </div>
+
+    <div class="streak-dates" *ngIf="longestStreakStart && longestStreakEnd">
+      {{formatDate(longestStreakStart)}} - {{formatDate(longestStreakEnd)}}
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-item">
+        <div class="stat-value">{{yearActivePercentage}}%</div>
+        <div class="stat-label">OF WEEKS ACTIVE IN {{year}}</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{yearActiveWeeks}}</div>
+        <div class="stat-label">OF {{yearTotalWeeks}} WEEKS</div>
+      </div>
+    </div>
+
+    <div class="weeks-grid">
+      <div
+        *ngFor="let week of weeklyData; let i = index"
+        class="week-cell"
+        [class.active]="week.isActive"
+        [title]="getWeekTooltip(week)">
+        <ion-icon name="flame" *ngIf="week.isActive" class="week-flame"></ion-icon>
+      </div>
+    </div>
+
+    <div class="congrats-message" *ngIf="yearActivePercentage === 100">
+      Kudos! You kept your streak alive all year.
+    </div>
+  </div>
+  <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
+</div>
+

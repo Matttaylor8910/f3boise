@@ -118,6 +118,7 @@ export class WrappedService {
         await this.calculateQStats(userBackblasts, paxName, year, totalPosts);
     const workoutTypeBreakdown =
         await this.calculateWorkoutTypeBreakdown(userBackblasts);
+    const streaks = await this.calculateStreaks(allBackblasts, year);
 
     // Calculate actual percentile rank based on BD count for the year
     const percentileRank =
@@ -143,6 +144,7 @@ export class WrappedService {
       paxNetwork,
       percentileRank,
       qStats,
+      streaks,
     };
   }
 
@@ -1526,5 +1528,137 @@ export class WrappedService {
     // percentile 91 → Top 10% (100 - 91 + 1 = 10)
     const topPercent = Math.max(1, 100 - percentile + 1);
     return topPercent;
+  }
+
+  private async calculateStreaks(allBackblasts: Backblast[], year: number): Promise<{
+    longestStreak: number;
+    longestStreakStart: string;
+    longestStreakEnd: string;
+    yearActiveWeeks: number;
+    yearTotalWeeks: number;
+    yearActivePercentage: number;
+    weeklyData: Array<{weekStart: string; weekEnd: string; isActive: boolean}>;
+  }> {
+    // Get all backblasts sorted by date
+    const sortedBackblasts = [...allBackblasts].sort(
+        (a, b) => moment(a.date).diff(moment(b.date)));
+
+    // Calculate year boundaries
+    const yearStart = moment(`${year}-01-01`).startOf('week'); // Start of first week
+    const yearEnd = moment(`${year}-12-31`).endOf('week'); // End of last week
+    const now = moment();
+    // Only count weeks up to the current week (don't include future weeks)
+    const actualYearEnd = now.isBefore(yearEnd) ? now.endOf('week') : yearEnd;
+    const yearTotalWeeks = actualYearEnd.diff(yearStart, 'weeks') + 1;
+
+    if (sortedBackblasts.length === 0) {
+      return {
+        longestStreak: 0,
+        longestStreakStart: '',
+        longestStreakEnd: '',
+        yearActiveWeeks: 0,
+        yearTotalWeeks,
+        yearActivePercentage: 0,
+        weeklyData: [],
+      };
+    }
+
+    // Create a set of all weeks (by week start date) that have at least one BD
+    const activeWeeks = new Set<string>();
+    sortedBackblasts.forEach(bb => {
+      const bbDate = moment(bb.date);
+      const weekStart = bbDate.clone().startOf('week');
+      activeWeeks.add(weekStart.format('YYYY-MM-DD'));
+    });
+
+    // Calculate longest streak that includes at least one week of the provided year
+    let longestStreak = 0;
+    let currentStreak = 0;
+    let longestStreakStart = '';
+    let longestStreakEnd = '';
+    let currentStreakStart = '';
+    let currentStreakIncludesYear = false;
+
+    // Get all unique week starts from backblasts, sorted
+    const allWeekStarts = Array.from(activeWeeks)
+                                 .map(w => moment(w))
+                                 .sort((a, b) => a.diff(b));
+
+    allWeekStarts.forEach((weekStart, index) => {
+      const weekEnd = weekStart.clone().endOf('week');
+      const isInYear = weekStart.isSameOrBefore(yearEnd) && weekEnd.isSameOrAfter(yearStart);
+
+      if (index === 0) {
+        // First week starts a new streak
+        currentStreak = 1;
+        currentStreakStart = weekStart.format('YYYY-MM-DD');
+        currentStreakIncludesYear = isInYear;
+      } else {
+        const prevWeekStart = allWeekStarts[index - 1];
+        const weeksDiff = weekStart.diff(prevWeekStart, 'weeks');
+        if (weeksDiff === 1) {
+          // Consecutive week - continue streak
+          currentStreak++;
+          if (isInYear) {
+            currentStreakIncludesYear = true;
+          }
+        } else {
+          // Gap - end current streak, start new one
+          if (currentStreakIncludesYear && currentStreak > longestStreak) {
+            longestStreak = currentStreak;
+            longestStreakStart = currentStreakStart;
+            // End date is the end of the last week in the streak
+            longestStreakEnd = prevWeekStart.clone().endOf('week').format('YYYY-MM-DD');
+          }
+          currentStreak = 1;
+          currentStreakStart = weekStart.format('YYYY-MM-DD');
+          currentStreakIncludesYear = isInYear;
+        }
+      }
+    });
+
+    // Check if final streak is the longest (and includes the year)
+    if (currentStreakIncludesYear && currentStreak > longestStreak) {
+      longestStreak = currentStreak;
+      longestStreakStart = currentStreakStart;
+      const lastWeekStart = allWeekStarts[allWeekStarts.length - 1];
+      longestStreakEnd = lastWeekStart.clone().endOf('week').format('YYYY-MM-DD');
+    } else if (longestStreak > 0) {
+      // Fix the end date for the longest streak (should be end of week, not start)
+      const longestStreakStartMoment = moment(longestStreakStart);
+      longestStreakEnd = longestStreakStartMoment.clone().add(longestStreak - 1, 'weeks').endOf('week').format('YYYY-MM-DD');
+    }
+
+    // Calculate weekly data for the year (only up to current week)
+    const weeklyData: Array<{weekStart: string; weekEnd: string; isActive: boolean}> =
+        [];
+    let currentWeek = yearStart.clone();
+    while (currentWeek.isSameOrBefore(actualYearEnd)) {
+      const weekStartStr = currentWeek.format('YYYY-MM-DD');
+      const weekEnd = currentWeek.clone().endOf('week');
+      const isActive = activeWeeks.has(weekStartStr);
+      weeklyData.push({
+        weekStart: weekStartStr,
+        weekEnd: weekEnd.format('YYYY-MM-DD'),
+        isActive,
+      });
+      currentWeek.add(1, 'week');
+    }
+
+    // Count active weeks in the year
+    const yearActiveWeeks = weeklyData.filter(w => w.isActive).length;
+    const yearActivePercentage =
+        yearTotalWeeks > 0 ? Math.round((yearActiveWeeks / yearTotalWeeks) * 100) :
+                             0;
+
+    return {
+      longestStreak,
+      longestStreakStart,
+      longestStreakEnd,
+      yearActiveWeeks,
+      yearTotalWeeks,
+      yearActivePercentage,
+      weeklyData,
+    };
   }
 }

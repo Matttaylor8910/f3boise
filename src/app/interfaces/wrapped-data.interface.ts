@@ -43,6 +43,14 @@ export interface WrappedData {
     };
     topQBadges: {overall?: boolean; regions?: string[]; aos?: string[];};
   };
+
+  streaks: {
+    longestStreak: number; longestStreakStart: string; longestStreakEnd: string;
+    yearActiveWeeks: number;
+    yearTotalWeeks: number;
+    yearActivePercentage: number;
+    weeklyData: Array<{weekStart: string; weekEnd: string; isActive: boolean;}>;
+  };
 }
 
 export interface MonthlyData {

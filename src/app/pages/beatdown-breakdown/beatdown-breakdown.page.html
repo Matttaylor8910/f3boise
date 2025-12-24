@@ -178,6 +178,20 @@
         backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
       </app-leadership-impact>
 
+      <!-- Streaks -->
+      <app-streaks
+        *ngIf="wrappedData.streaks"
+        [longestStreak]="wrappedData.streaks.longestStreak"
+        [longestStreakStart]="wrappedData.streaks.longestStreakStart"
+        [longestStreakEnd]="wrappedData.streaks.longestStreakEnd"
+        [yearActiveWeeks]="wrappedData.streaks.yearActiveWeeks"
+        [yearTotalWeeks]="wrappedData.streaks.yearTotalWeeks"
+        [yearActivePercentage]="wrappedData.streaks.yearActivePercentage"
+        [weeklyData]="wrappedData.streaks.weeklyData"
+        [year]="wrappedData.year"
+        backgroundGradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)">
+      </app-streaks>
+
       <!-- Total Minutes in Gloom -->
       <app-stat-card
         eyebrow="TIME IN THE GLOOM"
