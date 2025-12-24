@@ -64,7 +64,8 @@
       <!-- Narrative: Showing Up -->
       <app-narrative-slide
         title="DISRUPTION"
-        message="Q Source tells us that disruption is the foundation. When your bed wanted you to stay, you disrupted your comfort zone. You chose the Gloom."
+        message="Q Source tells us that disruption is the foundation."
+        leadIn="Your bed wanted you to stay, how often were you able to skip the snooze button?"
         imageUrl="/assets/disruption.webp"
         backgroundGradient="linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)">
       </app-narrative-slide>
@@ -76,12 +77,30 @@
         backgroundGradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)">
       </app-combined-breakdown>
 
-      <!-- Narrative: Consistency -->
+      <!-- Narrative: Preparedness -->
       <app-narrative-slide
-        title="Q3.10: CONSISTENCY"
-        message="Q3.10 talks about how consistency is a leadership virtue. That's why we HC. Consistency builds trust. Your brothers need to know they can count on you."
-        imageUrl="/assets/consistency.webp"
-        backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
+        title="PREPAREDNESS"
+        message="F3 is a leadership movement, not just a workout group. Preparedness is developed through small, difficult, daily actions."
+        leadIn="How did you prepare yourself?"
+        imageUrl="/assets/preparedness.webp"
+        backgroundGradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+      </app-narrative-slide>
+
+      <!-- Workout Type Breakdown -->
+      <app-workout-type-breakdown
+        *ngIf="wrappedData.workoutTypeBreakdown.length > 0"
+        [workoutTypes]="wrappedData.workoutTypeBreakdown"
+        backgroundGradient="linear-gradient(139deg, #609a69 0%, rgb(28 15 40) 100%)">
+      </app-workout-type-breakdown>
+
+      <!-- Narrative: Pushing Limits -->
+      <app-narrative-slide
+        *ngIf="wrappedData.workoutTypeBreakdown.length > 0"
+        title="Q1.8: WHETSTONE"
+        message="Men become effective through intentional sharpening, not isolation. In sharpening another man, a leader sharpens himself."
+        leadIn="Where was this for you?"
+        imageUrl="/assets/whetstone.webp"
+        backgroundGradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
       </app-narrative-slide>
 
       <!-- Top AOs Breakdown -->
@@ -94,8 +113,7 @@
       <!-- Narrative: Home Base -->
       <app-narrative-slide
         title="F3: THE GROUP"
-        message="F3 teaches us that the Group is foundational. This AO became your Group. It's where you found Shield Lock (Q1.7). Where you built Mutual Competence (Q3.2) with the men beside you."
-        leadIn="Who's in your shield lock?"
+        message="This AO became your Group. It's where you found Shield Lock. Where you built Mutual Competence with the men beside you."
         imageUrl="/assets/group.webp"
         backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
       </app-narrative-slide>
@@ -113,6 +131,15 @@
         backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
       </app-home-base>
 
+      <!-- Narrative: Regional Leadership -->
+      <app-narrative-slide
+        *ngIf="getRegionalVideoPath()"
+        title="REGIONAL LEADERSHIP"
+        message="Your region's Nantan has a message for you."
+        imageUrl="/assets/consistency.webp"
+        backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
+      </app-narrative-slide>
+
       <!-- Regional Nantan Video -->
       <app-video-slide
         *ngIf="getRegionalVideoPath()"
@@ -120,22 +147,6 @@
         backgroundGradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)"
         (videoEnded)="onVideoEnded()">
       </app-video-slide>
-
-      <!-- Narrative: Pushing Limits -->
-      <app-narrative-slide
-        *ngIf="wrappedData.workoutTypeBreakdown.length > 0"
-        title="Q1.8: WHETSTONE"
-        message="Q1.8 teaches us about the Whetstone. The thing that sharpens you. You found what challenges you. You didn't stay comfortable. You sought out what makes you better."
-        imageUrl="/assets/whetstone.webp"
-        backgroundGradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
-      </app-narrative-slide>
-
-      <!-- Workout Type Breakdown -->
-      <app-workout-type-breakdown
-        *ngIf="wrappedData.workoutTypeBreakdown.length > 0"
-        [workoutTypes]="wrappedData.workoutTypeBreakdown"
-        backgroundGradient="linear-gradient(139deg, #609a69 0%, rgb(28 15 40) 100%)">
-      </app-workout-type-breakdown>
 
       <!-- PAX Network -->
       <app-pax-network
@@ -147,10 +158,9 @@
       <!-- Narrative: Fellowship -->
       <app-narrative-slide
         title="Q1.7: SHIELD LOCK"
-        message="Q1.7 teaches us about Shield Lock. Locking shields with the men beside you. We don't show up at F3 for ourselves. We show up for the man standing beside each of us. The workout is the magnet. Shield Lock is what matters."
+        message="We don't show up at F3 for ourselves. We show up for the man standing beside each of us. Who stuck by your side all year?"
         imageUrl="/assets/shield-lock.webp"
-        backgroundGradient="linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)"
-        leadIn="Do you know who stuck by your side all year?">
+        backgroundGradient="linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)">
       </app-narrative-slide>
 
       <!-- Bestie -->
@@ -169,7 +179,7 @@
       <!-- Narrative: Leadership -->
       <app-narrative-slide
         title="Q3.1: SHARED LEADERSHIP"
-        message="Q3.1 teaches us about Shared Leadership. When you Q'd, you practiced it. You showed up early. You planned the beatdown. You invested in others. Leadership is a skill, not an attribute. You chose to practice it."
+        message="When you Q'd, you practiced Shared Leadership. You showed up early. You planned the beatdown. You invested in others. How many times did you lead?"
         imageUrl="/assets/lead-right.webp"
         backgroundGradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)">
       </app-narrative-slide>
@@ -185,6 +195,14 @@
         [qCountMaps]="wrappedData.qStats.qCountMaps"
         backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
       </app-leadership-impact>
+
+      <!-- Narrative: Consistency -->
+      <app-narrative-slide
+        title="Q3.10: CONSISTENCY"
+        message="Consistency builds trust. Your brothers need to know they can count on you. How many weeks were you active?"
+        imageUrl="/assets/consistency.webp"
+        backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
+      </app-narrative-slide>
 
       <!-- Streaks -->
       <app-streaks
@@ -207,7 +225,7 @@
         statLabel="MINUTES"
         [description]="getMinutesDescription()"
         [callout]="getMinutesCallout()"
-        leadIn='"Only 40 more minutes!"'
+        leadIn='And remember 👇'
         [hugeStat]="true"
         backgroundGradient="linear-gradient(135deg, rgb(15 37 87) 0%, rgb(98 88 98) 100%)"
         decorationIcon="">

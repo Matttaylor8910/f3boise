@@ -645,7 +645,7 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
    * Gets the path for the "only 40 more minutes" video
    */
   getOnly40MoreMinutesVideoPath(): string {
-    return '/assets/wrapped/videos/only40moreminutes.MOV';
+    return '/assets/wrapped/videos/only40moreminutes.mp4';
   }
 
   /**
