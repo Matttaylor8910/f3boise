@@ -93,6 +93,7 @@ export class YouVsYouComponent implements AfterViewInit, OnDestroy {
         // Fallback to muted autoplay
         video.muted = true;
         video.play();
+        video.muted = false;
       });
     }
 
