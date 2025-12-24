@@ -1,0 +1,31 @@
+<div class="regional-growth-slide" [style.background]="backgroundGradient" #slideElement>
+  <div class="regional-growth-content">
+    <div class="eyebrow">YOUR REGION</div>
+    <div class="region-name">{{getRegionDisplayName()}}</div>
+
+    <div class="stats-container">
+      <div class="stat-item">
+        <div class="stat-value">{{totalBDs.toLocaleString()}}</div>
+        <div class="stat-label">Total Beatdowns</div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-value">{{totalPax.toLocaleString()}}</div>
+        <div class="stat-label">Total PAX</div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-value">{{totalAOs}}</div>
+        <div class="stat-label">AO{{totalAOs > 1 ? 's' : ''}}</div>
+        <div class="stat-sublabel" *ngIf="newAOs.length > 0">{{newAOs.length}} new</div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-value">{{totalFNGs.toLocaleString()}}</div>
+        <div class="stat-label">FNGs</div>
+      </div>
+    </div>
+  </div>
+  <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
+</div>
+

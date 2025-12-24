@@ -130,6 +130,18 @@
       </app-narrative-slide>
 
 
+      <!-- Regional Growth Stats -->
+      <app-regional-growth-stats
+        *ngIf="wrappedData.regionalGrowthStats"
+        [region]="wrappedData.regionalGrowthStats.region"
+        [totalBDs]="wrappedData.regionalGrowthStats.totalBDs"
+        [totalPax]="wrappedData.regionalGrowthStats.totalPax"
+        [totalAOs]="wrappedData.regionalGrowthStats.totalAOs"
+        [newAOs]="wrappedData.regionalGrowthStats.newAOs"
+        [totalFNGs]="wrappedData.regionalGrowthStats.totalFNGs"
+        backgroundGradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)">
+      </app-regional-growth-stats>
+
       <!-- Regional Nantan Video -->
       <app-video-slide
         *ngIf="getRegionalVideoPath()"

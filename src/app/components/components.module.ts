@@ -39,6 +39,7 @@ import {SlideChevronComponent} from './wrapped/slide-chevron/slide-chevron.compo
 import {StreaksComponent} from './wrapped/streaks/streaks.component';
 import {VideoSlideComponent} from './wrapped/video-slide/video-slide.component';
 import {BestieGuessComponent} from './wrapped/bestie-guess/bestie-guess.component';
+import {RegionalGrowthStatsComponent} from './wrapped/regional-growth-stats/regional-growth-stats.component';
 
 @NgModule({
   declarations: [
@@ -77,6 +78,7 @@ import {BestieGuessComponent} from './wrapped/bestie-guess/bestie-guess.componen
     StreaksComponent,
     VideoSlideComponent,
     BestieGuessComponent,
+    RegionalGrowthStatsComponent,
   ],
   imports: [
     IonicModule,
@@ -119,6 +121,7 @@ import {BestieGuessComponent} from './wrapped/bestie-guess/bestie-guess.componen
     StreaksComponent,
     VideoSlideComponent,
     BestieGuessComponent,
+    RegionalGrowthStatsComponent,
   ],
   providers: [
     CurrencyPipe,

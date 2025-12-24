@@ -119,6 +119,10 @@ export class WrappedService {
         await this.calculateWorkoutTypeBreakdown(userBackblasts);
     const streaks = await this.calculateStreaks(allBackblasts, year);
 
+    // Calculate regional growth stats for the user's region
+    const regionalGrowthStats = await this.calculateRegionalGrowthStats(
+        paxName, year);
+
     // Calculate actual percentile rank based on BD count for the year
     const percentileRank =
         await this.calculatePercentileRank(paxName, totalPosts, year);
@@ -144,6 +148,7 @@ export class WrappedService {
       percentileRank,
       qStats,
       streaks,
+      regionalGrowthStats,
     };
   }
 
@@ -1653,6 +1658,230 @@ export class WrappedService {
       yearTotalWeeks,
       yearActivePercentage,
       weeklyData,
+    };
+  }
+
+  /**
+   * Calculates regional growth stats for the user's home region
+   * Returns stats about total BDs, new AOs, and FNGs in that region
+   */
+  private async calculateRegionalGrowthStats(
+      paxName: string, year: number): Promise<{
+    region: string;
+    totalBDs: number;
+    totalPax: number;
+    totalAOs: number;
+    newAOs: string[];
+    totalFNGs: number;
+  }|undefined> {
+    // Get the user's PAX to determine their home region
+    const pax = await this.paxService.getPax(paxName);
+    if (!pax) return undefined;
+
+    // Get user's backblasts to determine their home AO (most frequent AO)
+    const userBackblasts = await this.backblastService.getBackblastsForPax(
+        paxName, BBType.BACKBLAST);
+
+    if (userBackblasts.length === 0) return undefined;
+
+    // Find user's home AO (most frequent AO overall)
+    const aoCounts = new Map<string, number>();
+    userBackblasts.forEach(bb => {
+      aoCounts.set(bb.ao, (aoCounts.get(bb.ao) || 0) + 1);
+    });
+
+    let homeAO = '';
+    let maxCount = 0;
+    aoCounts.forEach((count, ao) => {
+      if (count > maxCount) {
+        maxCount = count;
+        homeAO = ao;
+      }
+    });
+
+    // Determine user's region from their home AO
+    const normalizedAO = this.utilService.normalizeName(homeAO).toLowerCase();
+    let region: string|null = null;
+    if (CITY_OF_TREES_AOS.has(normalizedAO)) {
+      region = REGION.CITY_OF_TREES;
+    } else if (HIGH_DESERT_AOS.has(normalizedAO)) {
+      region = REGION.HIGH_DESERT;
+    } else if (SETTLERS_AOS.has(normalizedAO)) {
+      region = REGION.SETTLERS;
+    } else if (CANYON_AOS.has(normalizedAO)) {
+      region = REGION.CANYON;
+    }
+
+    if (!region) return undefined;
+
+    // Get ALL backblasts for the year (not just user's)
+    const allBackblasts = await this.backblastService.getAllData(BBType.BACKBLAST);
+    const yearStart = moment(`${year}-01-01`);
+    const yearEnd = moment(`${year}-12-31`).endOf('day');
+    const yearBackblasts = allBackblasts.filter(bb => {
+      const bbDate = moment(bb.date);
+      return bbDate.isSameOrAfter(yearStart, 'day') &&
+          bbDate.isSameOrBefore(yearEnd, 'day');
+    });
+
+    // Get ALL backblasts ever (to determine first BD dates for FNGs and AOs)
+    const allBackblastsEver = await this.backblastService.getAllData(BBType.BACKBLAST);
+
+    // Helper to normalize AO names
+    const normalizeAO = (ao: string) => this.utilService.normalizeName(ao).toLowerCase();
+
+    // Track first BD date per AO (for new AOs)
+    const aoFirstBDDates = new Map<string, moment.Moment>();
+    allBackblastsEver.forEach(bb => {
+      const normalizedAO = normalizeAO(bb.ao);
+      const bbDate = moment(bb.date);
+      const existingDate = aoFirstBDDates.get(normalizedAO);
+      if (!existingDate || bbDate.isBefore(existingDate)) {
+        aoFirstBDDates.set(normalizedAO, bbDate);
+      }
+    });
+
+    // Track first BD date per PAX (for FNGs)
+    const paxFirstBDDates = new Map<string, moment.Moment>();
+    allBackblastsEver.forEach(bb => {
+      bb.pax.forEach(paxName => {
+        const normalizedPax = paxName.toLowerCase();
+        const existingDate = paxFirstBDDates.get(normalizedPax);
+        const bbDate = moment(bb.date);
+        if (!existingDate || bbDate.isBefore(existingDate)) {
+          paxFirstBDDates.set(normalizedPax, bbDate);
+        }
+      });
+    });
+
+    // Pre-calculate home AOs for all PAX in the current year (for FNG determination)
+    const paxYearAOCounts = new Map<string, Map<string, number>>(); // PAX -> AO -> count
+    yearBackblasts.forEach(bb => {
+      const normalizedAO = normalizeAO(bb.ao);
+      bb.pax.forEach(paxName => {
+        const normalizedPax = paxName.toLowerCase();
+        if (!paxYearAOCounts.has(normalizedPax)) {
+          paxYearAOCounts.set(normalizedPax, new Map());
+        }
+        const aoMap = paxYearAOCounts.get(normalizedPax)!;
+        aoMap.set(normalizedAO, (aoMap.get(normalizedAO) || 0) + 1);
+      });
+    });
+
+    // Pre-calculate home AOs for all FNGs
+    // Map normalized PAX name to original PAX name and their home AO
+    const normalizedToOriginalPax = new Map<string, string>();
+    const fngHomeAOs = new Map<string, string>(); // normalized PAX name -> normalized home AO
+
+    // First pass: build mapping of normalized to original PAX names
+    yearBackblasts.forEach(bb => {
+      bb.pax.forEach(paxName => {
+        const normalizedPax = paxName.toLowerCase();
+        if (!normalizedToOriginalPax.has(normalizedPax)) {
+          normalizedToOriginalPax.set(normalizedPax, paxName);
+        }
+      });
+    });
+
+    // Second pass: calculate home AOs for FNGs
+    paxYearAOCounts.forEach((aoCounts, normalizedPax) => {
+      const firstBDDate = paxFirstBDDates.get(normalizedPax);
+      // Only process FNGs (first BD was this year)
+      if (firstBDDate && firstBDDate.isSameOrAfter(yearStart, 'day') &&
+          firstBDDate.isSameOrBefore(yearEnd, 'day')) {
+        let homeAO = '';
+        let maxCount = 0;
+        aoCounts.forEach((count, ao) => {
+          if (count > maxCount) {
+            maxCount = count;
+            homeAO = ao;
+          }
+        });
+        if (homeAO) {
+          fngHomeAOs.set(normalizedPax, homeAO);
+        }
+      }
+    });
+
+    // Calculate stats for the user's region
+    let totalBDs = 0;
+    const newAOs = new Set<string>();
+    const allAOs = new Set<string>(); // Track all unique AOs in the region
+    const fngs = new Set<string>();
+    const uniquePax = new Set<string>(); // Track unique PAX in the region
+
+    yearBackblasts.forEach(bb => {
+      const normalizedAO = normalizeAO(bb.ao);
+      let bbRegion: string|null = null;
+      if (CITY_OF_TREES_AOS.has(normalizedAO)) {
+        bbRegion = REGION.CITY_OF_TREES;
+      } else if (HIGH_DESERT_AOS.has(normalizedAO)) {
+        bbRegion = REGION.HIGH_DESERT;
+      } else if (SETTLERS_AOS.has(normalizedAO)) {
+        bbRegion = REGION.SETTLERS;
+      } else if (CANYON_AOS.has(normalizedAO)) {
+        bbRegion = REGION.CANYON;
+      }
+
+      // Count BDs in this region
+      if (bbRegion === region) {
+        totalBDs++;
+
+        // Track unique AOs in this region
+        allAOs.add(bb.ao); // Use original AO name, not normalized
+
+        // Track unique PAX in this region
+        bb.pax.forEach(paxName => {
+          uniquePax.add(paxName.toLowerCase());
+        });
+
+        // Check if this AO is new (first BD was this year)
+        const firstBDDate = aoFirstBDDates.get(normalizedAO);
+        if (firstBDDate && firstBDDate.isSameOrAfter(yearStart, 'day') &&
+            firstBDDate.isSameOrBefore(yearEnd, 'day')) {
+          newAOs.add(bb.ao); // Use original AO name, not normalized
+        }
+
+        // Check each PAX in this BD for FNG status
+        bb.pax.forEach(paxName => {
+          const normalizedPax = paxName.toLowerCase();
+          const firstBDDate = paxFirstBDDates.get(normalizedPax);
+
+          // FNG: first BD ever was this year
+          if (firstBDDate && firstBDDate.isSameOrAfter(yearStart, 'day') &&
+              firstBDDate.isSameOrBefore(yearEnd, 'day')) {
+            // Get their pre-calculated home AO (using normalized name)
+            const homeAOForFNG = fngHomeAOs.get(normalizedPax);
+
+            if (homeAOForFNG) {
+              // Check if their home AO is in this region
+              let fngRegion: string|null = null;
+              if (CITY_OF_TREES_AOS.has(homeAOForFNG)) {
+                fngRegion = REGION.CITY_OF_TREES;
+              } else if (HIGH_DESERT_AOS.has(homeAOForFNG)) {
+                fngRegion = REGION.HIGH_DESERT;
+              } else if (SETTLERS_AOS.has(homeAOForFNG)) {
+                fngRegion = REGION.SETTLERS;
+              } else if (CANYON_AOS.has(homeAOForFNG)) {
+                fngRegion = REGION.CANYON;
+              }
+
+              if (fngRegion === region) {
+                fngs.add(paxName);
+              }
+            }
+          }
+        });
+      }
+    });
+
+    return {
+      region,
+      totalBDs,
+      totalPax: uniquePax.size,
+      totalAOs: allAOs.size,
+      newAOs: Array.from(newAOs).sort(),
+      totalFNGs: fngs.size,
     };
   }
 }

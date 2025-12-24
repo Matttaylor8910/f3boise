@@ -51,6 +51,15 @@ export interface WrappedData {
     yearActivePercentage: number;
     weeklyData: Array<{weekStart: string; weekEnd: string; isActive: boolean;}>;
   };
+
+  regionalGrowthStats?: {
+    region: string;
+    totalBDs: number;
+    totalPax: number;
+    totalAOs: number;
+    newAOs: string[];
+    totalFNGs: number;
+  };
 }
 
 export interface MonthlyData {
