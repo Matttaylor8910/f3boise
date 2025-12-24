@@ -391,10 +391,20 @@ export class WrappedService {
     // Helper to convert name to workout ID format
     // Lowercase, spaces replaced by hyphens, non-alphanumeric chars removed
     const nameToWorkoutId = (name: string): string => {
-      return name.toLowerCase()
+      let workoutId = name.toLowerCase()
           .replace(/\s+/g, '-')  // Replace spaces with hyphens
           .replace(
               /[^a-z0-9-]/g, '');  // Remove any non-alphanumeric/hyphen chars
+
+      // Hardcoded remaps for known mismatches
+      if (workoutId === 'war-horse') {
+        workoutId = 'warhorse';
+      }
+      if (workoutId === 'ruckership-west') {
+        workoutId = 'ruckershipwest';
+      }
+
+      return workoutId;
     };
 
     // Create a map of workout ID to workout
@@ -1446,10 +1456,20 @@ export class WrappedService {
 
     // Helper to convert name to workout ID format (same as minutes calculation)
     const nameToWorkoutId = (name: string): string => {
-      return name.toLowerCase()
+      let workoutId = name.toLowerCase()
           .replace(/\s+/g, '-')  // Replace spaces with hyphens
           .replace(
               /[^a-z0-9-]/g, '');  // Remove any non-alphanumeric/hyphen chars
+
+      // Hardcoded remaps for known mismatches
+      if (workoutId === 'war-horse') {
+        workoutId = 'warhorse';
+      }
+      if (workoutId === 'ruckership-west') {
+        workoutId = 'ruckershipwest';
+      }
+
+      return workoutId;
     };
 
     // Create a map of workout ID to workout type
