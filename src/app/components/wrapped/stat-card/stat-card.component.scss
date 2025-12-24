@@ -70,11 +70,11 @@
   transform: rotate(0deg);
   z-index: 1;
   --hour-rotation: 0deg;
-  
+
   &.clock-animating {
     animation: hourHandRotate 5s linear forwards;
   }
-  
+
   .hour-line {
     position: absolute;
     width: 3px;
@@ -121,12 +121,12 @@
     width: 2.5px;
     height: 28%;
   }
-  
+
   .minute-hand .minute-line {
     width: 2px;
     height: 38%;
   }
-  
+
   .clock-center {
     width: 6px;
     height: 6px;

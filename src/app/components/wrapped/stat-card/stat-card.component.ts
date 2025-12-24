@@ -24,6 +24,7 @@ export class StatCardComponent implements AfterViewInit, OnDestroy {
   @Input() callout: string = '';
   @Input() animateClock: boolean = false; // Enable clock animation
   @Input() clockMinutes: number = 0; // Minutes to animate (for rotation calculation)
+  @Input() animateCount: boolean = false; // Enable count-up animation for numbers
 
   @ViewChild('slideElement', {static: false}) slideElement!: ElementRef<HTMLDivElement>;
   @ViewChild('clockHand', {static: false}) clockHand!: ElementRef<HTMLDivElement>;
@@ -32,12 +33,14 @@ export class StatCardComponent implements AfterViewInit, OnDestroy {
   private intersectionObserver?: IntersectionObserver;
   clockAnimationStarted = false;
   animatedMinutes: number = 0;
+  animatedValue: number = 0;
+  countAnimationStarted = false;
   private animationFrameId?: number;
 
   constructor(private readonly utilService: UtilService) {}
 
   ngAfterViewInit() {
-    if (this.animateClock && this.clockMinutes > 0) {
+    if ((this.animateClock && this.clockMinutes > 0) || this.animateCount) {
       this.setupIntersectionObserver();
     }
   }
@@ -62,9 +65,14 @@ export class StatCardComponent implements AfterViewInit, OnDestroy {
 
     this.intersectionObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting && !this.clockAnimationStarted) {
-          // Slide is visible, start the clock animation
-          this.startClockAnimation();
+        if (entry.isIntersecting) {
+          // Slide is visible, start animations
+          if (this.animateClock && this.clockMinutes > 0 && !this.clockAnimationStarted) {
+            this.startClockAnimation();
+          }
+          if (this.animateCount && !this.countAnimationStarted) {
+            this.startCountAnimation();
+          }
         }
       });
     }, options);
@@ -108,21 +116,57 @@ export class StatCardComponent implements AfterViewInit, OnDestroy {
     this.animationFrameId = requestAnimationFrame(animate);
   }
 
+  private startCountAnimation() {
+    const targetValue = typeof this.bigStat === 'number' ? this.bigStat : parseInt(this.bigStat.toString(), 10);
+    if (isNaN(targetValue)) {
+      return; // Can't animate non-numeric values
+    }
+
+    this.countAnimationStarted = true;
+    this.animateCountUp(targetValue);
+  }
+
+  private animateCountUp(targetValue: number) {
+    const startTime = performance.now();
+    const duration = 2000; // 2 seconds for count animation
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1); // Clamp between 0 and 1
+
+      // Ease-out function for smoother animation
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      this.animatedValue = Math.floor(easeOut * targetValue);
+
+      if (progress < 1) {
+        this.animationFrameId = requestAnimationFrame(animate);
+      } else {
+        // Ensure we end at exactly the target
+        this.animatedValue = targetValue;
+      }
+    };
+
+    this.animationFrameId = requestAnimationFrame(animate);
+  }
+
   /**
-   * Get the displayed stat value - either animated minutes or the original bigStat
+   * Get the displayed stat value - either animated minutes, animated count, or the original bigStat
    */
   getDisplayedStat(): string {
     if (this.animateClock && this.clockMinutes > 0) {
-      return this.formatMinutes(this.animatedMinutes);
+      return this.formatNumber(this.animatedMinutes);
+    }
+    if (this.animateCount && this.countAnimationStarted) {
+      return this.formatNumber(this.animatedValue);
     }
     return typeof this.bigStat === 'string' ? this.bigStat : this.bigStat.toString();
   }
 
   /**
-   * Format minutes with commas (e.g., 1,234)
+   * Format number with commas (e.g., 1,234)
    */
-  private formatMinutes(minutes: number): string {
-    return minutes.toLocaleString();
+  private formatNumber(num: number): string {
+    return num.toLocaleString();
   }
 
   get normalizedName(): string {
