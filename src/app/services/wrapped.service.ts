@@ -123,6 +123,11 @@ export class WrappedService {
     const regionalGrowthStats = await this.calculateRegionalGrowthStats(
         paxName, year);
 
+    // Calculate year-over-year comparison stats
+    const comparisonStats = await this.calculateComparisonStats(
+        paxName, year, totalPosts, totalMinutesInGloom, qStats.timesAsQ,
+        paxNetwork.totalPaxEncountered);
+
     // Calculate actual percentile rank based on BD count for the year
     const percentileRank =
         await this.calculatePercentileRank(paxName, totalPosts, year);
@@ -149,6 +154,7 @@ export class WrappedService {
       qStats,
       streaks,
       regionalGrowthStats,
+      comparisonStats,
     };
   }
 
@@ -1734,18 +1740,16 @@ export class WrappedService {
 
     if (!region) return undefined;
 
-    // Get ALL backblasts for the year (not just user's)
-    const allBackblasts = await this.backblastService.getAllData(BBType.BACKBLAST);
+    // Get ALL backblasts ever (to determine first BD dates for FNGs and AOs)
+    // Only call getAllData once and reuse it
+    const allBackblastsEver = await this.backblastService.getAllData(BBType.BACKBLAST);
     const yearStart = moment(`${year}-01-01`);
     const yearEnd = moment(`${year}-12-31`).endOf('day');
-    const yearBackblasts = allBackblasts.filter(bb => {
+    const yearBackblasts = allBackblastsEver.filter(bb => {
       const bbDate = moment(bb.date);
       return bbDate.isSameOrAfter(yearStart, 'day') &&
           bbDate.isSameOrBefore(yearEnd, 'day');
     });
-
-    // Get ALL backblasts ever (to determine first BD dates for FNGs and AOs)
-    const allBackblastsEver = await this.backblastService.getAllData(BBType.BACKBLAST);
 
     // Helper to normalize AO names
     const normalizeAO = (ao: string) => this.utilService.normalizeName(ao).toLowerCase();
@@ -1902,6 +1906,108 @@ export class WrappedService {
       totalAOs: allAOs.size,
       newAOs: Array.from(newAOs).sort(),
       totalFNGs: fngs.size,
+    };
+  }
+
+  /**
+   * Calculates year-over-year comparison stats
+   * Compares current year to previous year
+   * NOTE: This calculates only the minimal stats needed, not full wrapped data,
+   * to avoid infinite recursion
+   */
+  private async calculateComparisonStats(
+      paxName: string, currentYear: number, currentTotalPosts: number,
+      currentTotalMinutes: number, currentTimesAsQ: number,
+      currentTotalPaxEncountered: number): Promise<{
+    previousYear: number;
+    totalPosts: {current: number; previous: number; change: number; changePercent: number};
+    totalMinutes: {current: number; previous: number; change: number; changePercent: number};
+    timesAsQ: {current: number; previous: number; change: number; changePercent: number};
+    totalPaxEncountered: {current: number; previous: number; change: number; changePercent: number};
+  }|undefined> {
+    const previousYear = currentYear - 1;
+
+    // Get all backblasts for this pax (we already have this, but need it for previous year)
+    const allBackblasts = await this.backblastService.getBackblastsForPax(
+        paxName, BBType.BACKBLAST);
+
+    // Filter to previous year only
+    const previousYearStart = moment(`${previousYear}-01-01`);
+    const previousYearEnd = moment(`${previousYear}-12-31`).endOf('day');
+    const previousYearBackblasts = allBackblasts.filter(bb => {
+      const bbDate = moment(bb.date);
+      return bbDate.isSameOrAfter(previousYearStart, 'day') &&
+          bbDate.isSameOrBefore(previousYearEnd, 'day');
+    });
+
+    // If no previous year data, return undefined
+    if (previousYearBackblasts.length === 0) {
+      return undefined;
+    }
+
+    // Calculate minimal stats for previous year (only what we need for comparison)
+    const previousTotalPosts = previousYearBackblasts.length;
+
+    // Calculate total minutes for previous year
+    const previousTotalMinutes = await this.calculateTotalMinutesInGloom(previousYearBackblasts);
+
+    // Calculate Q stats for previous year
+    const normalizedPaxName = paxName.toLowerCase();
+    let previousTimesAsQ = 0;
+    previousYearBackblasts.forEach(bb => {
+      const isQ = bb.qs.some(q => q.toLowerCase() === normalizedPaxName);
+      if (isQ) {
+        previousTimesAsQ++;
+      }
+    });
+
+    // Calculate total PAX encountered for previous year
+    const previousPaxSet = new Set<string>();
+    previousYearBackblasts.forEach(bb => {
+      bb.pax.forEach(pax => {
+        previousPaxSet.add(pax.toLowerCase());
+      });
+    });
+    const previousTotalPaxEncountered = previousPaxSet.size;
+
+    // Helper to calculate change and percentage
+    const calculateChange = (current: number, previous: number) => {
+      const change = current - previous;
+      const changePercent = previous > 0 ? Math.round((change / previous) * 100) : (current > 0 ? 100 : 0);
+      return {change, changePercent};
+    };
+
+    const postsChange = calculateChange(currentTotalPosts, previousTotalPosts);
+    const minutesChange = calculateChange(currentTotalMinutes, previousTotalMinutes);
+    const qChange = calculateChange(currentTimesAsQ, previousTimesAsQ);
+    const paxChange = calculateChange(currentTotalPaxEncountered, previousTotalPaxEncountered);
+
+    return {
+      previousYear,
+      totalPosts: {
+        current: currentTotalPosts,
+        previous: previousTotalPosts,
+        change: postsChange.change,
+        changePercent: postsChange.changePercent,
+      },
+      totalMinutes: {
+        current: currentTotalMinutes,
+        previous: previousTotalMinutes,
+        change: minutesChange.change,
+        changePercent: minutesChange.changePercent,
+      },
+      timesAsQ: {
+        current: currentTimesAsQ,
+        previous: previousTimesAsQ,
+        change: qChange.change,
+        changePercent: qChange.changePercent,
+      },
+      totalPaxEncountered: {
+        current: currentTotalPaxEncountered,
+        previous: previousTotalPaxEncountered,
+        change: paxChange.change,
+        changePercent: paxChange.changePercent,
+      },
     };
   }
 }

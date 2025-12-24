@@ -248,13 +248,20 @@
         decorationIcon="">
       </app-stat-card>
 
-      <!-- Only 40 More Minutes Video -->
-      <app-video-slide
+      <!-- You vs You Comparison (includes video) -->
+      <app-you-vs-you
+        [currentYear]="wrappedData.year"
+        [previousYear]="wrappedData.comparisonStats?.previousYear || wrappedData.year - 1"
+        [totalPosts]="getComparisonTotalPosts()"
+        [totalMinutes]="getComparisonTotalMinutes()"
+        [timesAsQ]="getComparisonTimesAsQ()"
+        [totalPaxEncountered]="getComparisonTotalPaxEncountered()"
+        [paxName]="wrappedData.paxName"
+        [paxPhotoUrl]="wrappedData.paxPhotoUrl"
+        [isFirstYear]="wrappedData.isFirstYear"
         [videoSrc]="getOnly40MoreMinutesVideoPath()"
-        [showCountdown]="false"
-        backgroundGradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)"
-        (videoEnded)="onVideoEnded()">
-      </app-video-slide>
+        backgroundGradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)">
+      </app-you-vs-you>
 
     </ng-container>
   </div>

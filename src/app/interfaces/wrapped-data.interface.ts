@@ -61,6 +61,14 @@ export interface WrappedData {
     newAOs: string[];
     totalFNGs: number;
   };
+
+  comparisonStats?: {
+    previousYear: number;
+    totalPosts: {current: number; previous: number; change: number; changePercent: number};
+    totalMinutes: {current: number; previous: number; change: number; changePercent: number};
+    timesAsQ: {current: number; previous: number; change: number; changePercent: number};
+    totalPaxEncountered: {current: number; previous: number; change: number; changePercent: number};
+  };
 }
 
 export interface MonthlyData {

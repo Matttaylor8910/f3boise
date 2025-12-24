@@ -694,6 +694,58 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   }
 
   /**
+   * Helper methods to get comparison stats, falling back to current year stats if no comparison
+   */
+  getComparisonTotalPosts() {
+    if (this.wrappedData?.comparisonStats?.totalPosts) {
+      return this.wrappedData.comparisonStats.totalPosts;
+    }
+    // Return current year stats wrapped in comparison format
+    return this.wrappedData ? {
+      current: this.wrappedData.totalPosts,
+      previous: 0,
+      change: this.wrappedData.totalPosts,
+      changePercent: 0,
+    } : null;
+  }
+
+  getComparisonTotalMinutes() {
+    if (this.wrappedData?.comparisonStats?.totalMinutes) {
+      return this.wrappedData.comparisonStats.totalMinutes;
+    }
+    return this.wrappedData ? {
+      current: this.wrappedData.totalMinutesInGloom,
+      previous: 0,
+      change: this.wrappedData.totalMinutesInGloom,
+      changePercent: 0,
+    } : null;
+  }
+
+  getComparisonTimesAsQ() {
+    if (this.wrappedData?.comparisonStats?.timesAsQ) {
+      return this.wrappedData.comparisonStats.timesAsQ;
+    }
+    return this.wrappedData?.qStats ? {
+      current: this.wrappedData.qStats.timesAsQ,
+      previous: 0,
+      change: this.wrappedData.qStats.timesAsQ,
+      changePercent: 0,
+    } : null;
+  }
+
+  getComparisonTotalPaxEncountered() {
+    if (this.wrappedData?.comparisonStats?.totalPaxEncountered) {
+      return this.wrappedData.comparisonStats.totalPaxEncountered;
+    }
+    return this.wrappedData?.paxNetwork ? {
+      current: this.wrappedData.paxNetwork.totalPaxEncountered,
+      previous: 0,
+      change: this.wrappedData.paxNetwork.totalPaxEncountered,
+      changePercent: 0,
+    } : null;
+  }
+
+  /**
    * Preloads videos when wrappedData is loaded
    * This ensures videos are ready when users reach those slides
    */

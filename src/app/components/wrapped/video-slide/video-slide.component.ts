@@ -19,6 +19,7 @@ export class VideoSlideComponent implements AfterViewInit, OnDestroy {
   private soundEnabled = false;
   remainingSeconds: number = 0;
   private timeUpdateInterval?: any;
+  isFadingOut = false;
 
   ngAfterViewInit() {
     // Preload the video when component initializes
@@ -31,7 +32,8 @@ export class VideoSlideComponent implements AfterViewInit, OnDestroy {
       video.addEventListener('ended', () => {
         this.remainingSeconds = 0;
         this.clearTimeUpdate();
-        this.videoEnded.emit();
+        // Fade out the video
+        this.fadeOut();
       });
 
       // Listen for loadedmetadata to get video duration
@@ -180,6 +182,35 @@ export class VideoSlideComponent implements AfterViewInit, OnDestroy {
           this.setupTimeUpdate();
         }
       }
+    }
+  }
+
+  private fadeOut() {
+    if (this.videoElement?.nativeElement && !this.isFadingOut) {
+      this.isFadingOut = true;
+      const video = this.videoElement.nativeElement;
+
+      // Fade out over 1 second
+      const fadeDuration = 1000;
+      const startTime = performance.now();
+      const startOpacity = 1;
+
+      const fade = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / fadeDuration, 1);
+        const opacity = startOpacity * (1 - progress);
+
+        video.style.opacity = opacity.toString();
+
+        if (progress < 1) {
+          requestAnimationFrame(fade);
+        } else {
+          // Fade complete, emit event
+          this.videoEnded.emit();
+        }
+      };
+
+      requestAnimationFrame(fade);
     }
   }
 }
