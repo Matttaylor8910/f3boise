@@ -31,39 +31,38 @@
 
 .play-overlay {
   position: absolute;
-  top: 50%;
+  bottom: 2rem;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   z-index: 10;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   pointer-events: auto;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 50%;
-  padding: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
   backdrop-filter: blur(10px);
-  transition: opacity 0.3s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 
   &:hover {
-    background: rgba(0, 0, 0, 0.7);
-  }
-
-  .play-icon {
-    font-size: 4rem;
-    color: white;
-    margin-bottom: 0.5rem;
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 
   .play-text {
     color: white;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
     margin: 0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   }
 }
 
@@ -73,14 +72,12 @@
   }
 
   .play-overlay {
-    padding: 1rem;
-
-    .play-icon {
-      font-size: 3rem;
-    }
+    bottom: 1.5rem;
+    padding: 0.6rem 1.2rem;
 
     .play-text {
       font-size: 0.8rem;
+      letter-spacing: 0.5px;
     }
   }
 }

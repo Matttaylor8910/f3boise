@@ -10,8 +10,7 @@
     </video>
     <!-- Play button overlay for mobile Safari -->
     <div class="play-overlay" *ngIf="showPlayButton" (click)="enableSoundAndPlay(); $event.stopPropagation()">
-      <ion-icon name="play-circle" class="play-icon"></ion-icon>
-      <p class="play-text">Tap to play</p>
+      <p class="play-text">Tap to unmute</p>
     </div>
   </div>
   <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>

@@ -114,8 +114,7 @@ export class WrappedService {
     const totalMinutesInGloom =
         await this.calculateTotalMinutesInGloom(userBackblasts);
     const paxNetwork = await this.calculatePaxNetwork(userBackblasts, paxName);
-    const qStats =
-        await this.calculateQStats(userBackblasts, paxName, year, totalPosts);
+    const qStats = await this.calculateQStats(userBackblasts, paxName, year);
     const workoutTypeBreakdown =
         await this.calculateWorkoutTypeBreakdown(userBackblasts);
     const streaks = await this.calculateStreaks(allBackblasts, year);
@@ -486,19 +485,15 @@ export class WrappedService {
   }
 
   private async calculateQStats(
-      backblasts: Backblast[], paxName: string, year: number,
-      userTotalPosts: number): Promise<{
-    timesAsQ: number; totalPaxLed: number; averagePaxPerQ: number;
-    qCountMaps: {
-      overall: Map<string, number>;
-      regions: Map<string, Map<string, number>>;
+      backblasts: Backblast[],
+      paxName: string,
+      year: number,
+      ): Promise<{
+    timesAsQ: number; totalPaxLed: number; averagePaxPerQ: number; qCountMaps: {
+      overall: Map<string, number>; regions: Map<string, Map<string, number>>;
       aos: Map<string, Map<string, number>>;
     };
-    topQBadges: {
-      overall?: boolean;
-      regions?: string[];
-      aos?: string[];
-    };
+    topQBadges: {overall?: boolean; regions?: string[]; aos?: string[];};
   }> {
     let timesAsQ = 0;
     let totalPaxLed = 0;
@@ -584,7 +579,8 @@ export class WrappedService {
     // Console log the Q maps for debugging
     const regionsObj: {[key: string]: Array<[string, number]>} = {};
     regionQCounts.forEach((map, region) => {
-      regionsObj[region] = Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+      regionsObj[region] =
+          Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
     });
 
     const aosObj: {[key: string]: Array<[string, number]>} = {};
@@ -592,23 +588,14 @@ export class WrappedService {
       aosObj[ao] = Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
     });
 
-    console.log('Q Count Maps:', {
-      overall: Array.from(overallQCounts.entries()).sort((a, b) => b[1] - a[1]),
-      regions: regionsObj,
-      aos: aosObj,
-    });
-
     // Determine top Q badges - top 10 overall, top 3 for regions/AOs
-    const topQBadges: {
-      overall?: boolean;
-      regions?: string[];
-      aos?: string[];
-    } = {};
+    const topQBadges: {overall?: boolean; regions?: string[];
+                       aos?: string[];} = {};
 
     // Check overall - top 10
     const overallSorted = Array.from(overallQCounts.entries())
-                                 .sort((a, b) => b[1] - a[1])
-                                 .slice(0, 10);
+                              .sort((a, b) => b[1] - a[1])
+                              .slice(0, 10);
     const overallTop10 = new Set(overallSorted.map(([name]) => name));
     if (overallTop10.has(normalizedPaxName)) {
       topQBadges.overall = true;
@@ -618,8 +605,8 @@ export class WrappedService {
     const topRegions: string[] = [];
     regionQCounts.forEach((countMap, region) => {
       const regionSorted = Array.from(countMap.entries())
-                                  .sort((a, b) => b[1] - a[1])
-                                  .slice(0, 3);
+                               .sort((a, b) => b[1] - a[1])
+                               .slice(0, 3);
       const regionTop3 = new Set(regionSorted.map(([name]) => name));
       if (regionTop3.has(normalizedPaxName)) {
         topRegions.push(region);
@@ -633,8 +620,8 @@ export class WrappedService {
     const topAOs: string[] = [];
     aoQCounts.forEach((countMap, aoName) => {
       const aoSorted = Array.from(countMap.entries())
-                              .sort((a, b) => b[1] - a[1])
-                              .slice(0, 3);
+                           .sort((a, b) => b[1] - a[1])
+                           .slice(0, 3);
       const aoTop3 = new Set(aoSorted.map(([name]) => name));
       if (aoTop3.has(normalizedPaxName)) {
         topAOs.push(aoName);
@@ -1530,22 +1517,22 @@ export class WrappedService {
     return topPercent;
   }
 
-  private async calculateStreaks(allBackblasts: Backblast[], year: number): Promise<{
-    longestStreak: number;
-    longestStreakStart: string;
-    longestStreakEnd: string;
+  private async calculateStreaks(
+      allBackblasts: Backblast[], year: number): Promise<{
+    longestStreak: number; longestStreakStart: string; longestStreakEnd: string;
     yearActiveWeeks: number;
     yearTotalWeeks: number;
     yearActivePercentage: number;
     weeklyData: Array<{weekStart: string; weekEnd: string; isActive: boolean}>;
   }> {
     // Get all backblasts sorted by date
-    const sortedBackblasts = [...allBackblasts].sort(
-        (a, b) => moment(a.date).diff(moment(b.date)));
+    const sortedBackblasts =
+        [...allBackblasts].sort((a, b) => moment(a.date).diff(moment(b.date)));
 
     // Calculate year boundaries
-    const yearStart = moment(`${year}-01-01`).startOf('week'); // Start of first week
-    const yearEnd = moment(`${year}-12-31`).endOf('week'); // End of last week
+    const yearStart =
+        moment(`${year}-01-01`).startOf('week');  // Start of first week
+    const yearEnd = moment(`${year}-12-31`).endOf('week');  // End of last week
     const now = moment();
     // Only count weeks up to the current week (don't include future weeks)
     const actualYearEnd = now.isBefore(yearEnd) ? now.endOf('week') : yearEnd;
@@ -1571,7 +1558,8 @@ export class WrappedService {
       activeWeeks.add(weekStart.format('YYYY-MM-DD'));
     });
 
-    // Calculate longest streak that includes at least one week of the provided year
+    // Calculate longest streak that includes at least one week of the provided
+    // year
     let longestStreak = 0;
     let currentStreak = 0;
     let longestStreakStart = '';
@@ -1580,13 +1568,13 @@ export class WrappedService {
     let currentStreakIncludesYear = false;
 
     // Get all unique week starts from backblasts, sorted
-    const allWeekStarts = Array.from(activeWeeks)
-                                 .map(w => moment(w))
-                                 .sort((a, b) => a.diff(b));
+    const allWeekStarts =
+        Array.from(activeWeeks).map(w => moment(w)).sort((a, b) => a.diff(b));
 
     allWeekStarts.forEach((weekStart, index) => {
       const weekEnd = weekStart.clone().endOf('week');
-      const isInYear = weekStart.isSameOrBefore(yearEnd) && weekEnd.isSameOrAfter(yearStart);
+      const isInYear =
+          weekStart.isSameOrBefore(yearEnd) && weekEnd.isSameOrAfter(yearStart);
 
       if (index === 0) {
         // First week starts a new streak
@@ -1608,7 +1596,8 @@ export class WrappedService {
             longestStreak = currentStreak;
             longestStreakStart = currentStreakStart;
             // End date is the end of the last week in the streak
-            longestStreakEnd = prevWeekStart.clone().endOf('week').format('YYYY-MM-DD');
+            longestStreakEnd =
+                prevWeekStart.clone().endOf('week').format('YYYY-MM-DD');
           }
           currentStreak = 1;
           currentStreakStart = weekStart.format('YYYY-MM-DD');
@@ -1622,16 +1611,21 @@ export class WrappedService {
       longestStreak = currentStreak;
       longestStreakStart = currentStreakStart;
       const lastWeekStart = allWeekStarts[allWeekStarts.length - 1];
-      longestStreakEnd = lastWeekStart.clone().endOf('week').format('YYYY-MM-DD');
+      longestStreakEnd =
+          lastWeekStart.clone().endOf('week').format('YYYY-MM-DD');
     } else if (longestStreak > 0) {
-      // Fix the end date for the longest streak (should be end of week, not start)
+      // Fix the end date for the longest streak (should be end of week, not
+      // start)
       const longestStreakStartMoment = moment(longestStreakStart);
-      longestStreakEnd = longestStreakStartMoment.clone().add(longestStreak - 1, 'weeks').endOf('week').format('YYYY-MM-DD');
+      longestStreakEnd = longestStreakStartMoment.clone()
+                             .add(longestStreak - 1, 'weeks')
+                             .endOf('week')
+                             .format('YYYY-MM-DD');
     }
 
     // Calculate weekly data for the year (only up to current week)
-    const weeklyData: Array<{weekStart: string; weekEnd: string; isActive: boolean}> =
-        [];
+    const weeklyData:
+        Array<{weekStart: string; weekEnd: string; isActive: boolean}> = [];
     let currentWeek = yearStart.clone();
     while (currentWeek.isSameOrBefore(actualYearEnd)) {
       const weekStartStr = currentWeek.format('YYYY-MM-DD');
@@ -1647,9 +1641,9 @@ export class WrappedService {
 
     // Count active weeks in the year
     const yearActiveWeeks = weeklyData.filter(w => w.isActive).length;
-    const yearActivePercentage =
-        yearTotalWeeks > 0 ? Math.round((yearActiveWeeks / yearTotalWeeks) * 100) :
-                             0;
+    const yearActivePercentage = yearTotalWeeks > 0 ?
+        Math.round((yearActiveWeeks / yearTotalWeeks) * 100) :
+        0;
 
     return {
       longestStreak,
