@@ -16,8 +16,9 @@
 
       <div class="stat-item">
         <div class="stat-value">{{totalAOs}}</div>
-        <div class="stat-label">AO{{totalAOs > 1 ? 's' : ''}}</div>
-        <div class="stat-sublabel" *ngIf="newAOs.length > 0">{{newAOs.length}} new</div>
+        <div class="stat-label">
+          AO{{totalAOs > 1 ? 's' : ''}}<span class="new-count" *ngIf="newAOs.length > 0"> ({{newAOs.length}} new)</span>
+        </div>
       </div>
 
       <div class="stat-item">

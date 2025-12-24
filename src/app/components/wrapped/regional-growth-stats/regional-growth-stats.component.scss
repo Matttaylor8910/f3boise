@@ -71,6 +71,14 @@
   letter-spacing: 1px;
   color: rgba(255, 255, 255, 0.9);
   margin-bottom: 0.25rem;
+
+  .new-count {
+    font-size: 0.875rem;
+    font-weight: 400;
+    text-transform: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+  }
 }
 
 .stat-sublabel {
