@@ -8,6 +8,7 @@ import {AfterViewInit, Component, ElementRef, Input, OnDestroy, Output, ViewChil
 export class VideoSlideComponent implements AfterViewInit, OnDestroy {
   @Input() videoSrc: string = '';
   @Input() backgroundGradient: string = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
+  @Input() showCountdown: boolean = true; // Show countdown timer (default true for regional videos)
   @Output() videoEnded = new EventEmitter<void>();
   @ViewChild('videoElement', {static: false}) videoElement!: ElementRef<HTMLVideoElement>;
   @ViewChild('slideElement', {static: false}) slideElement!: ElementRef<HTMLDivElement>;
@@ -16,6 +17,8 @@ export class VideoSlideComponent implements AfterViewInit, OnDestroy {
   private hasPlayed = false;
   showPlayButton = false;
   private soundEnabled = false;
+  remainingSeconds: number = 0;
+  private timeUpdateInterval?: any;
 
   ngAfterViewInit() {
     // Preload the video when component initializes
@@ -26,7 +29,17 @@ export class VideoSlideComponent implements AfterViewInit, OnDestroy {
 
       // Listen for video end event
       video.addEventListener('ended', () => {
+        this.remainingSeconds = 0;
+        this.clearTimeUpdate();
         this.videoEnded.emit();
+      });
+
+      // Listen for loadedmetadata to get video duration
+      video.addEventListener('loadedmetadata', () => {
+        if (this.showCountdown) {
+          this.updateRemainingTime();
+          this.setupTimeUpdate();
+        }
       });
 
       // Set up Intersection Observer to detect when slide is visible
@@ -37,6 +50,34 @@ export class VideoSlideComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy() {
     if (this.intersectionObserver) {
       this.intersectionObserver.disconnect();
+    }
+    this.clearTimeUpdate();
+  }
+
+  private setupTimeUpdate() {
+    this.clearTimeUpdate();
+    if (!this.showCountdown) return;
+
+    // Update every 100ms for smooth countdown
+    this.timeUpdateInterval = setInterval(() => {
+      this.updateRemainingTime();
+    }, 100);
+  }
+
+  private clearTimeUpdate() {
+    if (this.timeUpdateInterval) {
+      clearInterval(this.timeUpdateInterval);
+      this.timeUpdateInterval = undefined;
+    }
+  }
+
+  private updateRemainingTime() {
+    if (this.videoElement?.nativeElement) {
+      const video = this.videoElement.nativeElement;
+      if (video.duration && !isNaN(video.duration)) {
+        const remaining = Math.max(0, Math.ceil(video.duration - video.currentTime));
+        this.remainingSeconds = remaining;
+      }
     }
   }
 
@@ -84,6 +125,9 @@ export class VideoSlideComponent implements AfterViewInit, OnDestroy {
         this.hasPlayed = true;
         this.showPlayButton = false;
         this.soundEnabled = true;
+        if (this.showCountdown) {
+          this.setupTimeUpdate();
+        }
       }).catch(err => {
         console.warn('Video autoplay prevented:', err);
         // On mobile Safari, autoplay with sound is blocked
@@ -93,6 +137,9 @@ export class VideoSlideComponent implements AfterViewInit, OnDestroy {
         video.muted = true;
         video.play().then(() => {
           this.hasPlayed = true;
+          if (this.showCountdown) {
+            this.setupTimeUpdate();
+          }
           // Sound will be enabled on next user interaction
         }).catch(() => {
           // Even muted autoplay failed, show play button
@@ -119,6 +166,9 @@ export class VideoSlideComponent implements AfterViewInit, OnDestroy {
       if (video.paused) {
         video.play().then(() => {
           this.hasPlayed = true;
+          if (this.showCountdown) {
+            this.setupTimeUpdate();
+          }
         }).catch(err => {
           console.warn('Failed to play video:', err);
         });
@@ -126,6 +176,9 @@ export class VideoSlideComponent implements AfterViewInit, OnDestroy {
         // Video is already playing (muted), just unmute it
         // The sound will now be enabled
         this.hasPlayed = true;
+        if (this.showCountdown && !this.timeUpdateInterval) {
+          this.setupTimeUpdate();
+        }
       }
     }
   }

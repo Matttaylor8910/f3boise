@@ -8,6 +8,10 @@
       preload="auto">
       Your browser does not support the video tag.
     </video>
+    <!-- Countdown timer -->
+    <div class="countdown-timer" *ngIf="showCountdown && remainingSeconds > 0">
+      {{remainingSeconds}}
+    </div>
     <!-- Play button overlay for mobile Safari -->
     <div class="play-overlay" *ngIf="showPlayButton" (click)="enableSoundAndPlay(); $event.stopPropagation()">
       <p class="play-text">Tap to unmute</p>

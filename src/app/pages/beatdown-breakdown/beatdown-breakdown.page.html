@@ -230,6 +230,7 @@
       <!-- Only 40 More Minutes Video -->
       <app-video-slide
         [videoSrc]="getOnly40MoreMinutesVideoPath()"
+        [showCountdown]="false"
         backgroundGradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)"
         (videoEnded)="onVideoEnded()">
       </app-video-slide>

@@ -29,6 +29,26 @@
   background: #000;
 }
 
+.countdown-timer {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 10;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  min-width: 3rem;
+  text-align: center;
+}
+
 .play-overlay {
   position: absolute;
   bottom: 2rem;
@@ -69,6 +89,14 @@
 @media (max-width: 768px) {
   .video-player {
     object-fit: contain; // On mobile, show full video without cropping
+  }
+
+  .countdown-timer {
+    top: 1rem;
+    right: 1rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 1rem;
+    min-width: 2.5rem;
   }
 
   .play-overlay {
