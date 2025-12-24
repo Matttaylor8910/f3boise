@@ -611,6 +611,17 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   }
 
   /**
+   * Called when the bestie guess is complete
+   * Automatically advances to the bestie slide
+   */
+  onBestieGuessComplete() {
+    // Small delay to ensure smooth transition
+    setTimeout(() => {
+      this.nextSlide();
+    }, 300);
+  }
+
+  /**
    * Determines which region an AO belongs to
    * Returns the region name or null if not found
    */

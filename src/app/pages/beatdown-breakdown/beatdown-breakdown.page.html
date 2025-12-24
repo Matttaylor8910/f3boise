@@ -63,7 +63,6 @@
 
       <!-- Narrative: Showing Up -->
       <app-narrative-slide
-        title="DISRUPTION"
         message="Q Source tells us that disruption is the foundation."
         leadIn="Your bed wanted you to stay, how often were you able to skip the snooze button?"
         imageUrl="/assets/disruption.webp"
@@ -79,7 +78,6 @@
 
       <!-- Narrative: Preparedness -->
       <app-narrative-slide
-        title="PREPAREDNESS"
         message="F3 is a leadership movement, not just a workout group. Preparedness is developed through small, difficult, daily actions."
         leadIn="How did you prepare yourself?"
         imageUrl="/assets/preparedness.webp"
@@ -93,11 +91,11 @@
         backgroundGradient="linear-gradient(139deg, #609a69 0%, rgb(28 15 40) 100%)">
       </app-workout-type-breakdown>
 
-      <!-- Narrative: Pushing Limits -->
+      <!-- Narrative: Sharpening -->
       <app-narrative-slide
         *ngIf="wrappedData.workoutTypeBreakdown.length > 0"
         title="Q1.8: WHETSTONE"
-        message="Men become effective through intentional sharpening, not isolation. In sharpening another man, a leader sharpens himself."
+        message="Men become effective through intentional sharpening, not isolation. Men sharpen each other in close proximity."
         leadIn="Where was this for you?"
         imageUrl="/assets/whetstone.webp"
         backgroundGradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
@@ -110,14 +108,6 @@
         backgroundGradient="linear-gradient(135deg, rgb(11 55 28) 0%, rgb(88 108 93) 100%)">
       </app-top-aos-breakdown>
 
-      <!-- Narrative: Home Base -->
-      <app-narrative-slide
-        title="F3: THE GROUP"
-        message="This AO became your Group. It's where you found Shield Lock. Where you built Mutual Competence with the men beside you."
-        imageUrl="/assets/group.webp"
-        backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
-      </app-narrative-slide>
-
       <!-- Top AO -->
       <app-home-base
         [aoName]="wrappedData.topAO.name"
@@ -128,17 +118,16 @@
         [mapLocationUrl]="wrappedData.topAO.map_location_url"
         [consistencyRate]="wrappedData.topAO.consistencyRate"
         [possibleSlots]="wrappedData.topAO.possibleSlots"
-        backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
+        backgroundGradient="linear-gradient(135deg, #2c1810 0%, #3d2817 100%)">
       </app-home-base>
 
-      <!-- Narrative: Regional Leadership -->
+      <!-- Narrative: Home Base -->
       <app-narrative-slide
-        *ngIf="getRegionalVideoPath()"
-        title="REGIONAL LEADERSHIP"
-        message="Your region's Nantan has a message for you."
-        imageUrl="/assets/consistency.webp"
-        backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
+        message="This AO became your Group. It's where you found Shield Lock. Where you built Mutual Competence with the men beside you."
+        imageUrl="/assets/group.webp"
+        backgroundGradient="linear-gradient(135deg, #1a1a2e 0%, #2d1b3d 100%)">
       </app-narrative-slide>
+
 
       <!-- Regional Nantan Video -->
       <app-video-slide
@@ -152,16 +141,24 @@
       <app-pax-network
         [totalPax]="wrappedData.paxNetwork.totalPaxEncountered"
         [workoutBuddies]="wrappedData.paxNetwork.topWorkoutBuddies"
-        backgroundGradient="linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)">
+        backgroundGradient="linear-gradient(135deg, #1a2332 0%, #2d3a4f 100%)">
       </app-pax-network>
 
-      <!-- Narrative: Fellowship -->
+      <!-- Narrative: Shield Lock -->
       <app-narrative-slide
-        title="Q1.7: SHIELD LOCK"
-        message="We don't show up at F3 for ourselves. We show up for the man standing beside each of us. Who stuck by your side all year?"
+        message="We don't show up at F3 for ourselves. We show up for the man standing beside each of us."
+        leadIn="Who stuck by your side all year?"
         imageUrl="/assets/shield-lock.webp"
-        backgroundGradient="linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)">
+        backgroundGradient="linear-gradient(135deg, rgb(57 47 41) 0%, rgb(255 0 0 / 76%) 100%)">
       </app-narrative-slide>
+
+      <!-- Bestie Guess -->
+      <app-bestie-guess
+        *ngIf="wrappedData.paxNetwork.topWorkoutBuddies && wrappedData.paxNetwork.topWorkoutBuddies.length >= 3"
+        [workoutBuddies]="wrappedData.paxNetwork.topWorkoutBuddies"
+        backgroundGradient="linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)"
+        (guessComplete)="onBestieGuessComplete()">
+      </app-bestie-guess>
 
       <!-- Bestie -->
       <app-stat-card
@@ -173,12 +170,11 @@
         statLabel="BDs together"
         [description]="getBestieDescription()"
         [hugeStat]="true"
-        backgroundGradient="linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%)">
+        backgroundGradient="linear-gradient(135deg, #1e3a5f 0%, #2d4a7a 100%)">
       </app-stat-card>
 
       <!-- Narrative: Leadership -->
       <app-narrative-slide
-        title="Q3.1: SHARED LEADERSHIP"
         message="When you Q'd, you practiced Shared Leadership. You showed up early. You planned the beatdown. You invested in others. How many times did you lead?"
         imageUrl="/assets/lead-right.webp"
         backgroundGradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)">
@@ -193,16 +189,8 @@
         [description]="getQStatsDescription()"
         [callouts]="qCallouts"
         [qCountMaps]="wrappedData.qStats.qCountMaps"
-        backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
+        backgroundGradient="linear-gradient(135deg, #1e2329 0%, #2a2f35 100%)">
       </app-leadership-impact>
-
-      <!-- Narrative: Consistency -->
-      <app-narrative-slide
-        title="Q3.10: CONSISTENCY"
-        message="Consistency builds trust. Your brothers need to know they can count on you. How many weeks were you active?"
-        imageUrl="/assets/consistency.webp"
-        backgroundGradient="linear-gradient(135deg, #2c3e50 0%, #34495e 100%)">
-      </app-narrative-slide>
 
       <!-- Streaks -->
       <app-streaks
@@ -217,6 +205,14 @@
         [year]="wrappedData.year"
         backgroundGradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)">
       </app-streaks>
+
+      <!-- Narrative: Consistency -->
+      <app-narrative-slide
+        message="Consistency builds trust. Your brothers need to know they can count on you."
+        leadIn="How much total time did you spend in the gloom?"
+        imageUrl="/assets/consistency.webp"
+        backgroundGradient="linear-gradient(135deg, #1a1625 0%, #2d1f3d 100%)">
+      </app-narrative-slide>
 
       <!-- Total Minutes in Gloom -->
       <app-stat-card

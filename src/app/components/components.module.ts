@@ -38,6 +38,7 @@ import {NarrativeSlideComponent} from './wrapped/narrative-slide/narrative-slide
 import {SlideChevronComponent} from './wrapped/slide-chevron/slide-chevron.component';
 import {StreaksComponent} from './wrapped/streaks/streaks.component';
 import {VideoSlideComponent} from './wrapped/video-slide/video-slide.component';
+import {BestieGuessComponent} from './wrapped/bestie-guess/bestie-guess.component';
 
 @NgModule({
   declarations: [
@@ -75,6 +76,7 @@ import {VideoSlideComponent} from './wrapped/video-slide/video-slide.component';
     SlideChevronComponent,
     StreaksComponent,
     VideoSlideComponent,
+    BestieGuessComponent,
   ],
   imports: [
     IonicModule,
@@ -116,6 +118,7 @@ import {VideoSlideComponent} from './wrapped/video-slide/video-slide.component';
     SlideChevronComponent,
     StreaksComponent,
     VideoSlideComponent,
+    BestieGuessComponent,
   ],
   providers: [
     CurrencyPipe,
