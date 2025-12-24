@@ -10,6 +10,9 @@
       <span>{{callout.message}}</span>
     </div>
 
+    <!-- Simple callout for encouragement messages -->
+    <div class="callout-badge" *ngIf="simpleCallout">{{simpleCallout}}</div>
+
     <div class="description" *ngIf="description">{{description}}</div>
   </div>
   <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>

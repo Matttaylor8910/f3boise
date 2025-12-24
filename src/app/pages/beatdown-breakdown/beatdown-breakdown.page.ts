@@ -364,9 +364,23 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
 
   getQStatsDescription(): string {
     if (!this.wrappedData) return '';
+
+    // If they haven't Q'd yet, provide encouragement
+    if (this.wrappedData.qStats.timesAsQ === 0) {
+      return 'The Gloom is stronger when every man leads. You didn\'t take the Q this year. Your brothers are ready when you are.';
+    }
+
     return `YOU LED ${this.wrappedData.qStats.timesAsQ} BEATDOWNS AND PUSHED ${
         this.wrappedData.qStats.totalPaxLed} TOTAL PAX. YOUR AVERAGE Q HAD ${
         this.wrappedData.qStats.averagePaxPerQ} PAX SHOW UP.`;
+  }
+
+  getQCallout(): string {
+    if (!this.wrappedData) return '';
+    if (this.wrappedData.qStats.timesAsQ === 0) {
+      return 'That\'s okay. What\'s your plan for next year?';
+    }
+    return '';
   }
 
   private calculateQCallouts(): Array<{message: string; rank: number}> {

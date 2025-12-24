@@ -175,7 +175,7 @@
 
       <!-- Narrative: Leadership -->
       <app-narrative-slide
-        message="When you Q'd, you practiced Shared Leadership. You showed up early. You planned the beatdown. You invested in others."
+        message="F3 is peer-led in a rotating fashion. When you take the Q, you're investing in your brothers, helping them get 1% better every day."
         leadIn="How many times did you lead?"
         imageUrl="/assets/lead-right.webp"
         backgroundGradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)">
@@ -189,6 +189,7 @@
         statLabel="TIMES AS Q"
         [description]="getQStatsDescription()"
         [callouts]="qCallouts"
+        [simpleCallout]="getQCallout()"
         [qCountMaps]="wrappedData.qStats.qCountMaps"
         backgroundGradient="linear-gradient(135deg, #1e2329 0%, #2a2f35 100%)">
       </app-leadership-impact>
