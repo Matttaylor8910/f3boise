@@ -594,47 +594,6 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
         isScrolling = true;
       }
     });
-
-    // Add touch handling for smoother experience on mobile
-    let startY = 0;
-    let currentY = 0;
-    let isDragging = false;
-
-    container.addEventListener('touchstart', (e: TouchEvent) => {
-      startY = e.touches[0].clientY;
-      isDragging = true;
-    }, {passive: true});
-
-    container.addEventListener('touchmove', (e: TouchEvent) => {
-      if (!isDragging) return;
-      currentY = e.touches[0].clientY;
-    }, {passive: true});
-
-    container.addEventListener('touchend', (e: TouchEvent) => {
-      if (!isDragging) return;
-      isDragging = false;
-
-      // Check if the touch target is within a bestie-guess slide that's waiting
-      const target = e.target as HTMLElement;
-      const bestieGuessSlide =
-          target.closest('app-bestie-guess .guess-slide.prevent-navigation');
-      if (bestieGuessSlide) {
-        return;  // Don't allow navigation during the delay period
-      }
-
-      const deltaY = startY - currentY;
-      const threshold = 50;  // Minimum swipe distance
-
-      if (Math.abs(deltaY) > threshold) {
-        if (deltaY > 0) {
-          // Swipe up (finger moved up) - scroll down to next slide
-          this.nextSlide();
-        } else {
-          // Swipe down (finger moved down) - scroll up to previous slide
-          this.previousSlide();
-        }
-      }
-    }, {passive: true});
   }
 
   nextSlide() {
