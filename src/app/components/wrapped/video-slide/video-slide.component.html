@@ -1,14 +1,18 @@
 <div class="video-slide" [style.background]="backgroundGradient" #slideElement>
-  <div class="video-container">
+  <div class="video-container" (click)="enableSoundAndPlay()">
     <video
       #videoElement
       [src]="videoSrc"
       class="video-player"
       playsinline
-      muted
       preload="auto">
       Your browser does not support the video tag.
     </video>
+    <!-- Play button overlay for mobile Safari -->
+    <div class="play-overlay" *ngIf="showPlayButton" (click)="enableSoundAndPlay(); $event.stopPropagation()">
+      <ion-icon name="play-circle" class="play-icon"></ion-icon>
+      <p class="play-text">Tap to play</p>
+    </div>
   </div>
   <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
 </div>

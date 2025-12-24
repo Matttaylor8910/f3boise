@@ -14,6 +14,8 @@ export class VideoSlideComponent implements AfterViewInit, OnDestroy {
 
   private intersectionObserver?: IntersectionObserver;
   private hasPlayed = false;
+  showPlayButton = false;
+  private soundEnabled = false;
 
   ngAfterViewInit() {
     // Preload the video when component initializes
@@ -75,13 +77,56 @@ export class VideoSlideComponent implements AfterViewInit, OnDestroy {
       const video = this.videoElement.nativeElement;
       // Ensure video is at the start
       video.currentTime = 0;
+
+      // Try to play with sound (unmuted)
+      video.muted = false;
       video.play().then(() => {
         this.hasPlayed = true;
+        this.showPlayButton = false;
+        this.soundEnabled = true;
       }).catch(err => {
         console.warn('Video autoplay prevented:', err);
-        // If autoplay fails, user may need to interact first
-        // The video will still be ready to play when they scroll to it
+        // On mobile Safari, autoplay with sound is blocked
+        // Show play button overlay so user can tap to play with sound
+        this.showPlayButton = true;
+        // Try muted autoplay as fallback
+        video.muted = true;
+        video.play().then(() => {
+          this.hasPlayed = true;
+          // Sound will be enabled on next user interaction
+        }).catch(() => {
+          // Even muted autoplay failed, show play button
+          this.showPlayButton = true;
+        });
       });
+    }
+  }
+
+  /**
+   * Enables sound and plays video (called on user interaction)
+   * This is needed for mobile Safari which blocks autoplay with sound
+   */
+  enableSoundAndPlay() {
+    if (this.videoElement?.nativeElement) {
+      const video = this.videoElement.nativeElement;
+
+      // Enable sound
+      video.muted = false;
+      this.soundEnabled = true;
+      this.showPlayButton = false;
+
+      // If video is paused, play it
+      if (video.paused) {
+        video.play().then(() => {
+          this.hasPlayed = true;
+        }).catch(err => {
+          console.warn('Failed to play video:', err);
+        });
+      } else {
+        // Video is already playing (muted), just unmute it
+        // The sound will now be enabled
+        this.hasPlayed = true;
+      }
     }
   }
 }
