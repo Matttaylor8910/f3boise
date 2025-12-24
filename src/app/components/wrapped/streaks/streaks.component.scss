@@ -141,11 +141,35 @@
     border-color: rgba(255, 107, 53, 0.5);
   }
 
+  &.in-streak {
+    background: rgba(255, 215, 0, 0.4);
+    border-color: rgba(255, 215, 0, 0.8);
+    border-width: 2px;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+    animation: streakHighlight 2s ease-in-out infinite alternate;
+  }
+
   .week-flame {
     font-size: 1.2rem;
     color: #ff6b35;
     filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.8));
     animation: smallGlow 2s ease-in-out infinite alternate;
+  }
+
+  &.in-streak .week-flame {
+    color: #ffd700;
+    filter: drop-shadow(0 0 12px rgba(255, 215, 0, 1));
+  }
+}
+
+@keyframes streakHighlight {
+  from {
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+    border-color: rgba(255, 215, 0, 0.8);
+  }
+  to {
+    box-shadow: 0 0 16px rgba(255, 215, 0, 0.9);
+    border-color: rgba(255, 215, 0, 1);
   }
 }
 

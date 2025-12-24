@@ -28,13 +28,14 @@
         *ngFor="let week of weeklyData; let i = index"
         class="week-cell"
         [class.active]="week.isActive"
+        [class.in-streak]="isInLongestStreak(week)"
         [title]="getWeekTooltip(week)">
         <ion-icon name="flame" *ngIf="week.isActive" class="week-flame"></ion-icon>
       </div>
     </div>
 
     <div class="congrats-message" *ngIf="yearActivePercentage === 100">
-      Kudos! You kept your streak alive all year.
+      HIM! You kept your streak alive all year.
     </div>
   </div>
   <app-slide-chevron [slideElement]="slideElement"></app-slide-chevron>
