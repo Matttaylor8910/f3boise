@@ -291,6 +291,21 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
     return `THAT'S ${minutes} MINUTES OF PURE GLOOM.`;
   }
 
+  /**
+   * Helper method to add quotes around certain phrases for neinstein easter egg
+   */
+  private addQuotesIfNeinstein(text: string): string {
+    if (!this.wrappedData) return text;
+    const isNeinstein = this.wrappedData.paxName.toLowerCase() === 'neinstein';
+    if (!isNeinstein) return text;
+
+    // Replace "worked out" / "working out" / "led" with quoted versions
+    return text.replace(/\bworked out\b/gi, '"worked out"')
+        .replace(/\bworking out\b/gi, '"working out"')
+        .replace(/\bled\b/gi, '"led"')
+        .replace(/\bLED\b/g, '"LED"');
+  }
+
   getMinutesCallout(): string {
     if (!this.wrappedData) return '';
     const AVERAGE_ANNUAL_MINUTES = 6240;
@@ -299,8 +314,9 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
           ((this.wrappedData.totalMinutesInGloom - AVERAGE_ANNUAL_MINUTES) /
            AVERAGE_ANNUAL_MINUTES) *
           100);
-      return `YOU WORKED OUT ${
+      const text = `YOU WORKED OUT ${
           percentageAbove}% MORE THAN THE AVERAGE AMERICAN MAN!`;
+      return this.addQuotesIfNeinstein(text);
     }
     return '';
   }
@@ -367,12 +383,16 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
 
     // If they haven't Q'd yet, provide encouragement
     if (this.wrappedData.qStats.timesAsQ === 0) {
-      return 'The Gloom is stronger when every man leads. You didn\'t take the Q this year. Your brothers are ready when you are.';
+      const text =
+          'The Gloom is stronger when every man leads. You didn\'t take the Q this year. Your brothers are ready when you are.';
+      return this.addQuotesIfNeinstein(text);
     }
 
-    return `YOU LED ${this.wrappedData.qStats.timesAsQ} BEATDOWNS AND PUSHED ${
+    const text = `YOU LED ${
+        this.wrappedData.qStats.timesAsQ} BEATDOWNS AND PUSHED ${
         this.wrappedData.qStats.totalPaxLed} TOTAL PAX. YOUR AVERAGE Q HAD ${
         this.wrappedData.qStats.averagePaxPerQ} PAX SHOW UP.`;
+    return this.addQuotesIfNeinstein(text);
   }
 
   getQCallout(): string {
@@ -496,7 +516,7 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
           achievementsByRank[1][0] + '!' :
           achievementsByRank[1].slice(0, -1).join(', ') + ', AND ALSO ' +
               achievementsByRank[1][achievementsByRank[1].length - 1] + '!';
-      callouts.push({message, rank: 1});
+      callouts.push({message: this.addQuotesIfNeinstein(message), rank: 1});
     }
 
     // Add silver callout (rank 2)
@@ -505,7 +525,7 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
           achievementsByRank[2][0] + '!' :
           achievementsByRank[2].slice(0, -1).join(', ') + ', AND ALSO ' +
               achievementsByRank[2][achievementsByRank[2].length - 1] + '!';
-      callouts.push({message, rank: 2});
+      callouts.push({message: this.addQuotesIfNeinstein(message), rank: 2});
     }
 
     // Add bronze callout (rank 3)
@@ -514,7 +534,7 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
           achievementsByRank[3][0] + '!' :
           achievementsByRank[3].slice(0, -1).join(', ') + ', AND ALSO ' +
               achievementsByRank[3][achievementsByRank[3].length - 1] + '!';
-      callouts.push({message, rank: 3});
+      callouts.push({message: this.addQuotesIfNeinstein(message), rank: 3});
     }
 
     return callouts;

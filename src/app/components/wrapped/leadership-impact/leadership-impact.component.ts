@@ -17,6 +17,7 @@ export class LeadershipImpactComponent implements AfterViewInit, OnDestroy {
   @Input() callouts: Array<{message: string; rank: number}> = [];
   @Input() simpleCallout: string = ''; // Simple callout for encouragement messages
   @Input() favoriteAOToLead?: string; // AO where they Q'd the most
+  @Input() paxName: string = ''; // PAX name for easter eggs
   @Input() qCountMaps: {
     overall: Map<string, number>;
     regions: Map<string, Map<string, number>>;
@@ -120,6 +121,33 @@ export class LeadershipImpactComponent implements AfterViewInit, OnDestroy {
     if (rank === 2) return 'callout-badge callout-silver';
     if (rank === 3) return 'callout-badge callout-bronze';
     return 'callout-badge';
+  }
+
+  /**
+   * Helper method to add quotes around certain phrases for neinstein easter egg
+   */
+  private addQuotesIfNeinstein(text: string): string {
+    // Check if this is neinstein (we need to get the PAX name from somewhere)
+    // For now, we'll check the favoriteAOToLead input or we can add a paxName input
+    // Actually, let's check if we can get it from the component context
+    // Since we don't have direct access to paxName here, we'll need to pass it or check another way
+    // For simplicity, let's add a paxName input
+    const isNeinstein = this.paxName?.toLowerCase() === 'neinstein';
+    if (!isNeinstein) return text;
+
+    // Replace "worked out" / "working out" / "led" with quoted versions
+    return text
+        .replace(/\bworked out\b/gi, '"worked out"')
+        .replace(/\bworking out\b/gi, '"working out"')
+        .replace(/\bled\b/gi, '"led"')
+        .replace(/\bLED\b/g, '"LED"')
+        .replace(/\blead\b/gi, '"lead"');
+  }
+
+  getFavoriteAOMessage(): string {
+    if (!this.favoriteAOToLead) return '';
+    const text = `Your favorite place to lead was ${this.favoriteAOToLead}`;
+    return this.addQuotesIfNeinstein(text);
   }
 
 }
