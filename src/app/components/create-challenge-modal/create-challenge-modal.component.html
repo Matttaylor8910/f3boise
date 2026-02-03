@@ -86,91 +86,95 @@
       <h3>Metrics to Track</h3>
       <p class="section-description">Select which metrics should be tracked in the leaderboard:</p>
 
-      <ion-item>
+      <ion-item class="metric-item">
         <ion-checkbox
           [(ngModel)]="metrics.bds"
           (ionChange)="onMetricChange()"
-          [disabled]="isLoading">
+          [disabled]="isLoading"
+          slot="start">
         </ion-checkbox>
         <ion-label class="metric-label">
           <h2># of BDs</h2>
           <p>Total number of beatdowns attended</p>
         </ion-label>
-      </ion-item>
-      <ion-item *ngIf="metrics.bds" class="goal-input-item">
-        <ion-label position="stacked">Goal (optional)</ion-label>
         <ion-input
+          *ngIf="metrics.bds"
           type="number"
           [(ngModel)]="goals.bds"
-          placeholder="e.g., 50"
+          placeholder="Goal"
           min="1"
-          [disabled]="isLoading">
+          class="goal-input"
+          [disabled]="isLoading"
+          slot="end">
         </ion-input>
       </ion-item>
 
-      <ion-item>
+      <ion-item class="metric-item">
         <ion-checkbox
           [(ngModel)]="metrics.uniqueAos"
           (ionChange)="onMetricChange()"
-          [disabled]="isLoading">
+          [disabled]="isLoading"
+          slot="start">
         </ion-checkbox>
         <ion-label class="metric-label">
           <h2>Unique # of AOs</h2>
           <p>Number of unique AOs visited</p>
         </ion-label>
-      </ion-item>
-      <ion-item *ngIf="metrics.uniqueAos" class="goal-input-item">
-        <ion-label position="stacked">Goal (optional)</ion-label>
         <ion-input
+          *ngIf="metrics.uniqueAos"
           type="number"
           [(ngModel)]="goals.uniqueAos"
-          placeholder="e.g., 10"
+          placeholder="Goal"
           min="1"
-          [disabled]="isLoading">
+          class="goal-input"
+          [disabled]="isLoading"
+          slot="end">
         </ion-input>
       </ion-item>
 
-      <ion-item>
+      <ion-item class="metric-item">
         <ion-checkbox
           [(ngModel)]="metrics.qs"
           (ionChange)="onMetricChange()"
-          [disabled]="isLoading">
+          [disabled]="isLoading"
+          slot="start">
         </ion-checkbox>
         <ion-label class="metric-label">
           <h2># of Qs</h2>
           <p>Total number of beatdowns led</p>
         </ion-label>
-      </ion-item>
-      <ion-item *ngIf="metrics.qs" class="goal-input-item">
-        <ion-label position="stacked">Goal (optional)</ion-label>
         <ion-input
+          *ngIf="metrics.qs"
           type="number"
           [(ngModel)]="goals.qs"
-          placeholder="e.g., 6"
+          placeholder="Goal"
           min="1"
-          [disabled]="isLoading">
+          class="goal-input"
+          [disabled]="isLoading"
+          slot="end">
         </ion-input>
       </ion-item>
 
-      <ion-item>
+      <ion-item class="metric-item">
         <ion-checkbox
           [(ngModel)]="metrics.doubleDowns"
           (ionChange)="onMetricChange()"
-          [disabled]="isLoading">
+          [disabled]="isLoading"
+          slot="start">
         </ion-checkbox>
         <ion-label class="metric-label">
           <h2># of DDs</h2>
           <p>Total number of double downs</p>
         </ion-label>
-      </ion-item>
-      <ion-item *ngIf="metrics.doubleDowns" class="goal-input-item">
-        <ion-label position="stacked">Goal (optional)</ion-label>
         <ion-input
+          *ngIf="metrics.doubleDowns"
           type="number"
           [(ngModel)]="goals.doubleDowns"
-          placeholder="e.g., 20"
+          placeholder="Goal"
           min="1"
-          [disabled]="isLoading">
+          class="goal-input"
+          [disabled]="isLoading"
+          slot="end">
         </ion-input>
       </ion-item>
     </div>

@@ -70,8 +70,25 @@
   }
 }
 
+.metric-item {
+  --border-color: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  align-items: center;
+  min-height: auto;
+  margin-bottom: 8px;
+
+  ion-checkbox {
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+}
+
 .metric-label {
-  margin-left: 12px;
+  flex: 1;
+  margin-left: 0;
+  margin-right: 12px;
+  max-width: 100%;
 
   h2 {
     font-size: 16px;
@@ -86,19 +103,15 @@
   }
 }
 
-.goal-input-item {
-  margin-left: 40px;
-  margin-bottom: 8px;
-  --border-color: transparent;
-  --padding-start: 0;
-  --inner-padding-end: 0;
+.goal-input {
+  width: 90px;
+  flex-shrink: 0;
+  --padding-start: 10px;
+  --padding-end: 10px;
+  text-align: right;
+  font-size: 14px;
 
-  ion-label {
-    font-size: 14px;
-    color: var(--ion-color-medium);
-  }
-
-  ion-input {
-    margin-top: 8px;
+  &::part(native) {
+    text-align: right;
   }
 }
