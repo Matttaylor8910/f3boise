@@ -1,0 +1,22 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Add Event</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="form-container">
+    <iframe
+      [src]="safeFormUrl"
+      title="Add Event Form"
+      class="google-form-iframe"
+      frameborder="0"
+      allowfullscreen>
+    </iframe>
+  </div>
+</ion-content>

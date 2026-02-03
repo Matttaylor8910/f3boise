@@ -1,10 +1,13 @@
 import {Component, HostListener, OnDestroy, OnInit} from '@angular/core';
 import {NavigationEnd, NavigationExtras, Router} from '@angular/router';
 import {ToastController} from '@ionic/angular';
+import * as moment from 'moment';
 import {filter, Subscription} from 'rxjs';
 import {AuthService} from 'src/app/services/auth.service';
+import {ChallengesService} from 'src/app/services/challenges.service';
 import {SidebarService} from 'src/app/services/sidebar.service';
 import {UtilService} from 'src/app/services/util.service';
+import {Challenge} from 'types';
 
 import {CANYON_AOS, CITY_OF_TREES_AOS, DISCONTINUED_AOS, HIGH_DESERT_AOS, REGION_AGNOSTIC_AOS, SETTLERS_AOS} from '../../../../constants';
 
@@ -67,6 +70,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   otherAOSections: OtherAOSection[] = [];
   doubleDownsActive = false;
+  currentChallenges: Challenge[] = [];
+  private challengesSubscription?: Subscription;
 
   constructor(
       private readonly sidebarService: SidebarService,
@@ -74,6 +79,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       public readonly utilService: UtilService,
       private readonly authService: AuthService,
       private readonly toastController: ToastController,
+      private readonly challengesService: ChallengesService,
   ) {}
 
   ngOnInit() {
@@ -211,6 +217,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.handleResize();
     };
     window.addEventListener('resize', this.resizeListener);
+
+    // Load current challenges
+    this.loadCurrentChallenges();
   }
 
   checkMobile() {
@@ -232,6 +241,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.subscription?.unsubscribe();
     this.routerSubscription?.unsubscribe();
+    this.challengesSubscription?.unsubscribe();
     if (this.resizeListener) {
       window.removeEventListener('resize', this.resizeListener);
     }
@@ -284,6 +294,27 @@ export class SidebarComponent implements OnInit, OnDestroy {
     const storageKey = `sidebar-section-collapsed-${
         section.title.toLowerCase().replace(/\s+/g, '-')}`;
     localStorage.setItem(storageKey, String(section.collapsed));
+  }
+
+  private loadCurrentChallenges() {
+    this.challengesSubscription =
+        this.challengesService.getChallenges().subscribe(challenges => {
+          const today = moment().startOf('day');
+          // Filter to only current challenges (endDate >= today)
+          this.currentChallenges = challenges.filter(challenge => {
+            const endDate = moment(challenge.endDate).startOf('day');
+            return endDate.isSameOrAfter(today);
+          });
+          // Sort by end date (soonest first)
+          this.currentChallenges.sort((a, b) => {
+            return moment(a.endDate).diff(moment(b.endDate));
+          });
+        });
+  }
+
+  isChallengeActive(challenge: Challenge): boolean {
+    const currentUrl = this.router.url.split('?')[0];
+    return currentUrl === `/challenges/${challenge.id}`;
   }
 
   private updateActiveStates() {

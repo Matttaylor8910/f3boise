@@ -33,11 +33,29 @@
         (click)="navigate('/dd/all')">
         Double Downs
       </button>
-      <!-- Other navigation items -->
+      <!-- Challenges -->
       <button
         type="button"
         class="nav-link"
-        *ngFor="let item of otherNavigationItems"
+        [class.active]="otherNavigationItems[0].isActive"
+        (click)="navigate(otherNavigationItems[0].route)">
+        {{ otherNavigationItems[0].label }}
+      </button>
+      <!-- Current Challenges links styled like AOs -->
+      <button
+        type="button"
+        class="ao-link"
+        style="padding-left: 40px;"
+        *ngFor="let challenge of currentChallenges"
+        [class.active]="isChallengeActive(challenge)"
+        (click)="navigate('/challenges/' + challenge.id)">
+        {{ challenge.name }}
+      </button>
+      <!-- Other navigation items (skip Challenges since we handled it above) -->
+      <button
+        type="button"
+        class="nav-link"
+        *ngFor="let item of otherNavigationItems.slice(1)"
         [class.active]="item.isActive"
         (click)="navigate(item.route)">
         {{ item.label }}
