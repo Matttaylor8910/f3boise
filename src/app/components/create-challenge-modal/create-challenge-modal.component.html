@@ -97,6 +97,16 @@
           <p>Total number of beatdowns attended</p>
         </ion-label>
       </ion-item>
+      <ion-item *ngIf="metrics.bds" class="goal-input-item">
+        <ion-label position="stacked">Goal (optional)</ion-label>
+        <ion-input
+          type="number"
+          [(ngModel)]="goals.bds"
+          placeholder="e.g., 50"
+          min="1"
+          [disabled]="isLoading">
+        </ion-input>
+      </ion-item>
 
       <ion-item>
         <ion-checkbox
@@ -108,6 +118,16 @@
           <h2>Unique # of AOs</h2>
           <p>Number of unique Areas of Operation visited</p>
         </ion-label>
+      </ion-item>
+      <ion-item *ngIf="metrics.uniqueAos" class="goal-input-item">
+        <ion-label position="stacked">Goal (optional)</ion-label>
+        <ion-input
+          type="number"
+          [(ngModel)]="goals.uniqueAos"
+          placeholder="e.g., 10"
+          min="1"
+          [disabled]="isLoading">
+        </ion-input>
       </ion-item>
 
       <ion-item>
@@ -121,6 +141,16 @@
           <p>Total number of Q-sources</p>
         </ion-label>
       </ion-item>
+      <ion-item *ngIf="metrics.qs" class="goal-input-item">
+        <ion-label position="stacked">Goal (optional)</ion-label>
+        <ion-input
+          type="number"
+          [(ngModel)]="goals.qs"
+          placeholder="e.g., 6"
+          min="1"
+          [disabled]="isLoading">
+        </ion-input>
+      </ion-item>
 
       <ion-item>
         <ion-checkbox
@@ -132,6 +162,16 @@
           <h2># of DDs</h2>
           <p>Total number of double downs</p>
         </ion-label>
+      </ion-item>
+      <ion-item *ngIf="metrics.doubleDowns" class="goal-input-item">
+        <ion-label position="stacked">Goal (optional)</ion-label>
+        <ion-input
+          type="number"
+          [(ngModel)]="goals.doubleDowns"
+          placeholder="e.g., 20"
+          min="1"
+          [disabled]="isLoading">
+        </ion-input>
       </ion-item>
     </div>
 

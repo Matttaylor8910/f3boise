@@ -113,12 +113,21 @@ export interface Challenge {
   description: string;
   startDate: string;  // YYYY-MM-DD format
   endDate: string;    // YYYY-MM-DD format
-  metrics: {bds: boolean; uniqueAos: boolean; qs: boolean; doubleDowns: boolean;};
+  metrics:
+      {bds: boolean; uniqueAos: boolean; qs: boolean; doubleDowns: boolean;};
   sortBy: ChallengeMetric;
   createdBy: string;   // User email or UID
   createdAt: any;      // Firestore timestamp
   isPrivate: boolean;  // Whether the challenge is private (default: false)
-  requireJoining: boolean;  // Whether participants must join (default: true). If false, automatically include all PAX with at least one metric > 0
+  requireJoining:
+      boolean;  // Whether participants must join (default: true). If false,
+                // automatically include all PAX with at least one metric > 0
+  goals?: {
+    bds?: number;
+    uniqueAos?: number;
+    qs?: number;
+    doubleDowns?: number;
+  };  // Optional goals for each metric
 }
 
 export interface ChallengeParticipant {

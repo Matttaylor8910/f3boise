@@ -26,6 +26,9 @@ export class CreateChallengeModalComponent implements OnInit {
     qs: false,
     doubleDowns: false,
   };
+  goals:
+      {bds?: number; uniqueAos?: number; qs?: number;
+       doubleDowns?: number;} = {};
   sortBy: ChallengeMetric = ChallengeMetric.BDS;
   isLoading = false;
   readonly today: string = moment().format('YYYY-MM-DD');
@@ -64,6 +67,7 @@ export class CreateChallengeModalComponent implements OnInit {
           true;
       this.metrics = {...this.challengeToEdit.metrics};
       this.sortBy = this.challengeToEdit.sortBy;
+      this.goals = {...(this.challengeToEdit.goals || {})};
       this.updateAvailableSortOptions();
       // Ensure sortBy is valid for selected metrics
       this.updateSortByIfNeeded();
@@ -166,6 +170,7 @@ export class CreateChallengeModalComponent implements OnInit {
           requireJoining: this.requireJoining,
           metrics: this.metrics,
           sortBy: this.sortBy,
+          goals: this.getGoalsForChallenge(),
         };
 
         await this.challengesService.updateChallenge(
@@ -184,6 +189,7 @@ export class CreateChallengeModalComponent implements OnInit {
           metrics: this.metrics,
           sortBy: this.sortBy,
           createdBy: this.createdBy,
+          goals: this.getGoalsForChallenge(),
         };
 
         await this.challengesService.createChallenge(challenge);
@@ -205,6 +211,37 @@ export class CreateChallengeModalComponent implements OnInit {
 
   async dismiss() {
     await this.modalController.dismiss();
+  }
+
+  private getGoalsForChallenge():
+      {bds?: number; uniqueAos?: number; qs?: number;
+       doubleDowns?: number;}|undefined {
+    const goals:
+        {bds?: number; uniqueAos?: number; qs?: number;
+         doubleDowns?: number;} = {};
+    let hasGoals = false;
+
+    if (this.metrics.bds && this.goals.bds !== undefined &&
+        this.goals.bds > 0) {
+      goals.bds = this.goals.bds;
+      hasGoals = true;
+    }
+    if (this.metrics.uniqueAos && this.goals.uniqueAos !== undefined &&
+        this.goals.uniqueAos > 0) {
+      goals.uniqueAos = this.goals.uniqueAos;
+      hasGoals = true;
+    }
+    if (this.metrics.qs && this.goals.qs !== undefined && this.goals.qs > 0) {
+      goals.qs = this.goals.qs;
+      hasGoals = true;
+    }
+    if (this.metrics.doubleDowns && this.goals.doubleDowns !== undefined &&
+        this.goals.doubleDowns > 0) {
+      goals.doubleDowns = this.goals.doubleDowns;
+      hasGoals = true;
+    }
+
+    return hasGoals ? goals : undefined;
   }
 
   private async showToast(message: string, color: string) {

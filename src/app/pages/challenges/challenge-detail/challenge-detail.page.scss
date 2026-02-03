@@ -205,6 +205,57 @@
             text-align: center;
             font-weight: 600;
             color: var(--ion-color-primary);
+            padding: 16px;
+
+            .progress-cell {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              position: relative;
+
+              .circular-progress {
+                position: relative;
+                width: 48px;
+                height: 48px;
+
+                .progress-ring-background {
+                  stroke: var(--ion-color-light);
+                  transition: stroke 0.3s ease;
+                }
+
+                .progress-ring {
+                  stroke: var(--ion-color-primary);
+                  transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
+                  stroke-linecap: round;
+
+                  &.goal-met-stroke {
+                    stroke: var(--ion-color-success);
+                  }
+                }
+
+                &.goal-met {
+                  .progress-ring-background {
+                    stroke: var(--ion-color-success);
+                  }
+                }
+              }
+
+              .progress-value {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-weight: 600;
+                font-size: 14px;
+                color: var(--ion-color-primary);
+                pointer-events: none;
+                z-index: 1;
+
+                &.goal-met-text {
+                  color: var(--ion-color-success);
+                }
+              }
+            }
           }
 
           &.actions {

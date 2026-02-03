@@ -784,6 +784,45 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
     this.router.navigateByUrl('/challenges');
   }
 
+  getProgressPercentage(
+      entry: ChallengeLeaderboardEntry,
+      metric: 'bds'|'uniqueAos'|'qs'|'doubleDowns'): number {
+    if (!this.challenge?.goals) return 0;
+    const goal = this.challenge.goals[metric];
+    if (!goal || goal <= 0) return 0;
+    const value = entry[metric] || 0;
+    return Math.min(100, Math.round((value / goal) * 100));
+  }
+
+  hasMetGoal(
+      entry: ChallengeLeaderboardEntry,
+      metric: 'bds'|'uniqueAos'|'qs'|'doubleDowns'): boolean {
+    if (!this.challenge?.goals) return false;
+    const goal = this.challenge.goals[metric];
+    if (!goal || goal <= 0) return false;
+    const value = entry[metric] || 0;
+    return value >= goal;
+  }
+
+  hasGoal(metric: 'bds'|'uniqueAos'|'qs'|'doubleDowns'): boolean {
+    if (!this.challenge?.goals) return false;
+    const goal = this.challenge.goals[metric];
+    return goal !== undefined && goal > 0;
+  }
+
+  getStrokeDashArray(radius: number = 20): number {
+    return 2 * Math.PI * radius;
+  }
+
+  getStrokeDashOffset(
+      entry: ChallengeLeaderboardEntry,
+      metric: 'bds'|'uniqueAos'|'qs'|'doubleDowns',
+      radius: number = 20): number {
+    const circumference = 2 * Math.PI * radius;
+    const progress = this.getProgressPercentage(entry, metric) / 100;
+    return circumference * (1 - progress);
+  }
+
   private async showToast(message: string, color: string) {
     const toast = await this.toastController.create({
       message,
