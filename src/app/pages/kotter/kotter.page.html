@@ -23,7 +23,7 @@
     <div class="explanation">
       <h2>{{ explanation }}</h2>
     </div>
-    <ion-card *ngFor="let pax of inactivePax">
+    <ion-card *ngFor="let pax of displayedPax">
       <ion-card-header>
         <ion-card-title class="space-between">
           <ion-text class="pax-name">
@@ -51,6 +51,15 @@
         </p>
       </ion-card-content>
     </ion-card>
+    <ion-infinite-scroll
+      threshold="100px"
+      (ionInfinite)="loadMore($event)"
+    >
+      <ion-infinite-scroll-content
+        loadingSpinner="bubbles"
+        loadingText="Loading more..."
+      ></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
   </div>
 </ion-content>
 

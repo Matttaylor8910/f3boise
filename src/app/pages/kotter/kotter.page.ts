@@ -1,5 +1,6 @@
-import {Component} from '@angular/core';
+import {Component, ViewChild} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
+import {IonInfiniteScroll} from '@ionic/angular';
 import * as moment from 'moment';
 import {BackblastService} from 'src/app/services/backblast.service';
 import {UtilService} from 'src/app/services/util.service';
@@ -32,11 +33,19 @@ enum Sort {
   styleUrls: ['./kotter.page.scss'],
 })
 export class KotterPage {
+  @ViewChild(IonInfiniteScroll) infiniteScroll: IonInfiniteScroll|undefined;
+
   name: string;
   displayName: string;
 
   sort = Sort.TIME;
+  // Full sorted list; used for infinite scroll source and total count
   inactivePax?: PaxStats[];
+  // Slice of inactivePax actually rendered for performance
+  displayedPax: PaxStats[] = [];
+
+  readonly pageSize = 25;
+  private currentIndex = 0;
 
   constructor(
       public readonly utilService: UtilService,
@@ -76,6 +85,32 @@ export class KotterPage {
 
       return a.name.localeCompare(b.name);
     });
+    this.resetAndLoad();
+  }
+
+  private resetAndLoad() {
+    if (this.infiniteScroll) {
+      this.infiniteScroll.disabled = false;
+    }
+    this.displayedPax = [];
+    this.currentIndex = 0;
+    this.loadNextChunk();
+  }
+
+  private loadNextChunk() {
+    if (!this.inactivePax) return;
+    const nextChunk = this.inactivePax.slice(
+        this.currentIndex, this.currentIndex + this.pageSize);
+    this.displayedPax = [...this.displayedPax, ...nextChunk];
+    this.currentIndex += this.pageSize;
+  }
+
+  loadMore(event: any) {
+    this.loadNextChunk();
+    event.target.complete();
+    if (this.inactivePax && this.currentIndex >= this.inactivePax.length) {
+      event.target.disabled = true;
+    }
   }
 
   async calculateStats() {
