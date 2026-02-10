@@ -33,6 +33,22 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   bestiePhotoUrl: string|null = null;
   qCallouts: Array<{message: string; rank: number}> = [];
 
+  get showTooEarly(): boolean {
+    const yearNum = parseInt(this.year, 10);
+    return !this.isWithinLoadWindow(yearNum);
+  }
+
+  get tooEarlyMessage(): string {
+    const currentYear = new Date().getFullYear();
+    const yearNum = parseInt(this.year, 10);
+    if (yearNum > currentYear) {
+      return `Your ${
+          this.year} Beatdown Breakdown will be available December 20th, ${
+          this.year}.`;
+    }
+    return `Your ${this.year} Beatdown Breakdown drops in late December.`;
+  }
+
   constructor(
       public readonly utilService: UtilService,
       private readonly route: ActivatedRoute,
@@ -94,6 +110,10 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   }
 
   private async loadWrappedDataForPax(paxName: string) {
+    const yearNum = parseInt(this.year, 10);
+    if (!this.isWithinLoadWindow(yearNum))
+      return;  // Don't load until Dec 20-31
+
     try {
       // Get pax by name
       const pax = await this.paxService.getPax(paxName);
@@ -107,7 +127,6 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
       this.paxName = pax.name;
       this.userId = identifier;
 
-      const yearNum = parseInt(this.year, 10);
       this.wrappedService.getWrappedData(identifier, yearNum).subscribe({
         next: (data) => {
           this.wrappedData = data;
@@ -129,10 +148,26 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
     }
   }
 
+  /**
+   * Only load wrapped data if we're in the Dec 20-31 window for that year (or
+   * it's a past year).
+   */
+  private isWithinLoadWindow(year: number): boolean {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    if (year < currentYear) return true;   // Past years: always load
+    if (year > currentYear) return false;  // Future years: never load
+    const month = now.getMonth();
+    const day = now.getDate();
+    return month === 11 && day >= 20 && day <= 31;
+  }
+
   private loadWrappedData() {
     if (!this.userId || !this.year) return;
 
     const yearNum = parseInt(this.year, 10);
+    if (!this.isWithinLoadWindow(yearNum))
+      return;  // Don't load until Dec 20-31
     this.wrappedService.getWrappedData(this.userId, yearNum).subscribe({
       next: (data) => {
         this.wrappedData = data;

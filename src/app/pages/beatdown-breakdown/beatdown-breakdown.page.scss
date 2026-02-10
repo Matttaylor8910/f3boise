@@ -70,6 +70,24 @@
   }
 }
 
+.too-early-slide {
+  .too-early-message {
+    font-size: 1.4rem;
+    color: #ffffff;
+    line-height: 1.8;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+    max-width: 320px;
+    position: relative;
+    z-index: 2;
+  }
+  .too-early-sub {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 1.1rem;
+    opacity: 0.95;
+  }
+}
+
 .intro-slide-in-slides {
   display: flex;
   flex-direction: column;

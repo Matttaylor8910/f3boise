@@ -1,8 +1,20 @@
 <ion-content class="ion-no-padding" [class.no-scroll]="!user || !wrappedData">
   <!-- Wrapped data slides -->
   <div class="wrapped-slides" #slidesContainer>
-    <!-- Intro slide (first slide, shown for all users) -->
-    <div class="intro-slide-in-slides" [class.email-shown]="showEmailInput && !user" #introSlideElement>
+    <!-- "Too early" slide (future year or before Dec 20) -->
+    <div class="intro-slide-in-slides too-early-slide" *ngIf="showTooEarly">
+      <div class="title-section">
+        <p class="subtitle">Nice try, early bird</p>
+        <h1>You're too early!</h1>
+      </div>
+      <p class="too-early-message">
+        {{ tooEarlyMessage }}<br>
+        <span class="too-early-sub">Go post some more. We'll be here. 🫡</span>
+      </p>
+    </div>
+
+    <!-- Intro slide (first slide, shown when within load window) -->
+    <div class="intro-slide-in-slides" [class.email-shown]="showEmailInput && !user" *ngIf="!showTooEarly" #introSlideElement>
       <div class="title-section">
         <p class="subtitle">Your {{year}}</p>
         <h1>Beatdown Breakdown</h1>
