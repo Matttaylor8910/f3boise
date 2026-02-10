@@ -60,6 +60,7 @@ export class AoPage {
   bbShort = '';
   bbSingular = '';
   bbPlural = '';
+  isRegion = false;
 
   constructor(
       public readonly utilService: UtilService,
@@ -76,6 +77,11 @@ export class AoPage {
                                                           BBType.BACKBLAST;
     this.updateBBProperties();
     this.all = this.name === 'all';
+    this.isRegion = window.location.href.includes('/region/');
+  }
+
+  get kotterRoute(): string {
+    return this.isRegion ? `/region/${this.name}/kotter` : `/ao/${this.name}/kotter`;
   }
 
   private updateBBProperties() {
