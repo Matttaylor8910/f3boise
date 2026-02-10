@@ -63,14 +63,21 @@
   ></app-backblast-grid>
 
   <div class="center-container">
-    <h2 *ngIf="filteredBackblasts?.length && loading">
+    <h2 *ngIf="filteredBackblasts?.length && loading && !backblasts?.length">
       Loading...
     </h2>
-    <ion-button *ngIf="showLoadMore" (click)="loadMore()">
-      Load More
-    </ion-button>
     <h2 *ngIf="filteredBackblasts?.length === 0">
       No backblasts to show for the selected filters
     </h2>
   </div>
+
+  <ion-infinite-scroll
+    threshold="100px"
+    (ionInfinite)="loadMore($event)"
+  >
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Loading more..."
+    ></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
 </ion-content>

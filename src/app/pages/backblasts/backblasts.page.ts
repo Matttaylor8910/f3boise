@@ -1,4 +1,5 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
+import {IonInfiniteScroll} from '@ionic/angular';
 import {BackblastService} from 'src/app/services/backblast.service';
 import {Backblast} from 'types';
 
@@ -21,6 +22,8 @@ interface FilterState {
   styleUrls: ['./backblasts.page.scss'],
 })
 export class BackblastsPage implements OnInit {
+  @ViewChild(IonInfiniteScroll) infiniteScroll: IonInfiniteScroll|undefined;
+
   allBackblasts?: Backblast[];
   filteredBackblasts?: Backblast[];
   backblasts?: Backblast[];
@@ -36,12 +39,6 @@ export class BackblastsPage implements OnInit {
   };
 
   constructor(private readonly backblastService: BackblastService) {}
-
-  get showLoadMore(): boolean {
-    const moreBackblasts =
-        (this.filteredBackblasts?.length ?? 0) > (this.backblasts?.length ?? 0);
-    return !this.loading && moreBackblasts;
-  }
 
   async ngOnInit() {
     this.allBackblasts = await this.backblastService.getAllData();
@@ -84,6 +81,9 @@ export class BackblastsPage implements OnInit {
 
     this.filteredBackblasts = filtered;
 
+    if (this.infiniteScroll) {
+      this.infiniteScroll.disabled = false;
+    }
     this.loadMore();
   }
 
@@ -132,12 +132,11 @@ export class BackblastsPage implements OnInit {
     }
   }
 
-  loadMore() {
+  loadMore(event?: any) {
     this.loading = true;
 
-    setTimeout(() => {
+    const doLoad = () => {
       const backblasts = this.backblasts ?? [];
-
       const filtered = this.filteredBackblasts ?? [];
       const start = backblasts.length;
       const end = start + SIZE;
@@ -145,6 +144,20 @@ export class BackblastsPage implements OnInit {
       this.backblasts = backblasts;
 
       this.loading = false;
-    });
+
+      if (event) {
+        event.target.complete();
+        if (backblasts.length >= filtered.length) {
+          event.target.disabled = true;
+        }
+      }
+    };
+
+    // When loading more via infinite scroll, defer so the "Loading more..." spinner can render
+    if (event) {
+      setTimeout(doLoad, 0);
+    } else {
+      doLoad();
+    }
   }
 }
