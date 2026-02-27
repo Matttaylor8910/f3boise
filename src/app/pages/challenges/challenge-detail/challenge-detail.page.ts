@@ -337,23 +337,123 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   sortLeaderboard() {
     if (!this.challenge) return;
 
-    const sortBy = this.challenge.sortBy;
-    this.leaderboard.sort((a, b) => {
-      const aValue = a[sortBy] || 0;
-      const bValue = b[sortBy] || 0;
-      return bValue - aValue;  // Descending order
-    });
+    if (this.getTotalGoal() > 0) {
+      this.leaderboard.sort((a, b) => {
+        const aPct = this.getGoalCompletionPercent(a);
+        const bPct = this.getGoalCompletionPercent(b);
+        if (bPct !== aPct) return bPct - aPct;
+        const aMinBds = this.getMinBdsToComplete(a);
+        const bMinBds = this.getMinBdsToComplete(b);
+        if (aMinBds !== bMinBds) return aMinBds - bMinBds;  // Lower = closer to done = ranks higher
+        const sortBy = this.challenge!.sortBy;
+        const aValue = a[sortBy] || 0;
+        const bValue = b[sortBy] || 0;
+        return bValue - aValue;
+      });
+    } else {
+      const sortBy = this.challenge.sortBy;
+      this.leaderboard.sort((a, b) => {
+        const aValue = a[sortBy] || 0;
+        const bValue = b[sortBy] || 0;
+        return bValue - aValue;  // Descending order
+      });
+    }
   }
 
   sortNonJoinedLeaderboard() {
     if (!this.challenge) return;
 
-    const sortBy = this.challenge.sortBy;
-    this.nonJoinedLeaderboard.sort((a, b) => {
-      const aValue = a[sortBy] || 0;
-      const bValue = b[sortBy] || 0;
-      return bValue - aValue;  // Descending order
-    });
+    if (this.getTotalGoal() > 0) {
+      this.nonJoinedLeaderboard.sort((a, b) => {
+        const aPct = this.getGoalCompletionPercent(a);
+        const bPct = this.getGoalCompletionPercent(b);
+        if (bPct !== aPct) return bPct - aPct;
+        const aMinBds = this.getMinBdsToComplete(a);
+        const bMinBds = this.getMinBdsToComplete(b);
+        if (aMinBds !== bMinBds) return aMinBds - bMinBds;  // Lower = closer to done = ranks higher
+        const sortBy = this.challenge!.sortBy;
+        const aValue = a[sortBy] || 0;
+        const bValue = b[sortBy] || 0;
+        return bValue - aValue;
+      });
+    } else {
+      const sortBy = this.challenge.sortBy;
+      this.nonJoinedLeaderboard.sort((a, b) => {
+        const aValue = a[sortBy] || 0;
+        const bValue = b[sortBy] || 0;
+        return bValue - aValue;  // Descending order
+      });
+    }
+  }
+
+  /**
+   * Aggregated goal completion % per pax. Each metric contributes up to its
+   * goal (excess doesn't inflate %). E.g. 50 BDs, 10 AOs, 6 Qs → 66 total.
+   * 20 BDs, 3 AOs, 10 Qs → min(20,50)+min(3,10)+min(10,6) = 29/66.
+   */
+  getGoalCompletionPercent(entry: ChallengeLeaderboardEntry): number {
+    const total = this.getTotalGoal();
+    if (total <= 0) return 0;
+
+    let cappedSum = 0;
+    const metrics: Array<'bds'|'uniqueAos'|'qs'|'doubleDowns'> =
+        ['bds', 'uniqueAos', 'qs', 'doubleDowns'];
+
+    for (const metric of metrics) {
+      const goal = this.challenge?.goals?.[metric];
+      if (goal && goal > 0 && this.challenge?.metrics[metric]) {
+        const value = entry[metric] || 0;
+        cappedSum += Math.min(value, goal);
+      }
+    }
+
+    return (cappedSum / total) * 100;
+  }
+
+  /**
+   * Minimum BDs needed to complete all goals (each goal increments at most once
+   * per BD). Max of remaining per metric. Lower = closer to done = ranks higher.
+   */
+  getMinBdsToComplete(entry: ChallengeLeaderboardEntry): number {
+    if (!this.challenge?.goals) return 0;
+
+    let maxMinBds = 0;
+    const metrics: Array<'bds'|'uniqueAos'|'qs'|'doubleDowns'> =
+        ['bds', 'uniqueAos', 'qs', 'doubleDowns'];
+
+    for (const metric of metrics) {
+      const goal = this.challenge.goals[metric];
+      if (!goal || goal <= 0 || !this.challenge.metrics[metric]) continue;
+
+      const value = entry[metric] || 0;
+      const remaining = Math.max(0, goal - Math.min(value, goal));
+
+      // BDs, AOs, Qs: 1 per BD. DoubleDowns: 1 DD = 2 BDs.
+      const minBdsForMetric =
+          metric === 'doubleDowns' ? remaining * 2 : remaining;
+
+      maxMinBds = Math.max(maxMinBds, minBdsForMetric);
+    }
+
+    return maxMinBds;
+  }
+
+  /** Sum of all goal targets for metrics that are tracked and have goals. */
+  getTotalGoal(): number {
+    if (!this.challenge?.goals) return 0;
+
+    let total = 0;
+    const metrics: Array<'bds'|'uniqueAos'|'qs'|'doubleDowns'> =
+        ['bds', 'uniqueAos', 'qs', 'doubleDowns'];
+
+    for (const metric of metrics) {
+      const goal = this.challenge.goals[metric];
+      if (goal && goal > 0 && this.challenge.metrics[metric]) {
+        total += goal;
+      }
+    }
+
+    return total;
   }
 
   trackByLeaderboardEntry(index: number, entry: ChallengeLeaderboardEntry):
@@ -706,6 +806,9 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
 
   getSortByLabel(): string {
     if (!this.challenge) return '';
+    if (this.getTotalGoal() > 0) {
+      return 'Goal completion %';
+    }
     switch (this.challenge.sortBy) {
       case 'bds':
         return '# of BDs';
