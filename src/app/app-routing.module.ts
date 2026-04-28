@@ -2,6 +2,7 @@ import {Component, NgModule} from '@angular/core';
 import {PreloadAllModules, RouterModule, Routes} from '@angular/router';
 
 import {LuckyGuard} from './guards/lucky.guard';
+import {MapGuard} from './guards/map.guard';
 
 const routes: Routes = [
   {
@@ -86,6 +87,12 @@ const routes: Routes = [
     path: 'lucky',
     component: Component,
     canActivate: [LuckyGuard],
+  },
+  {
+    path: 'map',
+    loadChildren: () =>
+        import('./pages/map/map.module').then(m => m.MapPageModule),
+    canActivate: [MapGuard],
   },
   {
     path: 'exicon',

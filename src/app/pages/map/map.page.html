@@ -1,0 +1,191 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>AO Map</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [scrollY]="false">
+
+  <div *ngIf="loading" class="loading-overlay">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Loading workouts…</p>
+  </div>
+
+  <div *ngIf="error" class="error-overlay">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    <p>{{ error }}</p>
+  </div>
+
+  <div class="map-layout" *ngIf="!loading && !error">
+
+    <!-- Google Map -->
+    <div class="map-section">
+      <google-map width="100%" height="100%" [center]="mapCenter" [options]="mapOptions"
+                  (mapClick)="onMapClick($event)">
+        <map-marker
+          *ngFor="let ao of aos"
+          [position]="ao.position!"
+          [options]="ao.markerOptions!"
+          (mapClick)="onMarkerClick(ao)"
+          [hidden]="!ao.position">
+        </map-marker>
+      </google-map>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h2>AO Details</h2>
+        <p>{{ aos.length }} active locations — click a marker to view</p>
+      </div>
+
+      <div class="sidebar-content">
+
+        <!-- Empty state -->
+        <div class="empty-state" *ngIf="!selectedAo">
+          <ion-icon name="location-outline"></ion-icon>
+          <p>Select a location on the map to get started</p>
+        </div>
+
+        <!-- AO detail -->
+        <div class="ao-detail" *ngIf="selectedAo">
+          <button class="back-button" (click)="clearSelection()">← Back</button>
+
+          <div class="ao-title">
+            <h3>{{ selectedAo.name }}</h3>
+            <span class="region-badge">{{ selectedAo.region }}</span>
+          </div>
+
+          <div class="ao-meta" *ngIf="selectedAo.address">
+            <ion-icon name="location-outline"></ion-icon>
+            <span>{{ selectedAo.address }}</span>
+          </div>
+
+          <div class="ao-meta" *ngIf="selectedAo.eventTypes.length">
+            <ion-icon name="barbell-outline"></ion-icon>
+            <span>{{ selectedAo.eventTypes.join(' · ') }}</span>
+          </div>
+
+          <div class="days-section">
+            <h4>Schedule</h4>
+            <div class="day-list">
+              <div
+                class="day-item"
+                [class.filled]="day.event"
+                [class.empty]="!day.event"
+                *ngFor="let day of selectedAo.days"
+                (click)="openDayEdit(day)">
+                <div class="day-item-content">
+                  <div class="day-label">{{ day.dayName }}</div>
+                  <div class="day-content" *ngIf="day.event">
+                    <span class="ao-name">{{ day.event.name }}</span>
+                    <span class="time-range">
+                      {{ formatTime(day.event.startTime) }} – {{ formatTime(day.event.endTime) }}
+                    </span>
+                  </div>
+                  <div class="day-content no-workout" *ngIf="!day.event">No workout scheduled</div>
+                </div>
+                <span class="day-item-action">{{ day.event ? 'Edit' : 'Add' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="description" *ngIf="selectedAo.description">
+            <h4>About</h4>
+            <p>{{ selectedAo.description }}</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+
+</ion-content>
+
+<!-- New AO modal -->
+<ion-modal [isOpen]="newAoModalOpen" (didDismiss)="closeNewAoModal()" [backdropDismiss]="true">
+  <ng-template>
+    <div class="modal-inner">
+      <div class="modal-header">
+        <h3>New AO</h3>
+        <p class="modal-subtitle">Drop a pin and name your new workout location</p>
+      </div>
+
+      <div class="form-group">
+        <label>AO Name</label>
+        <input type="text" [(ngModel)]="newAoForm.name" placeholder="e.g. The Bleach">
+      </div>
+
+      <div class="form-group">
+        <label>Region</label>
+        <select [(ngModel)]="newAoForm.regionId">
+          <option *ngFor="let r of boiseRegions" [ngValue]="r.id">{{ r.name }}</option>
+        </select>
+      </div>
+
+      <div class="modal-buttons">
+        <button class="btn-save" (click)="createNewAo()" [disabled]="!newAoForm.name.trim()">
+          Create AO
+        </button>
+        <button class="btn-cancel" (click)="closeNewAoModal()">Cancel</button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>
+
+<!-- Day edit modal -->
+<ion-modal [isOpen]="modalOpen" (didDismiss)="closeModal()" [backdropDismiss]="true">
+  <ng-template>
+    <div class="modal-inner" *ngIf="editingDay">
+      <div class="modal-header">
+        <h3>{{ editingDay.event ? 'Edit' : 'Add' }} {{ editingDay.dayName }} Workout</h3>
+        <p class="modal-subtitle">
+          {{ editingDay.event
+            ? 'Update the workout details for ' + editingDay.dayName
+            : 'Add a new workout for ' + editingDay.dayName }}
+        </p>
+      </div>
+
+      <div class="form-group">
+        <label>AO Name</label>
+        <input type="text" [(ngModel)]="dayForm.name" placeholder="e.g. Bleach">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Start</label>
+          <input type="time" [(ngModel)]="dayForm.startTime">
+        </div>
+        <div class="form-group">
+          <label>End</label>
+          <input type="time" [(ngModel)]="dayForm.endTime">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Type</label>
+        <select [(ngModel)]="dayForm.eventTypeId">
+          <option *ngFor="let t of eventTypes" [ngValue]="t.id">{{ t.name }}</option>
+        </select>
+      </div>
+
+      <div class="save-error" *ngIf="saveError">{{ saveError }}</div>
+
+      <div class="modal-buttons">
+        <button class="btn-save" (click)="saveDay()" [disabled]="saving || deleting">
+          {{ saving ? 'Saving…' : (editingDay.event ? 'Update' : 'Create') }}
+        </button>
+        <button
+          *ngIf="editingDay.event"
+          class="btn-delete"
+          (click)="deleteDay()"
+          [disabled]="saving || deleting">
+          {{ deleting ? 'Removing…' : 'Remove' }}
+        </button>
+        <button class="btn-cancel" (click)="closeModal()" [disabled]="saving || deleting">Cancel</button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>
