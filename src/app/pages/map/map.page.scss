@@ -20,8 +20,6 @@ ion-content {
   flex: 1;
   min-width: 0;
   position: relative;
-
-  #map { width: 100%; height: 100%; }
 }
 
 // ── Sidebar ───────────────────────────────────────────────────────
@@ -67,26 +65,12 @@ ion-content {
 
 .ao-panel-region-row {
   margin-top: 6px;
-
-  .region-badge {
-    vertical-align: middle;
-  }
 }
 
 .sidebar-content {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
-}
-
-// ── Empty state ───────────────────────────────────────────────────
-.empty-state {
-  text-align: center;
-  color: #bbb;
-  margin-top: 60px;
-
-  ion-icon { font-size: 48px; display: block; margin: 0 auto 12px; }
-  p { font-size: 14px; }
 }
 
 // ── AO detail ─────────────────────────────────────────────────────
@@ -195,6 +179,7 @@ ion-content {
 
 .region-badge {
   flex-shrink: 0;
+  vertical-align: middle;
   background: #e8f0fe;
   color: #1a73e8;
   font-size: 11px;
@@ -215,13 +200,14 @@ ion-content {
   ion-icon { flex-shrink: 0; margin-top: 2px; font-size: 15px; color: #888; }
 }
 
-// ── Schedule ──────────────────────────────────────────────────────
-.days-section {
+// ── Schedule + About ───────────────────────────────────────────────
+.days-section,
+.description {
   margin-top: 22px;
   padding-top: 18px;
   border-top: 1px solid #ececec;
 
-  h4 {
+  > h4 {
     font-size: 11px;
     font-weight: 700;
     color: #555;
@@ -229,6 +215,10 @@ ion-content {
     letter-spacing: 0.6px;
     margin: 0 0 10px;
   }
+}
+
+.description > h4 {
+  margin-bottom: 8px;
 }
 
 .day-list { display: flex; flex-direction: column; gap: 6px; }
@@ -279,94 +269,13 @@ ion-content {
 
 .no-workout { color: #aaa; font-size: 12px; }
 
-// ── About ─────────────────────────────────────────────────────────
 .description {
-  margin-top: 22px;
-  padding-top: 18px;
-  border-top: 1px solid #ececec;
-
-  h4 {
-    font-size: 11px;
-    font-weight: 700;
-    color: #555;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    margin: 0 0 8px;
-  }
-
   p { font-size: 13px; color: #555; line-height: 1.55; white-space: pre-line; margin: 0; }
 
   .description-empty {
     color: #bbb;
     font-style: italic;
   }
-}
-
-// ── Edit panel ────────────────────────────────────────────────────
-.edit-section {
-  padding: 18px;
-  background: #f8faff;
-  border: 1px solid #dbe8fd;
-  border-radius: 10px;
-}
-
-.edit-section-title {
-  font-size: 11px;
-  font-weight: 700;
-  color: #1a73e8;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  margin: 0 0 16px;
-}
-.edit-field {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 12px;
-
-  label {
-    font-size: 11px;
-    font-weight: 700;
-    color: #555;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 5px;
-  }
-
-  input, textarea {
-    padding: 9px 11px;
-    border: 1px solid #d0d9e8;
-    border-radius: 6px;
-    font-size: 13px;
-    font-family: inherit;
-    background: white;
-    color: #1a1a1a;
-    transition: border-color 0.15s, box-shadow 0.15s;
-
-    &:focus {
-      outline: none;
-      border-color: #2196f3;
-      box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.12);
-    }
-  }
-
-  textarea {
-    resize: vertical;
-    line-height: 1.5;
-  }
-}
-
-.edit-field-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-
-  .edit-field--zip { width: 90px; }
-}
-
-.edit-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
 }
 
 // ── Loading / error ───────────────────────────────────────────────
@@ -502,8 +411,6 @@ ion-modal {
 .btn-save   { background: #2196f3; color: white; &:hover:not(:disabled) { background: #1976d2; } }
 .btn-delete { background: #f44336; color: white; &:hover:not(:disabled) { background: #d32f2f; } }
 .btn-cancel { background: #e0e0e0; color: #333;  &:hover:not(:disabled) { background: #d0d0d0; } }
-
-// Google Maps fills its container naturally — no extra styles needed.
 
 // ── Region tree ───────────────────────────────────────────────────
 
