@@ -1,10 +1,22 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import {
   BOISE_REGION_IDS,
   CreateOrUpdateEventRequest,
   F3ApiService,
   F3Event,
+  F3Location,
+  F3Org,
 } from 'src/app/services/f3-api.service';
+import {GoogleMap} from '@angular/google-maps';
+
+interface NewAoForm {
+  name: string;
+  regionId: number;
+  addressStreet: string;
+  addressCity: string;
+  addressState: string;
+  addressZip: string;
+}
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const DAY_INDEX: Record<string, number> = {
@@ -28,6 +40,9 @@ export interface AoDay {
 
 export interface GroupedAo {
   locationId: number;
+  orgId?: number;  // org ID returned from POST /v1/org; used as aoId in event payloads
+  /** AO org ID from events API parents chain when present */
+  parentAoId?: number;
   regionId: number;
   name: string;
   address: string;
@@ -68,7 +83,9 @@ export class MapPage implements OnInit {
 
   // New AO state
   newAoModalOpen = false;
-  newAoForm = {name: '', regionId: BOISE_REGION_IDS.cityOfTrees as number};
+  creatingAo = false;
+  createAoError: string|null = null;
+  newAoForm: NewAoForm = this.emptyNewAoForm();
   private pendingLatLng: google.maps.LatLngLiteral|null = null;
 
   readonly eventTypes = EVENT_TYPES;
@@ -80,14 +97,20 @@ export class MapPage implements OnInit {
   ];
 
   readonly mapCenter: google.maps.LatLngLiteral = {lat: 43.615, lng: -116.35};
+  /** Omit zoom — `fitBounds` sets viewport; avoids fighting programmatic fitting. */
   readonly mapOptions: google.maps.MapOptions = {
-    zoom: 11,
     mapTypeId: 'roadmap',
     disableDefaultUI: false,
     fullscreenControl: false,
     streetViewControl: false,
     mapTypeControl: false,
   };
+
+  @ViewChild('mapRef')
+  private readonly mapComponent?: GoogleMap;
+
+  /** Coalesce rapid pin updates from parallel geocoder callbacks */
+  private fitBoundsTimer?: number;
 
   private geocoder!: google.maps.Geocoder;
 
@@ -96,8 +119,16 @@ export class MapPage implements OnInit {
   async ngOnInit() {
     this.geocoder = new google.maps.Geocoder();
     try {
-      const {events} = await this.f3Api.listEvents();
-      this.aos = this.groupEvents(events);
+      const boiseRegionIds = Object.values(BOISE_REGION_IDS) as number[];
+      const [{events}, {orgs}, {locations}] = await Promise.all([
+        this.f3Api.listEvents(),
+        this.f3Api.listOrgs({orgTypes: ['ao'], onlyMine: true, pageSize: 200}),
+        // All Boise-area locations (canonical lat/lng), not onlyMine — needed to place
+        // event-backed AOs that share those location IDs (avoids ambiguous geocode text).
+        this.f3Api.listLocations({regionIds: boiseRegionIds, pageSize: 500}),
+      ]);
+
+      this.aos = this.mergeAll(events, orgs, locations);
       this.loading = false;
       this.geocodeAll();
     } catch (e: any) {
@@ -105,6 +136,8 @@ export class MapPage implements OnInit {
       this.loading = false;
     }
   }
+
+  // ── Grouping ────────────────────────────────────────────────────
 
   // ── Grouping ────────────────────────────────────────────────────
 
@@ -134,13 +167,31 @@ export class MapPage implements OnInit {
       }
 
       const aoName = first.locationName || first.name;
-      const address = first.location ||
-          [first.locationAddress, first.locationCity, first.locationState]
-              .filter(Boolean).join(', ');
+      // Prefer structured address for maps; prose-only location strings (e.g. "meet near
+      // Gem Island…") confuse Geocoder — "Gem Island" can resolve outside Idaho.
+      const structuredAddress = [
+        first.locationAddress,
+        first.locationCity,
+        first.locationState,
+        first.locationZip,
+      ].filter(Boolean).join(', ');
+      const address =
+          structuredAddress || first.location ||
+          '';
+
+      let parentAoId: number|undefined;
+      for (const ev of evts) {
+        const p = ev.parents?.[0]?.parentId;
+        if (p != null && p > 0) {
+          parentAoId = p;
+          break;
+        }
+      }
 
       const regionPick = this.pickBoiseRegion(evts);
       return {
         locationId,
+        parentAoId,
         regionId: regionPick.id,
         name: aoName,
         address,
@@ -150,6 +201,69 @@ export class MapPage implements OnInit {
         days,
       };
     });
+  }
+
+  /**
+   * Merges event-based AOs with orgs/locations that have no events yet.
+   * Orgs fetched via onlyMine give us AOs we own; locations supply lat/lng directly.
+   */
+  private mergeAll(events: F3Event[], orgs: F3Org[], locations: F3Location[]): GroupedAo[] {
+    const eventAos = this.groupEvents(events);
+
+    // Index locations and event-based AOs for quick lookup
+    const locationById = new Map(locations.map(l => [l.id, l]));
+    const eventLocationIds = new Set(eventAos.map(a => a.locationId));
+    const boiseRegionIds = new Set<number>(Object.values(BOISE_REGION_IDS));
+
+    const emptyAos: GroupedAo[] = [];
+    for (const org of orgs) {
+      const locId = org.defaultLocationId;
+      if (!locId) continue;
+      if (eventLocationIds.has(locId)) continue;  // already represented
+
+      const loc = locationById.get(locId);
+      if (!loc) continue;
+      if (!boiseRegionIds.has(loc.regionId)) continue;  // outside our regions
+
+      const address = [loc.addressStreet, loc.addressCity, loc.addressState]
+          .filter(Boolean).join(', ');
+
+      const ao: GroupedAo = {
+        locationId: locId,
+        orgId: org.id,
+        regionId: loc.regionId,
+        name: org.name,
+        address,
+        region: loc.regionName,
+        description: org.description ?? '',
+        eventTypes: [],
+        days: DAYS.map((dayName, i) => ({dayIndex: i, dayName, event: null})),
+      };
+
+      // Use lat/lng directly — no geocoding needed
+      if (loc.latitude && loc.longitude) {
+        ao.position = {lat: loc.latitude, lng: loc.longitude};
+        ao.markerOptions = this.buildMarkerOptions(ao);
+      }
+
+      emptyAos.push(ao);
+    }
+
+    // Canonical coordinates from Locations API override Geocoder for events at that id
+    for (const ao of eventAos) {
+      const loc = locationById.get(ao.locationId);
+      if (
+        loc?.latitude != null &&
+        loc.longitude != null &&
+        loc.latitude !== 0 &&
+        loc.longitude !== 0
+      ) {
+        ao.position = {lat: loc.latitude!, lng: loc.longitude!};
+        ao.markerOptions = this.buildMarkerOptions(ao);
+      }
+    }
+
+    return [...eventAos, ...emptyAos];
   }
 
   /** Prefer a Boise-area region; API may list other metros first. */
@@ -176,32 +290,83 @@ export class MapPage implements OnInit {
     return fallbackAo.regionId;
   }
 
-  private aoIdForPayload(ev: F3Event|null|undefined, fallbackLocationId: number): number {
+  private aoIdForPayload(ev: F3Event|null|undefined, ao: GroupedAo): number {
     const parent = ev?.parents?.[0]?.parentId;
     if (parent != null && parent > 0) return parent;
     if (ev?.locationId) return ev.locationId;
-    return fallbackLocationId;
+    // For freshly-created AOs, use the org ID (not locationId) as aoId
+    if (ao.orgId) return ao.orgId;
+    return ao.locationId;
   }
 
   // ── Geocoding ────────────────────────────────────────────────────
 
   private geocodeAll() {
     for (const ao of this.aos) {
+      if (ao.position) continue;  // Locations API coords or newly created AO coords
       if (ao.address) this.geocodeAo(ao);
     }
   }
 
   private geocodeAo(ao: GroupedAo) {
-    this.geocoder.geocode({address: ao.address + ', Idaho, USA'}, (results, status) => {
+    this.geocoder.geocode({address: ao.address + ', Idaho, USA'}, (
+        results: google.maps.GeocoderResult[]|null,
+        status: string,
+        ) => {
       if (status === 'OK' && results?.length) {
         const loc = results[0].geometry.location;
         ao.position = {lat: loc.lat(), lng: loc.lng()};
         ao.markerOptions = this.buildMarkerOptions(ao);
         // Trigger change detection by reassigning the array reference
         this.aos = [...this.aos];
+        this.scheduleFitMapToPins();
       }
     });
   }
+
+  /** Fit viewport to every pin (as zoomed as possible subject to fitting all markers). */
+  scheduleFitMapToPins(): void {
+    window.clearTimeout(this.fitBoundsTimer);
+    this.fitBoundsTimer = window.setTimeout(() => {
+      this.fitBoundsTimer = undefined;
+      this.fitMapToPins();
+    }, 170);
+  }
+
+  private fitMapToPins(): void {
+    const gmap = this.mapComponent?.googleMap;
+    if (!gmap) return;
+
+    const coords = this.aos
+        .filter(
+            (ao): ao is GroupedAo&{position: google.maps.LatLngLiteral} => !!ao.position,
+        )
+        .map(ao => ao.position);
+    if (coords.length === 0) return;
+
+    const PAD = 56;
+
+    if (coords.length === 1) {
+      gmap.setCenter(coords[0]);
+      gmap.setZoom(MapPage.SINGLE_AO_ZOOM);
+      return;
+    }
+
+    const bounds = new google.maps.LatLngBounds();
+    coords.forEach(c => bounds.extend(c));
+
+    gmap.fitBounds(bounds, {top: PAD, bottom: PAD, left: PAD, right: PAD});
+    google.maps.event.addListenerOnce(gmap, 'idle', () => {
+      const z = gmap.getZoom();
+      if (z !== undefined && z > MapPage.MULTI_PIN_MAX_ZOOM) {
+        gmap.setZoom(MapPage.MULTI_PIN_MAX_ZOOM);
+      }
+    });
+  }
+
+  private static readonly SINGLE_AO_ZOOM = 14;
+  /** Keeps clustered markers visible when overlapping pins inflate zoom */
+  private static readonly MULTI_PIN_MAX_ZOOM = 17;
 
   // Per-day colors matching maps.html
   private static readonly DAY_COLORS = [
@@ -302,37 +467,82 @@ export class MapPage implements OnInit {
     const latLng = event.latLng?.toJSON();
     if (!latLng) return;
     this.pendingLatLng = latLng;
-    this.newAoForm = {name: '', regionId: BOISE_REGION_IDS.cityOfTrees};
+    this.newAoForm = this.emptyNewAoForm();
+    this.createAoError = null;
     this.newAoModalOpen = true;
   }
 
   closeNewAoModal() {
+    if (this.creatingAo) return;
     this.newAoModalOpen = false;
     this.pendingLatLng = null;
+    this.createAoError = null;
   }
 
-  createNewAo() {
+  async createNewAo() {
     const name = this.newAoForm.name.trim();
     if (!name || !this.pendingLatLng) return;
+    this.creatingAo = true;
+    this.createAoError = null;
 
-    const region = this.boiseRegions.find(r => r.id === this.newAoForm.regionId);
-    const newAo: GroupedAo = {
-      locationId: 0,
-      regionId: this.newAoForm.regionId,
-      name,
-      address: '',
-      region: region?.name ?? '',
-      description: '',
-      eventTypes: [],
-      days: DAYS.map((dayName, i) => ({dayIndex: i, dayName, event: null})),
-      position: this.pendingLatLng!,
-    };
-    newAo.markerOptions = this.buildMarkerOptions(newAo);
+    try {
+      // Step 1: create the org (AO node in the hierarchy)
+      const {org} = await this.f3Api.createOrg({
+        parentId: this.newAoForm.regionId,
+        name,
+        isActive: true,
+        orgType: 'ao',
+        website: 'https://f3boise.com',
+        twitter: '',
+        facebook: '',
+        instagram: '',
+      });
 
-    this.aos = [...this.aos, newAo];
-    this.selectedAo = newAo;
-    this.pendingLatLng = null;
-    this.newAoModalOpen = false;
+      // Step 2: create the location tied to that org
+      const {location} = await this.f3Api.createLocation({
+        orgId: org.id,
+        name,
+        isActive: true,
+        latitude: this.pendingLatLng!.lat,
+        longitude: this.pendingLatLng!.lng,
+        ...(this.newAoForm.addressStreet.trim() ? {addressStreet: this.newAoForm.addressStreet.trim()} : {}),
+        ...(this.newAoForm.addressCity.trim()   ? {addressCity:   this.newAoForm.addressCity.trim()}   : {}),
+        addressState: this.newAoForm.addressState.trim() || 'ID',
+        ...(this.newAoForm.addressZip.trim()    ? {addressZip:    this.newAoForm.addressZip.trim()}     : {}),
+        addressCountry: 'US',
+      });
+
+      const region = this.boiseRegions.find(r => r.id === this.newAoForm.regionId);
+      const address = [
+        this.newAoForm.addressStreet,
+        this.newAoForm.addressCity,
+        this.newAoForm.addressState || 'ID',
+      ].filter(Boolean).join(', ');
+
+      const newAo: GroupedAo = {
+        locationId: location.id,
+        orgId: org.id,
+        regionId: this.newAoForm.regionId,
+        name,
+        address,
+        region: region?.name ?? '',
+        description: '',
+        eventTypes: [],
+        days: DAYS.map((dayName, i) => ({dayIndex: i, dayName, event: null})),
+        position: this.pendingLatLng!,
+      };
+      newAo.markerOptions = this.buildMarkerOptions(newAo);
+
+      this.aos = [...this.aos, newAo];
+      this.scheduleFitMapToPins();
+      this.selectedAo = newAo;
+      this.pendingLatLng = null;
+      this.newAoModalOpen = false;
+    } catch (e: any) {
+      this.createAoError = e.message ?? 'Failed to create AO';
+    } finally {
+      this.creatingAo = false;
+    }
   }
 
   onMarkerClick(ao: GroupedAo) {
@@ -361,7 +571,7 @@ export class MapPage implements OnInit {
         eventTypeId: tid != null ? Number(tid) : 1,
       };
     } else {
-      this.dayForm = this.emptyForm();
+      this.dayForm = {...this.emptyForm(), name: this.selectedAo?.name ?? ''};
     }
   }
 
@@ -383,7 +593,7 @@ export class MapPage implements OnInit {
     try {
       await this.f3Api.createOrUpdateEvent({
         id: ev.id,
-        aoId: this.aoIdForPayload(ev, ao.locationId),
+        aoId: this.aoIdForPayload(ev, ao),
         regionId: this.regionIdForPayload(ev, ao),
         locationId: ev.locationId ?? ao.locationId,
         eventTypeIds: ev.eventTypes?.map(t => t.eventTypeId) ?? [1],
@@ -419,12 +629,11 @@ export class MapPage implements OnInit {
 
     try {
       const ev = day.event;
-      const locationId = ev?.locationId ?? ao.locationId;
       const body: CreateOrUpdateEventRequest = {
         ...(ev?.id ? {id: ev.id} : {}),
-        aoId: this.aoIdForPayload(ev, ao.locationId),
+        aoId: this.aoIdForPayload(ev, ao),
         regionId: this.regionIdForPayload(ev, ao),
-        locationId,
+        locationId: ev?.locationId ?? ao.locationId,
         eventTypeIds: [Number(this.dayForm.eventTypeId)],
         name: this.dayForm.name.trim(),
         description: ev?.description ?? ao.description,
@@ -472,6 +681,17 @@ export class MapPage implements OnInit {
 
   private emptyForm(): DayForm {
     return {enabled: false, name: '', startTime: '05:15', endTime: '06:00', eventTypeId: 1};
+  }
+
+  private emptyNewAoForm(): NewAoForm {
+    return {
+      name: '',
+      regionId: BOISE_REGION_IDS.cityOfTrees,
+      addressStreet: '',
+      addressCity: 'Boise',
+      addressState: 'ID',
+      addressZip: '',
+    };
   }
 
   /**

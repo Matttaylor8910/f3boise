@@ -89,6 +89,94 @@ export interface CreateOrUpdateEventResponse {
   event: F3Event;
 }
 
+export interface F3Org {
+  id: number;
+  parentId: number;
+  name: string;
+  orgType: string;
+  defaultLocationId: number|null;
+  isActive: boolean;
+  website: string|null;
+  description: string;
+}
+
+export interface F3Location {
+  id: number;
+  LocationName: string;
+  regionId: number;
+  regionName: string;
+  description: string;
+  isActive: boolean;
+  latitude: number|null;
+  longitude: number|null;
+  addressStreet: string;
+  addressCity: string;
+  addressState: string;
+  addressZip: string;
+}
+
+export interface ListOrgsParams {
+  orgTypes?: string[];
+  onlyMine?: boolean;
+  parentOrgIds?: number[];
+  statuses?: string;
+  pageIndex?: number;
+  pageSize?: number;
+}
+
+export interface ListLocationsParams {
+  regionIds?: number[];
+  onlyMine?: boolean;
+  statuses?: string;
+  pageIndex?: number;
+  pageSize?: number;
+}
+
+export interface CreateOrgRequest {
+  id?: number;
+  parentId: number;
+  defaultLocationId?: number;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  logoUrl?: string|null;
+  website?: string|null;
+  email?: string|null;
+  twitter: string;
+  facebook: string;
+  instagram: string;
+  lastAnnualReview?: string|null;
+  aoCount?: number;
+  meta?: Record<string, unknown>|null;
+  orgType: 'ao'|'region'|'area'|'sector'|'nation';
+}
+
+export interface CreateOrgResponse {
+  org: {id: number; parentId: number; name: string; orgType: string; defaultLocationId: number};
+}
+
+export interface CreateLocationRequest {
+  id?: number;
+  orgId: number;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  latitude?: number;
+  longitude?: number;
+  addressStreet?: string;
+  addressStreet2?: string;
+  addressCity?: string;
+  addressState?: string;
+  addressZip?: string;
+  addressCountry?: string;
+  meta?: Record<string, unknown>|null;
+  email?: string|null;
+}
+
+export interface CreateLocationResponse {
+  location: {id: number; orgId: number; name: string; latitude: number; longitude: number};
+}
+
 @Injectable({providedIn: 'root'})
 export class F3ApiService {
   private readonly headers = new HttpHeaders({
@@ -134,6 +222,45 @@ export class F3ApiService {
           headers: this.headers,
           params: httpParams,
         }),
+    );
+  }
+
+  listOrgs(params: ListOrgsParams = {}): Promise<{orgs: F3Org[]; total: number}> {
+    const {orgTypes = ['ao'], onlyMine, parentOrgIds, statuses = 'active', pageIndex, pageSize} = params;
+    let p = new HttpParams().set('statuses', statuses);
+    for (const t of orgTypes) p = p.append('orgTypes', t);
+    if (onlyMine) p = p.set('onlyMine', 'true');
+    if (parentOrgIds?.length) for (const id of parentOrgIds) p = p.append('parentOrgIds', String(id));
+    if (pageIndex !== undefined) p = p.set('pageIndex', pageIndex);
+    if (pageSize  !== undefined) p = p.set('pageSize',  pageSize);
+    return firstValueFrom(
+        this.http.get<{orgs: F3Org[]; total: number}>(`${F3_API_BASE}/org`, {headers: this.headers, params: p}),
+    );
+  }
+
+  listLocations(params: ListLocationsParams = {}): Promise<{locations: F3Location[]; totalCount: number}> {
+    const {regionIds, onlyMine, statuses = 'active', pageIndex, pageSize} = params;
+    let p = new HttpParams().set('statuses', statuses);
+    if (onlyMine) p = p.set('onlyMine', 'true');
+    if (regionIds?.length) for (const id of regionIds) p = p.append('regionIds', String(id));
+    if (pageIndex !== undefined) p = p.set('pageIndex', pageIndex);
+    if (pageSize  !== undefined) p = p.set('pageSize',  pageSize);
+    return firstValueFrom(
+        this.http.get<{locations: F3Location[]; totalCount: number}>(
+            `${F3_API_BASE}/location`, {headers: this.headers, params: p}),
+    );
+  }
+
+  createOrg(body: CreateOrgRequest): Promise<CreateOrgResponse> {
+    return firstValueFrom(
+        this.http.post<CreateOrgResponse>(`${F3_API_BASE}/org`, body, {headers: this.postHeaders}),
+    );
+  }
+
+  createLocation(body: CreateLocationRequest): Promise<CreateLocationResponse> {
+    return firstValueFrom(
+        this.http.post<CreateLocationResponse>(
+            `${F3_API_BASE}/location`, body, {headers: this.postHeaders}),
     );
   }
 

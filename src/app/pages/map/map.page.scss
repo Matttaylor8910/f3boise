@@ -6,6 +6,7 @@
 
 ion-content {
   --overflow: hidden;
+  --padding-bottom: 0;
 }
 
 .map-layout {
@@ -92,6 +93,14 @@ ion-content {
   padding: 3px 8px;
   border-radius: 10px;
   white-space: nowrap;
+}
+
+.ao-ids {
+  margin: 2px 0 12px;
+  font-size: 11px;
+  font-weight: 400;
+  color: #b0b0b0;
+  letter-spacing: 0.02em;
 }
 
 .ao-meta {
@@ -218,6 +227,7 @@ ion-modal {
 }
 
 .modal-subtitle { font-size: 13px; color: #6b7280; margin: 0; }
+.required-star  { color: #e53935; }
 
 .form-group {
   margin-bottom: 14px;

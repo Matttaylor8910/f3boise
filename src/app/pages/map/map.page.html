@@ -20,7 +20,11 @@
 
     <!-- Google Map -->
     <div class="map-section">
-      <google-map width="100%" height="100%" [center]="mapCenter" [options]="mapOptions"
+      <google-map #mapRef
+                  width="100%" height="100%"
+                  [center]="mapCenter"
+                  [options]="mapOptions"
+                  (mapInitialized)="scheduleFitMapToPins()"
                   (mapClick)="onMapClick($event)">
         <map-marker
           *ngFor="let ao of aos"
@@ -55,6 +59,10 @@
             <h3>{{ selectedAo.name }}</h3>
             <span class="region-badge">{{ selectedAo.region }}</span>
           </div>
+
+          <p class="ao-ids">
+            Location {{ selectedAo.locationId }}<ng-container *ngIf="selectedAo.orgId ?? selectedAo.parentAoId"> · AO {{ selectedAo.orgId ?? selectedAo.parentAoId }}</ng-container>
+          </p>
 
           <div class="ao-meta" *ngIf="selectedAo.address">
             <ion-icon name="location-outline"></ion-icon>
@@ -105,31 +113,49 @@
 </ion-content>
 
 <!-- New AO modal -->
-<ion-modal [isOpen]="newAoModalOpen" (didDismiss)="closeNewAoModal()" [backdropDismiss]="true">
+<ion-modal [isOpen]="newAoModalOpen" (didDismiss)="closeNewAoModal()" [backdropDismiss]="!creatingAo">
   <ng-template>
     <div class="modal-inner">
       <div class="modal-header">
         <h3>New AO</h3>
-        <p class="modal-subtitle">Drop a pin and name your new workout location</p>
+        <p class="modal-subtitle">Creates an org + location in F3 Nation</p>
       </div>
 
       <div class="form-group">
-        <label>AO Name</label>
+        <label>AO Name <span class="required-star">*</span></label>
         <input type="text" [(ngModel)]="newAoForm.name" placeholder="e.g. The Bleach">
       </div>
 
       <div class="form-group">
-        <label>Region</label>
+        <label>Region <span class="required-star">*</span></label>
         <select [(ngModel)]="newAoForm.regionId">
           <option *ngFor="let r of boiseRegions" [ngValue]="r.id">{{ r.name }}</option>
         </select>
       </div>
 
+      <div class="form-group">
+        <label>Address</label>
+        <input type="text" [(ngModel)]="newAoForm.addressStreet" placeholder="123 Main St">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>City</label>
+          <input type="text" [(ngModel)]="newAoForm.addressCity" placeholder="Boise">
+        </div>
+        <div class="form-group">
+          <label>Zip</label>
+          <input type="text" [(ngModel)]="newAoForm.addressZip" placeholder="83701">
+        </div>
+      </div>
+
+      <div class="save-error" *ngIf="createAoError">{{ createAoError }}</div>
+
       <div class="modal-buttons">
-        <button class="btn-save" (click)="createNewAo()" [disabled]="!newAoForm.name.trim()">
-          Create AO
+        <button class="btn-save" (click)="createNewAo()" [disabled]="!newAoForm.name.trim() || creatingAo">
+          {{ creatingAo ? 'Creating…' : 'Create AO' }}
         </button>
-        <button class="btn-cancel" (click)="closeNewAoModal()">Cancel</button>
+        <button class="btn-cancel" (click)="closeNewAoModal()" [disabled]="creatingAo">Cancel</button>
       </div>
     </div>
   </ng-template>
