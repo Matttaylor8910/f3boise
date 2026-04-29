@@ -45,8 +45,8 @@ export function parseAoqOrgIds(roles: string[]): number[] {
       .filter(n => !isNaN(n));
 }
 
-/** True for any role tier that can open the Staff Console (/admin). */
-export function hasAnyStaffRole(roles: string[]): boolean {
+/** True when roles include admin, Nantan, or AOQ — can open Admin (/admin). */
+export function rolesGrantAdminAccess(roles: string[]): boolean {
   return roles.includes('admin') ||
       roles.some(r => r.startsWith('nantan:')) ||
       roles.some(r => r.startsWith('aoq:'));

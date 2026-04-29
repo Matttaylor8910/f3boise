@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/"></ion-back-button>
     </ion-buttons>
-    <ion-title>Staff Console</ion-title>
+    <ion-title>Admin</ion-title>
     <ion-buttons slot="end">
       <ion-button
         *ngIf="capabilities.canEditArbitraryRoles || capabilities.assignableAoqRegionIds.size > 0"
@@ -45,7 +45,10 @@
     </div>
 
     <ng-container *ngIf="!loading && !error">
-      <p class="lede">Users appear here once they've signed in at least once.</p>
+      <p class="lede">
+        Signed-in members are listed below. Pending role assignments (not yet signed in)
+        appear at the end with &ldquo;Pending&rdquo; in Last seen.
+      </p>
 
       <div class="table-wrap">
         <table class="user-table">
@@ -59,7 +62,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let row of profileRows">
+            <tr *ngFor="let row of profileRows; trackBy: trackProfileRow">
               <td>
                 <div class="user-cell">
                   <img *ngIf="row.avatarUrl" class="user-avatar" [src]="row.avatarUrl" [alt]="row.displayName">
@@ -67,9 +70,10 @@
                     {{ row.initialsChar }}
                   </div>
                   <span class="user-name">{{ row.displayName }}</span>
+                  <ion-badge *ngIf="row.isPending" color="warning" class="user-row-pending-badge">Pending</ion-badge>
                 </div>
               </td>
-              <td class="email-cell">{{ row.profile.email || '—' }}</td>
+              <td class="email-cell">{{ row.profile?.email || row.pendingAssignment?.email || '—' }}</td>
               <td>{{ row.rolesLabel }}</td>
               <td class="muted">{{ row.lastSeenFormatted }}</td>
               <td class="col-actions">
@@ -77,13 +81,13 @@
                   *ngIf="capabilities.canEditArbitraryRoles || capabilities.assignableAoqRegionIds.size > 0"
                   size="small"
                   fill="outline"
-                  (click)="openRoleDialog(row.profile)">
+                  (click)="openUserTableRoleEditor(row)">
                   Edit roles
                 </ion-button>
               </td>
             </tr>
             <tr *ngIf="profileRows.length === 0">
-              <td colspan="5" class="empty-row">No profiles yet — sign in once to seed your row.</td>
+              <td colspan="5" class="empty-row">No users yet — sign in once, or add a pending assignment.</td>
             </tr>
           </tbody>
         </table>

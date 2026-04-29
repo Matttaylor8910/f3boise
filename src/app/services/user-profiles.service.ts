@@ -11,7 +11,7 @@ import {
 } from 'rxjs/operators';
 
 import {emailIsAdminBootstrap} from 'src/app/config/privileged-users';
-import {hasAnyStaffRole} from 'src/app/services/user-permissions.service';
+import {rolesGrantAdminAccess} from 'src/app/services/user-permissions.service';
 
 import {AuthService} from './auth.service';
 
@@ -210,7 +210,7 @@ export class UserProfilesService implements OnDestroy {
         }));
   }
 
-  /** Sidebar / nav: bootstrap superadmin email or any staff role */
+  /** Sidebar / nav: bootstrap superadmin email or admin / Nantan / AOQ role */
   readonly canAccessAdminPage$: Observable<boolean> =
       this.auth.authState$.pipe(
           filter((u): u is firebase.User => !!u?.uid),
@@ -220,7 +220,7 @@ export class UserProfilesService implements OnDestroy {
               return of(true);
             }
             return this.getProfile$(user.uid).pipe(
-                map(p => hasAnyStaffRole(p?.roles ?? [])),
+                map(p => rolesGrantAdminAccess(p?.roles ?? [])),
             );
           }),
           distinctUntilChanged(),

@@ -60,14 +60,6 @@
         (click)="navigate(item.route)">
         {{ item.label }}
       </button>
-      <button
-        type="button"
-        class="nav-link nav-link--admin"
-        *ngIf="userProfilesService.canAccessAdminPage$ | async"
-        [class.active]="isAdminRoute()"
-        (click)="navigate('/admin')">
-        Admin
-      </button>
     </div>
 
     <!-- Regions Section -->

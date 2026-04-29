@@ -2,6 +2,7 @@ import {Component, Input} from '@angular/core';
 import {NavigationExtras, Router} from '@angular/router';
 import {PopoverController} from '@ionic/angular';
 import {AuthService} from 'src/app/services/auth.service';
+import {UserProfilesService} from 'src/app/services/user-profiles.service';
 import {Pax} from 'types';
 
 type FirebaseUser = any;
@@ -19,7 +20,16 @@ export class UserMenuPopoverComponent {
       private readonly authService: AuthService,
       private readonly popoverController: PopoverController,
       private readonly router: Router,
+      readonly userProfiles: UserProfilesService,
   ) {}
+
+  async goToAdmin() {
+    await this.popoverController.dismiss();
+    const navigationExtras: NavigationExtras = {
+      replaceUrl: true,
+    };
+    this.router.navigateByUrl('/admin', navigationExtras);
+  }
 
   async goToProfile() {
     if (this.pax?.name) {

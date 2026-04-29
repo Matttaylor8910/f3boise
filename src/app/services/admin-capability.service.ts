@@ -11,8 +11,9 @@ import {
 import {AuthService} from './auth.service';
 import {UserProfilesService} from './user-profiles.service';
 
-export interface StaffCapabilities {
-  /** Full CRUD on any user's roles — admin only. */
+/** Permissions for the Admin page (role edits, org chart assignments). */
+export interface AdminCapabilities {
+  /** Full CRUD on any user's roles — Firestore `admin` role only. */
   canEditArbitraryRoles: boolean;
   /**
    * Region IDs where the current user may assign/remove AOQ roles.
@@ -27,7 +28,7 @@ export interface StaffCapabilities {
   currentUid: string|null;
 }
 
-export const NO_CAPABILITIES: StaffCapabilities = {
+export const NO_ADMIN_CAPABILITIES: AdminCapabilities = {
   canEditArbitraryRoles: false,
   assignableAoqRegionIds: new Set(),
   ownNantanRegionIds: new Set(),
@@ -36,16 +37,16 @@ export const NO_CAPABILITIES: StaffCapabilities = {
 };
 
 @Injectable({providedIn: 'root'})
-export class StaffRolesCapabilityService {
+export class AdminCapabilityService {
   constructor(
       private readonly auth: AuthService,
       private readonly profiles: UserProfilesService,
   ) {}
 
-  readonly capabilities$: Observable<StaffCapabilities> =
+  readonly capabilities$: Observable<AdminCapabilities> =
       this.auth.authState$.pipe(
           switchMap(user => {
-            if (!user?.uid) return of(NO_CAPABILITIES);
+            if (!user?.uid) return of(NO_ADMIN_CAPABILITIES);
             const uid = user.uid;
             return this.profiles.getProfile$(uid).pipe(
                 map(profile => {

@@ -7,10 +7,10 @@ import {Pax} from 'types';
 import {BOISE_REGION_IDS, F3ApiService} from 'src/app/services/f3-api.service';
 import {PaxService} from 'src/app/services/pax.service';
 import {
-  NO_CAPABILITIES,
-  StaffCapabilities,
-  StaffRolesCapabilityService,
-} from 'src/app/services/staff-roles-capability.service';
+  AdminCapabilities,
+  AdminCapabilityService,
+  NO_ADMIN_CAPABILITIES,
+} from 'src/app/services/admin-capability.service';
 import {
   PendingRoleAssignment,
   UserProfile,
@@ -22,7 +22,6 @@ import {
   makeNantanRole,
   parseAoqOrgIds,
   parseNantanRegionIds,
-  rolesDisplayLabel,
 } from 'src/app/services/user-permissions.service';
 
 // ── Public interfaces (used by template) ──────────────────────────────────
@@ -44,12 +43,15 @@ export interface AoItem {
 
 /** Precomputed cells for the user table — avoids methods/getters in the template. */
 export interface ProfileRowVm {
-  readonly profile: UserProfile;
+  readonly profile: UserProfile|null;
+  /** Set when the user has no profile yet but has `pendingRoleAssignments`. */
+  readonly pendingAssignment: PendingRoleAssignment|null;
   readonly displayName: string;
   readonly avatarUrl: string;
   readonly initialsChar: string;
   readonly rolesLabel: string;
   readonly lastSeenFormatted: string;
+  readonly isPending: boolean;
 }
 
 /** A result row in the Add-User search modal. */
@@ -110,8 +112,8 @@ export class AdminPage implements OnInit, OnDestroy {
   // ── Tab navigation ─────────────────────────────────────────────────
   activeTab: 'users'|'org-chart' = 'users';
 
-  // ── Current user capabilities ──────────────────────────────────────
-  capabilities: StaffCapabilities = NO_CAPABILITIES;
+  // ── Current user admin capabilities (role-edit powers) ───────────
+  capabilities: AdminCapabilities = NO_ADMIN_CAPABILITIES;
 
   // ── User list ──────────────────────────────────────────────────────
   loading = true;
@@ -184,11 +186,11 @@ export class AdminPage implements OnInit, OnDestroy {
       private readonly userProfiles: UserProfilesService,
       private readonly f3Api: F3ApiService,
       private readonly pax: PaxService,
-      private readonly staffCapability: StaffRolesCapabilityService,
+      private readonly adminCapability: AdminCapabilityService,
   ) {}
 
   ngOnInit(): void {
-    this.subs.add(this.staffCapability.capabilities$.subscribe(caps => {
+    this.subs.add(this.adminCapability.capabilities$.subscribe(caps => {
       this.capabilities = caps;
       this.rebuildOrgChartVm();
       this.rebuildAoPickFilter();
@@ -279,20 +281,75 @@ export class AdminPage implements OnInit, OnDestroy {
     return t.length > 0 ? t.charAt(0).toUpperCase() : '—';
   }
 
+  /**
+   * Roles column for the Users table — resolves AOQ org ids to AO names when
+   * {@link aoItems} is loaded.
+   */
+  private rolesLabelForTable(roles: string[]): string {
+    if (!roles.length) return '—';
+    const parts: string[] = [];
+    if (roles.includes('admin')) parts.push('Admin');
+    const nantanIds = parseNantanRegionIds(roles);
+    for (const id of nantanIds) {
+      const r = BOISE_REGIONS.find(x => x.id === id);
+      parts.push(`Nantan (${r?.name ?? id})`);
+    }
+    const aoqIds = parseAoqOrgIds(roles);
+    for (const id of aoqIds) {
+      const ao = this.aoItems.find(a => a.orgId === id);
+      parts.push(
+          ao ? `AOQ (${ao.name})` : `AOQ (org ${id})`);
+    }
+    const known = new Set(
+        ['admin', ...nantanIds.map(makeNantanRole), ...aoqIds.map(makeAoqRole)]);
+    for (const r of roles) {
+      if (!known.has(r)) parts.push(r);
+    }
+    return parts.join(', ') || '—';
+  }
+
   // ── VM builders ────────────────────────────────────────────────────
 
   private rebuildProfileRows(): void {
-    this.profileRows = this.profiles.map(p => {
+    const profileEmails = new Set(
+        this.profiles
+            .map(p => p.email?.toLowerCase().trim() ?? '')
+            .filter(e => e.length > 0));
+
+    const fromProfiles: ProfileRowVm[] = this.profiles.map(p => {
       const dn = this.displayName(p);
       return {
         profile: p,
+        pendingAssignment: null,
         displayName: dn,
         avatarUrl: this.avatarUrl(p),
         initialsChar: this.initialsChar(dn),
-        rolesLabel: rolesDisplayLabel(p.roles ?? []),
+        rolesLabel: this.rolesLabelForTable(p.roles ?? []),
         lastSeenFormatted: this.formatLastSeen(p.lastSeenAt),
+        isPending: false,
       };
     });
+
+    const fromPending: ProfileRowVm[] = this.pendingAssignments
+        .filter(pa => !profileEmails.has(pa.email.toLowerCase().trim()))
+        .map(pa => {
+          const pax = this.paxInfoByEmail.get(pa.email.toLowerCase().trim());
+          const dn = pax?.f3Name || pa.displayName || pa.email;
+          return {
+            profile: null,
+            pendingAssignment: pa,
+            displayName: dn,
+            avatarUrl: pax?.avatarUrl ?? '',
+            initialsChar: this.initialsChar(dn),
+            rolesLabel: this.rolesLabelForTable(pa.roles ?? []),
+            lastSeenFormatted: 'Pending — first sign-in',
+            isPending: true,
+          };
+        });
+
+    this.profileRows = [...fromProfiles, ...fromPending].sort((a, b) =>
+        a.displayName.localeCompare(
+            b.displayName, undefined, {sensitivity: 'base'}));
   }
 
   private rebuildOrgChartVm(): void {
@@ -401,6 +458,7 @@ export class AdminPage implements OnInit, OnDestroy {
   private async refreshPaxForPendingAndRebuildOrgChart(): Promise<void> {
     await this.ensurePaxInfoForEmails(
         this.pendingAssignments.map(pa => pa.email));
+    this.rebuildProfileRows();
     this.rebuildOrgChartVm();
   }
 
@@ -428,6 +486,7 @@ export class AdminPage implements OnInit, OnDestroy {
                          })
                          .sort((a, b) => a.name.localeCompare(b.name));
       this.rebuildAoPickFilter();
+      this.rebuildProfileRows();
       this.rebuildOrgChartVm();
       if (this.roleModalOpen) {
         this.syncDraftDerivedState();
@@ -544,9 +603,7 @@ export class AdminPage implements OnInit, OnDestroy {
     if (vm.profile) {
       this.openRoleDialog(vm.profile);
     } else if (vm.pendingAssignment) {
-      this.openRoleDialogForEmail(
-          vm.pendingAssignment.email,
-          vm.pendingAssignment.displayName ?? vm.pendingAssignment.email);
+      this.openRoleDialogForPendingAssignment(vm.pendingAssignment);
     }
   }
 
@@ -564,6 +621,41 @@ export class AdminPage implements OnInit, OnDestroy {
 
   trackUserSearchResult(_i: number, r: UserSearchResult): string {
     return r.email || r.displayName;
+  }
+
+  openUserTableRoleEditor(row: ProfileRowVm): void {
+    if (row.profile) {
+      this.openRoleDialog(row.profile);
+    } else if (row.pendingAssignment) {
+      this.openRoleDialogForPendingAssignment(row.pendingAssignment);
+    }
+  }
+
+  /** Edit roles for an email-only pending doc (Users table + org chart). */
+  private openRoleDialogForPendingAssignment(
+      pa: PendingRoleAssignment,
+  ): void {
+    this.selected = null;
+    this.modalIsPending = true;
+    this.draftRoles = [...(pa.roles ?? [])];
+    this.syncDraftDerivedState();
+    const pax = this.paxInfoByEmail.get(pa.email.toLowerCase().trim());
+    const dn = pax?.f3Name || pa.displayName || pa.email;
+    this.modalDisplayName = dn;
+    this.modalAvatarUrl = pax?.avatarUrl ?? '';
+    this.modalInitialChar = this.initialsChar(dn);
+    this.modalCanAddRole = this.capabilities.canEditArbitraryRoles ||
+        this.capabilities.assignableAoqRegionIds.size > 0;
+    this.addRoleStep = null;
+    this.aoSearch = '';
+    this.provisionalEmail = pa.email.toLowerCase().trim();
+    this.provisionalDisplayName = pa.displayName;
+    this.rebuildAoPickFilter();
+    this.roleModalOpen = true;
+  }
+
+  trackProfileRow(_i: number, row: ProfileRowVm): string {
+    return row.profile?.uid ?? `pending:${row.pendingAssignment?.email ?? ''}`;
   }
 
   // ── Role dialog ────────────────────────────────────────────────────
@@ -592,6 +684,14 @@ export class AdminPage implements OnInit, OnDestroy {
         p => p.email?.toLowerCase() === email.toLowerCase());
     if (existing) {
       this.openRoleDialog(existing);
+      return;
+    }
+
+    const ekey = email.toLowerCase().trim();
+    const pending = this.pendingAssignments.find(
+        pa => pa.email.toLowerCase().trim() === ekey);
+    if (pending) {
+      this.openRoleDialogForPendingAssignment(pending);
       return;
     }
 
