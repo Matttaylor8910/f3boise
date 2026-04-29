@@ -237,7 +237,6 @@ ion-content {
   letter-spacing: 0.6px;
   margin: 0 0 16px;
 }
-
 .edit-field {
   display: flex;
   flex-direction: column;
@@ -430,3 +429,312 @@ ion-modal {
 .btn-cancel { background: #e0e0e0; color: #333;  &:hover:not(:disabled) { background: #d0d0d0; } }
 
 // Google Maps fills its container naturally — no extra styles needed.
+
+// ── Region tree ───────────────────────────────────────────────────
+
+.region-tree {
+  padding: 8px 0;
+}
+
+.tree-region {
+  border-bottom: 1px solid #f0f0f0;
+
+  &:last-child { border-bottom: none; }
+}
+
+.tree-region-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e8e8e8;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+
+  &:hover { background: #f0f4f8; }
+}
+
+.tree-region-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a1a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tree-region-count {
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  background: #e0e0e0;
+  border-radius: 10px;
+  padding: 1px 7px;
+}
+
+.tree-chevron {
+  font-size: 14px;
+  color: #aaa;
+  flex-shrink: 0;
+
+  &--sm { font-size: 12px; }
+}
+
+.tree-location {
+  border-bottom: 1px solid #f5f5f5;
+  &:last-child { border-bottom: none; }
+}
+
+.tree-location-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 8px 20px;
+  cursor: pointer;
+
+  &:hover { background: #f9fbff; }
+}
+
+.tree-location-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.tree-location-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2c3e50;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-location-addr {
+  font-size: 11px;
+  color: #999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-location-id {
+  font-size: 10px;
+  color: #bbb;
+  font-family: monospace;
+}
+
+.tree-loc-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: #e8f5e9;
+  color: #388e3c;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &.warn { background: #fff3e0; color: #f57c00; }
+  &.multi { background: #e3f2fd; color: #1565c0; }
+}
+
+.tree-ao-list {
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+}
+
+.tree-ao {
+  padding: 8px 16px 8px 40px;
+  border-bottom: 1px solid #f5f5f5;
+  cursor: pointer;
+  transition: background 0.1s;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: #f0f7ff; }
+
+  &.no-events {
+    background: #fff8f0;
+    &:hover { background: #fff0e0; }
+  }
+}
+
+.tree-ao-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.tree-ao-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #37474f;
+}
+
+.tree-ao-id {
+  font-size: 10px;
+  color: #bbb;
+  font-family: monospace;
+}
+
+.tree-ao-events {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tree-event {
+  display: flex;
+  gap: 6px;
+  font-size: 11px;
+  align-items: center;
+}
+
+.tree-event-day {
+  font-weight: 600;
+  color: #546e7a;
+  min-width: 70px;
+}
+
+.tree-event-time {
+  color: #78909c;
+}
+
+.tree-event-type {
+  color: #90a4ae;
+  font-style: italic;
+  font-size: 10px;
+}
+
+.tree-no-events,
+.tree-ao-empty {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #f57c00;
+  margin-top: 2px;
+
+  ion-icon { font-size: 12px; }
+}
+
+.tree-ao-empty {
+  padding: 8px 16px 8px 40px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+// ── Tree action buttons ───────────────────────────────────────────
+
+.tree-loc-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.tree-location-header:hover .tree-loc-actions {
+  opacity: 1;
+}
+
+.tree-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #90a4ae;
+  font-size: 14px;
+  transition: background 0.1s, color 0.1s;
+
+  &:hover { background: #e3f2fd; color: #1565c0; }
+  &--danger:hover { background: #fce4ec; color: #c62828; }
+}
+
+.tree-ao-actions {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.tree-ao:hover .tree-ao-actions {
+  opacity: 1;
+}
+
+.tree-ao-rename {
+  margin-top: 4px;
+  padding-left: 0;
+}
+
+// ── Tree inline rename ────────────────────────────────────────────
+
+.tree-location-rename {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px 6px 36px;
+  background: #f0f7ff;
+  border-bottom: 1px solid #bbdefb;
+}
+
+.tree-rename-input {
+  flex: 1;
+  height: 30px;
+  border: 1px solid #90caf9;
+  border-radius: 4px;
+  padding: 0 8px;
+  font-size: 12px;
+  color: #1a1a1a;
+  background: white;
+  outline: none;
+
+  &:focus { border-color: #1976d2; box-shadow: 0 0 0 2px rgba(25,118,210,0.15); }
+}
+
+.tree-rename-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background 0.1s;
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &--save  { background: #e3f2fd; color: #1565c0; &:hover:not(:disabled) { background: #bbdefb; } }
+  &--cancel { background: #fafafa; color: #666;   &:hover { background: #eeeeee; } }
+}
+
+.tree-location-name.unnamed {
+  color: #f57c00;
+  font-style: italic;
+}
+
+.tree-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #fce4ec;
+  color: #c62828;
+  font-size: 12px;
+  border-bottom: 1px solid #f8bbd0;
+
+  ion-icon { font-size: 14px; flex-shrink: 0; }
+}

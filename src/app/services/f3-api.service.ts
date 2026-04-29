@@ -17,6 +17,9 @@ export const BOISE_REGION_IDS = {
   canyon: 50162,
 } as const;
 
+/** Website URL sent on org create/update payloads — required by the Nation API `website` field. */
+export const F3_REGION_WEBSITE_URL = 'https://f3boise.com';
+
 export type RegionId = (typeof BOISE_REGION_IDS)[keyof typeof BOISE_REGION_IDS];
 
 export interface F3EventType {
@@ -141,7 +144,8 @@ export interface CreateOrgRequest {
   description?: string;
   isActive: boolean;
   logoUrl?: string|null;
-  website?: string|null;
+  /** API rejects requests without this — use '' or your region URL */
+  website: string;
   email?: string|null;
   twitter: string;
   facebook: string;

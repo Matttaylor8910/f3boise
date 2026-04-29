@@ -39,16 +39,150 @@
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-header">
-        <h2>AO Details</h2>
-        <p>{{ aos.length }} active locations — click a marker to view</p>
+        <h2 *ngIf="!selectedAo">Region Overview</h2>
+        <h2 *ngIf="selectedAo">AO Details</h2>
+        <p *ngIf="!selectedAo">{{ aos.length }} active locations across {{ boiseRegions.length }} regions</p>
+        <p *ngIf="selectedAo">{{ aos.length }} active locations — click a marker to view</p>
       </div>
 
       <div class="sidebar-content">
 
-        <!-- Empty state -->
-        <div class="empty-state" *ngIf="!selectedAo">
-          <ion-icon name="location-outline"></ion-icon>
-          <p>Select a location on the map to get started</p>
+        <!-- Region tree -->
+        <div class="region-tree" *ngIf="!selectedAo">
+
+          <!-- Global tree error -->
+          <div class="tree-error" *ngIf="treeActionError">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            {{ treeActionError }}
+          </div>
+
+          <div class="tree-region" *ngFor="let region of regionTree">
+            <div class="tree-region-header" (click)="region.expanded = !region.expanded">
+              <ion-icon [name]="region.expanded ? 'chevron-down-outline' : 'chevron-forward-outline'" class="tree-chevron"></ion-icon>
+              <span class="tree-region-name">{{ region.regionName }}</span>
+              <span class="tree-region-count">{{ region.locations.length }}</span>
+            </div>
+
+            <div class="tree-region-body" *ngIf="region.expanded">
+              <div class="tree-location" *ngFor="let loc of region.locations">
+
+                <!-- Location header (collapse toggle + actions) -->
+                <div class="tree-location-header" (click)="loc.expanded = !loc.expanded; panToLocation(loc)">
+                  <ion-icon [name]="loc.expanded ? 'chevron-down-outline' : 'chevron-forward-outline'" class="tree-chevron tree-chevron--sm"></ion-icon>
+                  <div class="tree-location-info">
+                    <span class="tree-location-name" [class.unnamed]="!loc.displayName">
+                      {{ loc.displayName || '— unnamed —' }}
+                    </span>
+                    <span class="tree-location-addr" *ngIf="loc.address">{{ loc.address }}</span>
+                    <span class="tree-location-id">loc {{ loc.locationId }}</span>
+                  </div>
+                  <span class="tree-loc-badge"
+                        [class.warn]="loc.aos.length === 0"
+                        [class.multi]="loc.aos.length > 1">
+                    {{ loc.aos.length }} AO{{ loc.aos.length !== 1 ? 's' : '' }}
+                  </span>
+                  <!-- Location action buttons -->
+                  <div class="tree-loc-actions" *ngIf="editingLocationId !== loc.locationId"
+                       (click)="$event.stopPropagation()">
+                    <button class="tree-action-btn"
+                            (click)="startEditLocationName(loc, $event)"
+                            title="Rename location">
+                      <ion-icon name="pencil-outline"></ion-icon>
+                    </button>
+                    <button class="tree-action-btn tree-action-btn--danger"
+                            (click)="confirmDeleteLocation(loc, $event)"
+                            title="Delete location">
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Inline rename form -->
+                <div class="tree-location-rename" *ngIf="editingLocationId === loc.locationId"
+                     (click)="$event.stopPropagation()">
+                  <input class="tree-rename-input"
+                         [(ngModel)]="locationEditName"
+                         placeholder="Location name"
+                         (keydown.enter)="saveLocationName(loc, $event)"
+                         (keydown.escape)="cancelEditLocation()"
+                         autofocus />
+                  <button class="tree-rename-btn tree-rename-btn--save"
+                          [disabled]="locationEditSaving || !locationEditName.trim()"
+                          (click)="saveLocationName(loc, $event)"
+                          title="Save">
+                    <ion-icon name="checkmark-outline"></ion-icon>
+                  </button>
+                  <button class="tree-rename-btn tree-rename-btn--cancel"
+                          (click)="cancelEditLocation()"
+                          title="Cancel">
+                    <ion-icon name="close-outline"></ion-icon>
+                  </button>
+                </div>
+
+                <!-- AO list -->
+                <div class="tree-ao-list" *ngIf="loc.expanded">
+                  <div class="tree-ao"
+                       *ngFor="let ao of loc.aos"
+                       [class.no-events]="ao.events.length === 0"
+                       (click)="selectTreeAo(ao, loc)">
+                    <div class="tree-ao-header">
+                      <span class="tree-ao-name">{{ ao.name }}</span>
+                      <span class="tree-ao-id">ao {{ ao.orgId }}</span>
+                      <div class="tree-ao-actions" (click)="$event.stopPropagation()">
+                        <button class="tree-action-btn"
+                                (click)="startEditAoName(ao, $event)"
+                                title="Rename AO">
+                          <ion-icon name="pencil-outline"></ion-icon>
+                        </button>
+                        <button class="tree-action-btn tree-action-btn--danger"
+                                (click)="confirmDeleteTreeAo(ao, loc, $event)"
+                                title="Delete AO">
+                          <ion-icon name="trash-outline"></ion-icon>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Inline AO rename form -->
+                    <div class="tree-location-rename tree-ao-rename"
+                         *ngIf="editingAoId === ao.orgId"
+                         (click)="$event.stopPropagation()">
+                      <input class="tree-rename-input"
+                             [(ngModel)]="aoEditNameTree"
+                             placeholder="AO name"
+                             (keydown.enter)="saveAoName(ao, $event)"
+                             (keydown.escape)="cancelEditAoName()"
+                             autofocus />
+                      <button class="tree-rename-btn tree-rename-btn--save"
+                              [disabled]="aoEditNameSaving || !aoEditNameTree.trim()"
+                              (click)="saveAoName(ao, $event)"
+                              title="Save">
+                        <ion-icon name="checkmark-outline"></ion-icon>
+                      </button>
+                      <button class="tree-rename-btn tree-rename-btn--cancel"
+                              (click)="cancelEditAoName()"
+                              title="Cancel">
+                        <ion-icon name="close-outline"></ion-icon>
+                      </button>
+                    </div>
+                    <div class="tree-ao-events" *ngIf="ao.events.length > 0">
+                      <div class="tree-event" *ngFor="let ev of ao.events">
+                        <span class="tree-event-day">{{ ev.dayOfWeek | titlecase }}</span>
+                        <span class="tree-event-time" *ngIf="ev.startTime">{{ ev.startTime }}</span>
+                        <span class="tree-event-type" *ngIf="ev.eventTypeName">{{ ev.eventTypeName }}</span>
+                      </div>
+                    </div>
+                    <div class="tree-no-events" *ngIf="ao.events.length === 0">
+                      <ion-icon name="warning-outline"></ion-icon> No events
+                    </div>
+                  </div>
+
+                  <div class="tree-ao-empty" *ngIf="loc.aos.length === 0">
+                    <ion-icon name="warning-outline"></ion-icon> No AOs at this location
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- AO detail -->
@@ -121,11 +255,11 @@
           <!-- ── EDIT MODE ── -->
           <ng-container *ngIf="isEditingAo">
             <div class="edit-section">
-              <h4 class="edit-section-title">Edit AO Details</h4>
+              <h4 class="edit-section-title">Location</h4>
 
               <div class="edit-field">
-                <label>Name</label>
-                <input type="text" [(ngModel)]="aoEditName" placeholder="AO name">
+                <label>Location name</label>
+                <input type="text" [(ngModel)]="aoEditLocationName" placeholder="e.g. Fruitland High School, Liberty Park">
               </div>
 
               <div class="edit-field">
@@ -143,6 +277,15 @@
                   <input type="text" [(ngModel)]="aoEditAddressZip" placeholder="83701">
                 </div>
               </div>
+            </div>
+
+            <div class="edit-section">
+              <h4 class="edit-section-title">AO</h4>
+
+              <div class="edit-field">
+                <label>AO name</label>
+                <input type="text" [(ngModel)]="aoEditName" placeholder="AO name">
+              </div>
 
               <div class="edit-field">
                 <label>About</label>
@@ -151,22 +294,22 @@
                   rows="5"
                   placeholder="Describe the AO — meeting spot, vibe, what to expect…"></textarea>
               </div>
+            </div>
 
-              <div class="save-error" *ngIf="aoSaveError">{{ aoSaveError }}</div>
+            <div class="save-error" *ngIf="aoSaveError">{{ aoSaveError }}</div>
 
-              <div class="edit-actions">
-                <button class="btn-save" (click)="saveAoDetails()" [disabled]="!aoEditName.trim() || aoSaving || isDeletingAo">
-                  {{ aoSaving ? 'Saving…' : 'Save Changes' }}
-                </button>
-                <button class="btn-cancel" (click)="cancelAoEdit()" [disabled]="aoSaving || isDeletingAo">Cancel</button>
-              </div>
+            <div class="edit-actions">
+              <button class="btn-save" (click)="saveAoDetails()" [disabled]="!aoEditName.trim() || aoSaving || isDeletingAo">
+                {{ aoSaving ? 'Saving…' : 'Save Changes' }}
+              </button>
+              <button class="btn-cancel" (click)="cancelAoEdit()" [disabled]="aoSaving || isDeletingAo">Cancel</button>
+            </div>
 
-              <div class="delete-ao-section">
-                <button class="btn-delete-ao" (click)="confirmDeleteAo()" [disabled]="aoSaving || isDeletingAo">
-                  <ion-icon name="trash-outline"></ion-icon>
-                  {{ isDeletingAo ? 'Removing…' : 'Remove AO' }}
-                </button>
-              </div>
+            <div class="delete-ao-section">
+              <button class="btn-delete-ao" (click)="confirmDeleteAo()" [disabled]="aoSaving || isDeletingAo">
+                <ion-icon name="trash-outline"></ion-icon>
+                {{ isDeletingAo ? 'Removing…' : 'Remove AO' }}
+              </button>
             </div>
           </ng-container>
 

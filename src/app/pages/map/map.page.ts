@@ -7,6 +7,7 @@ import {
   F3Event,
   F3Location,
   F3Org,
+  F3_REGION_WEBSITE_URL,
 } from 'src/app/services/f3-api.service';
 import {GoogleMap} from '@angular/google-maps';
 
@@ -68,6 +69,42 @@ export interface DayForm {
   eventTypeId: number;
 }
 
+// ── Region tree (inspection / cleanup view) ───────────────────────
+
+export interface TreeEvent {
+  id: number;
+  name: string;
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+  eventTypeName: string;
+}
+
+export interface TreeAo {
+  orgId: number;
+  name: string;
+  events: TreeEvent[];
+}
+
+export interface TreeLocation {
+  locationId: number;
+  /** The org that owns this location — required for API update/deactivate calls. */
+  orgId: number;
+  displayName: string;
+  address: string;
+  lat: number|null;
+  lng: number|null;
+  aos: TreeAo[];
+  expanded: boolean;
+}
+
+export interface TreeRegion {
+  regionId: number;
+  regionName: string;
+  locations: TreeLocation[];
+  expanded: boolean;
+}
+
 @Component({
   selector: 'app-map',
   templateUrl: 'map.page.html',
@@ -87,6 +124,22 @@ export class MapPage implements OnInit {
   deleting = false;
   saveError: string|null = null;
 
+  // Region tree (inspection view)
+  regionTree: TreeRegion[] = [];
+  // Raw data for tree mutations and reload
+  private rawEvents: F3Event[] = [];
+  private rawOrgs: F3Org[] = [];
+  private rawLocations: F3Location[] = [];
+
+  // Tree inline edit state
+  editingLocationId: number|null = null;
+  locationEditName = '';
+  locationEditSaving = false;
+  editingAoId: number|null = null;
+  aoEditNameTree = '';
+  aoEditNameSaving = false;
+  treeActionError: string|null = null;
+
   // New AO state
   newAoModalOpen = false;
   creatingAo = false;
@@ -96,6 +149,7 @@ export class MapPage implements OnInit {
 
   // AO detail inline editing
   isEditingAo = false;
+  aoEditLocationName = '';
   aoEditName = '';
   aoEditDescription = '';
   aoEditAddressStreet = '';
@@ -113,7 +167,7 @@ export class MapPage implements OnInit {
     {id: BOISE_REGION_IDS.canyon,      name: 'Canyon'},
   ];
 
-  readonly mapCenter: google.maps.LatLngLiteral = {lat: 43.615, lng: -116.35};
+  mapCenter: google.maps.LatLngLiteral = {lat: 43.615, lng: -116.35};
   /** Omit zoom — `fitBounds` sets viewport; avoids fighting programmatic fitting. */
   readonly mapOptions: google.maps.MapOptions = {
     mapTypeId: 'roadmap',
@@ -139,6 +193,13 @@ export class MapPage implements OnInit {
 
   async ngOnInit() {
     this.geocoder = new google.maps.Geocoder();
+    await this.loadData();
+  }
+
+  /** Full fetch — only on startup (or explicit refresh). Mutations patch `raw*` and call `rebuildDerivedFromRaw`. */
+  private async loadData() {
+    this.loading = true;
+    this.error = null;
     try {
       const boiseRegionIds = Object.values(BOISE_REGION_IDS) as number[];
       const [{events}, {orgs}, regionalLocs, mineLocs] = await Promise.all([
@@ -152,16 +213,80 @@ export class MapPage implements OnInit {
 
       const locations = this.mergeLocationsById(regionalLocs.locations, mineLocs.locations);
 
-      this.aos = this.mergeAll(events, orgs, locations);
+      this.rawEvents = events;
+      this.rawOrgs = orgs;
+      this.rawLocations = locations;
+
+      this.rebuildDerivedFromRaw(false);
       this.loading = false;
-      this.geocodeAll();
     } catch (e: any) {
       this.error = e.message ?? 'Failed to load events';
       this.loading = false;
     }
   }
 
-  // ── Grouping ────────────────────────────────────────────────────
+  private captureTreeExpansion(): {regions: Map<number, boolean>; locations: Map<string, boolean>} {
+    const regions = new Map<number, boolean>();
+    const locs = new Map<string, boolean>();
+    for (const r of this.regionTree) {
+      regions.set(r.regionId, r.expanded);
+      for (const loc of r.locations) {
+        locs.set(`${r.regionId}:${loc.locationId}`, loc.expanded);
+      }
+    }
+    return {regions, locations: locs};
+  }
+
+  private restoreTreeExpansion(
+      snap: {regions: Map<number, boolean>; locations: Map<string, boolean>},
+      tree: TreeRegion[],
+      ): void {
+    for (const r of tree) {
+      const re = snap.regions.get(r.regionId);
+      if (re !== undefined) r.expanded = re;
+      for (const loc of r.locations) {
+        const le = snap.locations.get(`${r.regionId}:${loc.locationId}`);
+        if (le !== undefined) loc.expanded = le;
+      }
+    }
+  }
+
+  /** Recompute map pins + region tree from in-memory raw API rows. No HTTP. */
+  private rebuildDerivedFromRaw(preserveExpansion: boolean) {
+    const snap = preserveExpansion ? this.captureTreeExpansion() : null;
+    const sel = this.selectedAo;
+
+    this.aos = this.mergeAll(this.rawEvents, this.rawOrgs, this.rawLocations);
+    this.regionTree = this.buildRegionTree(this.rawEvents, this.rawOrgs, this.rawLocations);
+    if (snap) this.restoreTreeExpansion(snap, this.regionTree);
+
+    if (sel) {
+      const match = this.findGroupedAoInList(this.aos, sel);
+      if (match) this.selectedAo = match;
+      else {
+        this.selectedAo = null;
+        this.isEditingAo = false;
+        this.closeModal();
+      }
+    }
+
+    this.geocodeAll();
+    this.scheduleFitMapToPins();
+  }
+
+  private findGroupedAoInList(
+      list: GroupedAo[],
+      snapshot: Pick<GroupedAo, 'locationId'>& Partial<Pick<GroupedAo, 'orgId'|'parentAoId'>>,
+      ): GroupedAo|undefined {
+    const oid = snapshot.orgId ?? snapshot.parentAoId;
+    const atLoc = list.filter(a => a.locationId === snapshot.locationId);
+    if (!atLoc.length) return undefined;
+    if (oid != null && oid > 0) {
+      const hit = atLoc.find(a => a.orgId === oid || a.parentAoId === oid);
+      if (hit) return hit;
+    }
+    return atLoc[0];
+  }
 
   // ── Grouping ────────────────────────────────────────────────────
 
@@ -342,6 +467,439 @@ export class MapPage implements OnInit {
     // For freshly-created AOs, use the org ID (not locationId) as aoId
     if (ao.orgId) return ao.orgId;
     return ao.locationId;
+  }
+
+  // ── Region tree ──────────────────────────────────────────────────
+
+  private buildRegionTree(events: F3Event[], orgs: F3Org[], locations: F3Location[]): TreeRegion[] {
+    const boiseRegionIdSet = new Set<number>(this.boiseRegions.map(r => r.id));
+    const locationById = new Map(locations.map(l => [l.id, l]));
+
+    // Group events by locationId → Map<orgId, events[]>
+    const eventsByLocOrg = new Map<string, F3Event[]>();
+    const eventsByLocation = new Map<number, F3Event[]>();
+    for (const ev of events) {
+      const orgId = ev.parents?.[0]?.parentId ?? 0;
+      const key = `${ev.locationId}:${orgId}`;
+      const evList = eventsByLocOrg.get(key) ?? [];
+      evList.push(ev);
+      eventsByLocOrg.set(key, evList);
+
+      const locList = eventsByLocation.get(ev.locationId) ?? [];
+      locList.push(ev);
+      eventsByLocation.set(ev.locationId, locList);
+    }
+
+    // Determine Boise region for each relevant locationId
+    const locationToRegion = new Map<number, number>();
+    for (const loc of locations) {
+      if (boiseRegionIdSet.has(loc.regionId)) {
+        locationToRegion.set(loc.id, loc.regionId);
+      }
+    }
+    // Fallback: org's parentId for locations whose regionId is non-standard
+    for (const org of orgs) {
+      if (!boiseRegionIdSet.has(org.parentId)) continue;
+      if (org.defaultLocationId && !locationToRegion.has(org.defaultLocationId)) {
+        locationToRegion.set(org.defaultLocationId, org.parentId);
+      }
+    }
+    // Fallback: event's regions array
+    for (const [locId, evs] of eventsByLocation) {
+      if (!locationToRegion.has(locId)) {
+        for (const ev of evs) {
+          const r = ev.regions?.find(r => boiseRegionIdSet.has(r.regionId));
+          if (r) { locationToRegion.set(locId, r.regionId); break; }
+        }
+      }
+    }
+
+    // Collect all relevant locationIds (from events + org.defaultLocationId)
+    const allLocIds = new Set<number>(locationToRegion.keys());
+    for (const org of orgs) {
+      if (org.defaultLocationId && locationToRegion.has(org.defaultLocationId)) {
+        allLocIds.add(org.defaultLocationId);
+      }
+    }
+
+    // Build region → TreeLocation map
+    const regionMap = new Map<number, Map<number, TreeLocation>>(
+      this.boiseRegions.map(r => [r.id, new Map()])
+    );
+
+    for (const locId of allLocIds) {
+      const regionId = locationToRegion.get(locId);
+      if (!regionId) continue;
+      const regionLocs = regionMap.get(regionId);
+      if (!regionLocs) continue;
+
+      const loc = locationById.get(locId);
+      const parts = [loc?.addressStreet, loc?.addressCity, loc?.addressState].filter(Boolean);
+      const address = parts.join(', ');
+
+      // Build AO map for this location
+      const aoMap = new Map<number, TreeAo>();
+
+      // Seed from orgs that default to this location (captures AOs with no events)
+      for (const org of orgs) {
+        if (org.defaultLocationId === locId) {
+          aoMap.set(org.id, {orgId: org.id, name: org.name, events: []});
+        }
+      }
+
+      // Populate events
+      for (const [key, evs] of eventsByLocOrg) {
+        const [kLoc, kOrg] = key.split(':').map(Number);
+        if (kLoc !== locId) continue;
+        const orgId = kOrg;
+        const firstName = evs[0]?.parents?.[0]?.parentName ?? evs[0]?.name ?? `AO ${orgId}`;
+        if (!aoMap.has(orgId)) {
+          aoMap.set(orgId, {orgId, name: firstName, events: []});
+        }
+        const ao = aoMap.get(orgId)!;
+        for (const ev of evs) {
+          ao.events.push({
+            id: ev.id,
+            name: ev.name,
+            dayOfWeek: ev.dayOfWeek ?? '',
+            startTime: ev.startTime ?? '',
+            endTime: ev.endTime ?? '',
+            eventTypeName: ev.eventTypes?.[0]?.eventTypeName ?? '',
+          });
+        }
+      }
+
+      // Sort events within each AO by day
+      for (const ao of aoMap.values()) {
+        ao.events.sort((a, b) =>
+          (DAY_INDEX[a.dayOfWeek?.toLowerCase()] ?? 7) - (DAY_INDEX[b.dayOfWeek?.toLowerCase()] ?? 7)
+        );
+      }
+
+      regionLocs.set(locId, {
+        locationId: locId,
+        // Prefer an org that explicitly points to this location; fall back to loc.regionId
+        // (which for newly-created AOs is the AO org id).
+        orgId: orgs.find(o => o.defaultLocationId === locId)?.id ?? loc?.regionId ?? locId,
+        displayName: loc?.locationName ?? '',
+        address,
+        lat: loc?.latitude ?? null,
+        lng: loc?.longitude ?? null,
+        aos: Array.from(aoMap.values()).sort((a, b) => a.name.localeCompare(b.name)),
+        expanded: false,
+      });
+    }
+
+    return this.boiseRegions.map(r => ({
+      regionId: r.id,
+      regionName: r.name,
+      locations: Array.from(regionMap.get(r.id)?.values() ?? [])
+        .sort((a, b) => a.displayName.localeCompare(b.displayName)),
+      expanded: true,
+    }));
+  }
+
+  selectTreeAo(ao: TreeAo, loc: TreeLocation) {
+    const match = this.aos.find(a =>
+      (a.orgId === ao.orgId || a.parentAoId === ao.orgId) && a.locationId === loc.locationId
+    );
+    if (match) {
+      this.selectAo(match);
+    } else if (loc.lat !== null && loc.lng !== null) {
+      this.mapCenter = {lat: loc.lat, lng: loc.lng};
+    }
+  }
+
+  panToLocation(loc: TreeLocation) {
+    if (loc.lat !== null && loc.lng !== null) {
+      this.mapCenter = {lat: loc.lat, lng: loc.lng};
+    }
+  }
+
+  // ── Tree: rename location ────────────────────────────────────────
+
+  startEditLocationName(loc: TreeLocation, event: Event) {
+    event.stopPropagation();
+    this.editingLocationId = loc.locationId;
+    this.locationEditName = loc.displayName;
+    this.treeActionError = null;
+  }
+
+  cancelEditLocation() {
+    this.editingLocationId = null;
+    this.locationEditName = '';
+    this.treeActionError = null;
+  }
+
+  // ── Tree: rename AO ──────────────────────────────────────────────
+
+  startEditAoName(ao: TreeAo, event: Event) {
+    event.stopPropagation();
+    this.editingAoId = ao.orgId;
+    this.aoEditNameTree = ao.name;
+    this.treeActionError = null;
+  }
+
+  cancelEditAoName() {
+    this.editingAoId = null;
+    this.aoEditNameTree = '';
+    this.treeActionError = null;
+  }
+
+  async saveAoName(ao: TreeAo, event: Event) {
+    event.stopPropagation();
+    const name = this.aoEditNameTree.trim();
+    if (!name) return;
+    this.aoEditNameSaving = true;
+    this.treeActionError = null;
+    try {
+      const rawOrg = this.rawOrgs.find(o => o.id === ao.orgId);
+      await this.f3Api.createOrg({
+        id: ao.orgId,
+        parentId: rawOrg?.parentId ?? Object.values(BOISE_REGION_IDS)[0],
+        name,
+        description: rawOrg?.description ?? '',
+        isActive: true,
+        orgType: 'ao',
+        website: F3_REGION_WEBSITE_URL,
+        twitter: '',
+        facebook: '',
+        instagram: '',
+      });
+      this.editingAoId = null;
+      const o = this.rawOrgs.find(r => r.id === ao.orgId);
+      if (o) o.name = name;
+      for (const ev of this.rawEvents) {
+        const ps = ev.parents;
+        if (ps?.length && ps[0].parentId === ao.orgId) {
+          ps[0] = {...ps[0], parentName: name};
+        }
+      }
+      this.rebuildDerivedFromRaw(true);
+    } catch (e: any) {
+      this.treeActionError = e.message ?? 'Failed to rename AO';
+    } finally {
+      this.aoEditNameSaving = false;
+    }
+  }
+
+  async saveLocationName(loc: TreeLocation, event: Event) {
+    event.stopPropagation();
+    const name = this.locationEditName.trim();
+    if (!name) return;
+    this.locationEditSaving = true;
+    this.treeActionError = null;
+    try {
+      await this.f3Api.createLocation({
+        id: loc.locationId,
+        orgId: loc.orgId,
+        name,
+        isActive: true,
+      });
+      const L = this.rawLocations.find(l => l.id === loc.locationId);
+      if (L) L.locationName = name;
+      for (const ev of this.rawEvents) {
+        if (ev.locationId === loc.locationId) ev.locationName = name;
+      }
+      this.editingLocationId = null;
+      this.rebuildDerivedFromRaw(true);
+    } catch (e: any) {
+      this.treeActionError = e.message ?? 'Failed to rename location';
+    } finally {
+      this.locationEditSaving = false;
+    }
+  }
+
+  // ── Tree: delete location ────────────────────────────────────────
+
+  async confirmDeleteLocation(loc: TreeLocation, event: Event) {
+    event.stopPropagation();
+    const eventsAtLoc = this.rawEvents.filter(e => e.locationId === loc.locationId);
+    const orgsAtLoc = this.rawOrgs.filter(o => o.defaultLocationId === loc.locationId);
+    const n = eventsAtLoc.length;
+    const a = orgsAtLoc.length;
+
+    const lines: string[] = [];
+    if (a > 0) lines.push(`${a} AO org${a !== 1 ? 's' : ''}`);
+    if (n > 0) lines.push(`${n} workout event${n !== 1 ? 's' : ''}`);
+    const detail = lines.length ? `This will also deactivate ${lines.join(' and ')} associated with it. ` : '';
+
+    const alert = await this.alertController.create({
+      header: 'Delete location?',
+      message: `${detail}This cannot be undone.`,
+      buttons: [
+        {text: 'Cancel', role: 'cancel'},
+        {
+          text: 'Delete',
+          role: 'destructive',
+          cssClass: 'alert-button-destructive',
+          handler: () => { this.deleteLocation(loc, eventsAtLoc, orgsAtLoc); },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private async deleteLocation(loc: TreeLocation, eventsAtLoc: F3Event[], orgsAtLoc: F3Org[]) {
+    this.treeActionError = null;
+    try {
+      // 1. Deactivate all events at this location
+      for (const ev of eventsAtLoc) {
+        await this.f3Api.createOrUpdateEvent({
+          id: ev.id,
+          aoId: ev.parents?.[0]?.parentId ?? loc.orgId,
+          regionId: ev.regions?.[0]?.regionId ?? Object.values(BOISE_REGION_IDS)[0],
+          locationId: ev.locationId,
+          eventTypeIds: ev.eventTypes?.map(t => t.eventTypeId) ?? [1],
+          name: ev.name,
+          description: ev.description,
+          isActive: false,
+          isPrivate: ev.isPrivate,
+          highlight: false,
+          startDate: ev.startDate,
+          dayOfWeek: ev.dayOfWeek,
+          startTime: ev.startTime,
+          endTime: ev.endTime,
+        });
+      }
+      // 2. Deactivate all orgs pointing to this location
+      for (const org of orgsAtLoc) {
+        await this.f3Api.createOrg({
+          id: org.id,
+          parentId: org.parentId,
+          name: org.name,
+          isActive: false,
+          orgType: 'ao',
+          website: F3_REGION_WEBSITE_URL,
+          twitter: '',
+          facebook: '',
+          instagram: '',
+        });
+      }
+      // 3. Deactivate the location itself
+      await this.f3Api.createLocation({
+        id: loc.locationId,
+        orgId: loc.orgId,
+        name: loc.displayName || `Location ${loc.locationId}`,
+        isActive: false,
+      });
+
+      const lid = loc.locationId;
+      this.rawEvents = this.rawEvents.filter(e => e.locationId !== lid);
+      this.rawOrgs = this.rawOrgs.filter(o => o.defaultLocationId !== lid);
+      this.rawLocations = this.rawLocations.filter(l => l.id !== lid);
+      if (this.selectedAo?.locationId === lid) {
+        this.selectedAo = null;
+        this.isEditingAo = false;
+        this.closeModal();
+      }
+      this.rebuildDerivedFromRaw(true);
+
+      const toast = await this.toastController.create({
+        message: `Location removed.`,
+        duration: 3000,
+        color: 'dark',
+        position: 'bottom',
+      });
+      await toast.present();
+    } catch (e: any) {
+      this.treeActionError = e.message ?? 'Failed to delete location';
+    }
+  }
+
+  // ── Tree: delete AO org ──────────────────────────────────────────
+
+  async confirmDeleteTreeAo(ao: TreeAo, loc: TreeLocation, event: Event) {
+    event.stopPropagation();
+    const n = ao.events.length;
+    const eventLine = n > 0
+        ? ` and its ${n} workout event${n !== 1 ? 's' : ''}`
+        : '';
+
+    const alert = await this.alertController.create({
+      header: 'Delete AO?',
+      message: `This will deactivate "${ao.name}"${eventLine}. This cannot be undone.`,
+      buttons: [
+        {text: 'Cancel', role: 'cancel'},
+        {
+          text: 'Delete',
+          role: 'destructive',
+          cssClass: 'alert-button-destructive',
+          handler: () => { this.deleteTreeAo(ao, loc); },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private async deleteTreeAo(ao: TreeAo, loc: TreeLocation) {
+    this.treeActionError = null;
+    try {
+      // 1. Deactivate all events for this AO
+      for (const ev of ao.events) {
+        const rawEv = this.rawEvents.find(e => e.id === ev.id);
+        if (!rawEv) continue;
+        await this.f3Api.createOrUpdateEvent({
+          id: rawEv.id,
+          aoId: ao.orgId,
+          regionId: rawEv.regions?.[0]?.regionId ?? Object.values(BOISE_REGION_IDS)[0],
+          locationId: rawEv.locationId,
+          eventTypeIds: rawEv.eventTypes?.map(t => t.eventTypeId) ?? [1],
+          name: rawEv.name,
+          description: rawEv.description,
+          isActive: false,
+          isPrivate: rawEv.isPrivate,
+          highlight: false,
+          startDate: rawEv.startDate,
+          dayOfWeek: rawEv.dayOfWeek,
+          startTime: rawEv.startTime,
+          endTime: rawEv.endTime,
+        });
+      }
+      // 2. Deactivate the org
+      if (ao.orgId) {
+        const rawOrg = this.rawOrgs.find(o => o.id === ao.orgId);
+        await this.f3Api.createOrg({
+          id: ao.orgId,
+          parentId: rawOrg?.parentId ?? loc.orgId,
+          name: ao.name,
+          isActive: false,
+          orgType: 'ao',
+          website: F3_REGION_WEBSITE_URL,
+          twitter: '',
+          facebook: '',
+          instagram: '',
+        });
+      }
+
+      const lid = loc.locationId;
+      const orgIdRemoved = ao.orgId;
+      this.rawEvents = this.rawEvents.filter(e =>
+        !(e.locationId === lid && (e.parents?.[0]?.parentId ?? 0) === orgIdRemoved),
+      );
+      this.rawOrgs = this.rawOrgs.filter(o => o.id !== orgIdRemoved);
+
+      if (this.selectedAo) {
+        const sid = this.selectedAo.orgId ?? this.selectedAo.parentAoId;
+        if (this.selectedAo.locationId === lid && sid === orgIdRemoved) {
+          this.selectedAo = null;
+          this.isEditingAo = false;
+          this.closeModal();
+        }
+      }
+
+      this.rebuildDerivedFromRaw(true);
+
+      const toast = await this.toastController.create({
+        message: `${ao.name} removed.`,
+        duration: 3000,
+        color: 'dark',
+        position: 'bottom',
+      });
+      await toast.present();
+    } catch (e: any) {
+      this.treeActionError = e.message ?? 'Failed to delete AO';
+    }
   }
 
   // ── Geocoding ────────────────────────────────────────────────────
@@ -537,7 +1095,7 @@ export class MapPage implements OnInit {
         name,
         isActive: true,
         orgType: 'ao',
-        website: 'https://f3boise.com',
+        website: F3_REGION_WEBSITE_URL,
         twitter: '',
         facebook: '',
         instagram: '',
@@ -565,36 +1123,47 @@ export class MapPage implements OnInit {
         name,
         isActive: true,
         orgType: 'ao',
-        website: 'https://f3boise.com',
+        website: F3_REGION_WEBSITE_URL,
         twitter: '',
         facebook: '',
         instagram: '',
       });
 
       const region = this.boiseRegions.find(r => r.id === this.newAoForm.regionId);
-      const address = [
-        this.newAoForm.addressStreet,
-        this.newAoForm.addressCity,
-        this.newAoForm.addressState || 'ID',
-      ].filter(Boolean).join(', ');
 
-      const newAo: GroupedAo = {
-        locationId: location.id,
-        orgId: org.id,
-        regionId: this.newAoForm.regionId,
+      this.rawOrgs.push({
+        id: org.id,
+        parentId: this.newAoForm.regionId,
         name,
-        address,
-        region: region?.name ?? '',
+        orgType: 'ao',
+        defaultLocationId: location.id,
+        isActive: true,
         description: '',
-        eventTypes: [],
-        days: DAYS.map((dayName, i) => ({dayIndex: i, dayName, event: null})),
-        position: this.pendingLatLng!,
-      };
-      newAo.markerOptions = this.buildMarkerOptions(newAo);
+        website: null,
+      });
 
-      this.aos = [...this.aos, newAo];
-      this.scheduleFitMapToPins();
-      this.selectedAo = newAo;
+      const street = this.newAoForm.addressStreet.trim();
+      const city = this.newAoForm.addressCity.trim();
+      const zip = this.newAoForm.addressZip.trim();
+      this.rawLocations.push({
+        id: location.id,
+        locationName: name,
+        regionId: org.id,
+        regionName: region?.name ?? '',
+        description: '',
+        isActive: true,
+        latitude: location.latitude ?? null,
+        longitude: location.longitude ?? null,
+        addressStreet: street,
+        addressCity: city,
+        addressState: this.newAoForm.addressState.trim() || 'ID',
+        addressZip: zip,
+      });
+
+      this.selectedAo = null;
+      this.rebuildDerivedFromRaw(false);
+      this.selectedAo = this.findGroupedAoInList(this.aos, {locationId: location.id, orgId: org.id}) ?? null;
+
       this.pendingLatLng = null;
       this.newAoModalOpen = false;
     } catch (e: any) {
@@ -611,6 +1180,13 @@ export class MapPage implements OnInit {
     this.closeModal();
   }
 
+  selectAo(ao: GroupedAo) {
+    this.onMarkerClick(ao);
+    if (ao.position) {
+      this.mapCenter = {lat: ao.position.lat, lng: ao.position.lng};
+    }
+  }
+
   clearSelection() {
     this.selectedAo = null;
     this.isEditingAo = false;
@@ -620,12 +1196,17 @@ export class MapPage implements OnInit {
   // ── AO detail editing ─────────────────────────────────────────────
 
   startAoEdit() {
-    if (!this.selectedAo) return;
-    this.aoEditName = this.selectedAo.name;
-    this.aoEditDescription = this.selectedAo.description;
-    this.aoEditAddressStreet = this.selectedAo.addressStreet ?? '';
-    this.aoEditAddressCity = this.selectedAo.addressCity ?? '';
-    this.aoEditAddressZip = this.selectedAo.addressZip ?? '';
+    const sel = this.selectedAo;
+    if (!sel) return;
+    const loc = this.rawLocations.find(l => l.id === sel.locationId);
+    const firstEv = sel.days.map(d => d.event).find((e): e is F3Event => !!e);
+    this.aoEditLocationName =
+        (loc?.locationName ?? firstEv?.locationName ?? '').trim();
+    this.aoEditName = sel.name;
+    this.aoEditDescription = sel.description;
+    this.aoEditAddressStreet = sel.addressStreet ?? '';
+    this.aoEditAddressCity = sel.addressCity ?? '';
+    this.aoEditAddressZip = sel.addressZip ?? '';
     this.aoSaveError = null;
     this.isEditingAo = true;
   }
@@ -646,6 +1227,7 @@ export class MapPage implements OnInit {
     this.aoSaveError = null;
 
     try {
+      // Update the AO org (name + description)
       if (orgId) {
         await this.f3Api.createOrg({
           id: orgId,
@@ -654,37 +1236,74 @@ export class MapPage implements OnInit {
           description: this.aoEditDescription.trim(),
           isActive: true,
           orgType: 'ao',
-          website: 'https://f3boise.com',
+          website: F3_REGION_WEBSITE_URL,
           twitter: '',
           facebook: '',
           instagram: '',
         });
       }
 
-      if (ao.locationId) {
+      const locRecord = ao.locationId ? this.rawLocations.find(l => l.id === ao.locationId) : undefined;
+      const newLocName =
+          this.aoEditLocationName.trim() || locRecord?.locationName?.trim() || name;
+      const street = this.aoEditAddressStreet.trim();
+      const city = this.aoEditAddressCity.trim();
+      const zip = this.aoEditAddressZip.trim();
+      const locOrgId = locRecord
+        ? (this.rawOrgs.find(o => o.defaultLocationId === ao.locationId)?.id ?? locRecord.regionId)
+        : (orgId ?? ao.locationId!);
+
+      const locDirty = !!ao.locationId && (!locRecord ||
+        newLocName !== (locRecord.locationName ?? '').trim() ||
+        street !== (locRecord.addressStreet ?? '').trim() ||
+        city !== (locRecord.addressCity ?? '').trim() ||
+        zip !== (locRecord.addressZip ?? '').trim());
+
+      if (locDirty && ao.locationId) {
         await this.f3Api.createLocation({
           id: ao.locationId,
-          orgId: orgId ?? ao.locationId,
-          name,
+          orgId: locOrgId,
+          name: newLocName || `Location ${ao.locationId}`,
           isActive: true,
-          ...(this.aoEditAddressStreet.trim() ? {addressStreet: this.aoEditAddressStreet.trim()} : {}),
-          ...(this.aoEditAddressCity.trim()   ? {addressCity:   this.aoEditAddressCity.trim()}   : {}),
+          ...(street ? {addressStreet: street} : {}),
+          ...(city   ? {addressCity: city}   : {}),
           addressState: 'ID',
-          ...(this.aoEditAddressZip.trim()    ? {addressZip:    this.aoEditAddressZip.trim()}     : {}),
+          ...(zip    ? {addressZip: zip}     : {}),
           addressCountry: 'US',
         });
       }
 
-      // Patch local state
-      ao.name = name;
-      ao.description = this.aoEditDescription.trim();
-      ao.addressStreet = this.aoEditAddressStreet.trim() || undefined;
-      ao.addressCity = this.aoEditAddressCity.trim() || undefined;
-      ao.addressZip = this.aoEditAddressZip.trim() || undefined;
-      ao.address = [ao.addressStreet, ao.addressCity, 'ID', ao.addressZip]
-          .filter(Boolean).join(', ');
-      if (ao.position) ao.markerOptions = this.buildMarkerOptions(ao);
-      this.aos = [...this.aos];
+      if (orgId) {
+        const o = this.rawOrgs.find(r => r.id === orgId);
+        if (o) {
+          o.name = name;
+          o.description = this.aoEditDescription.trim();
+        }
+        for (const ev of this.rawEvents) {
+          const ps = ev.parents;
+          if (ps?.length && ps[0].parentId === orgId) ps[0] = {...ps[0], parentName: name};
+        }
+      }
+
+      if (locDirty && ao.locationId) {
+        const L = this.rawLocations.find(l => l.id === ao.locationId);
+        if (L) {
+          L.locationName = newLocName || L.locationName;
+          if (street) L.addressStreet = street;
+          if (city) L.addressCity = city;
+          if (zip) L.addressZip = zip;
+        }
+        for (const ev of this.rawEvents) {
+          if (ev.locationId === ao.locationId) {
+            if (newLocName) ev.locationName = newLocName;
+            if (street) ev.locationAddress = street;
+            if (city) ev.locationCity = city;
+            if (zip) ev.locationZip = zip;
+          }
+        }
+      }
+
+      this.rebuildDerivedFromRaw(true);
       this.isEditingAo = false;
     } catch (e: any) {
       this.aoSaveError = e.message ?? 'Failed to save changes';
@@ -758,6 +1377,7 @@ export class MapPage implements OnInit {
           name: ao.name,
           isActive: false,
           orgType: 'ao',
+          website: F3_REGION_WEBSITE_URL,
           twitter: '',
           facebook: '',
           instagram: '',
@@ -774,11 +1394,14 @@ export class MapPage implements OnInit {
         });
       }
 
-      // Remove from local list and clear selection
-      this.aos = this.aos.filter(a => a.locationId !== ao.locationId);
+      const lid = ao.locationId!;
+      this.rawEvents = this.rawEvents.filter(e => e.locationId !== lid);
+      this.rawOrgs = this.rawOrgs.filter(o => o.defaultLocationId !== lid);
+      this.rawLocations = this.rawLocations.filter(l => l.id !== lid);
       this.selectedAo = null;
       this.isEditingAo = false;
-      this.scheduleFitMapToPins();
+      this.closeModal();
+      this.rebuildDerivedFromRaw(true);
 
       const toast = await this.toastController.create({
         message: `${ao.name} has been removed.`,
@@ -847,9 +1470,8 @@ export class MapPage implements OnInit {
         endTime: ev.endTime,
       });
 
-      day.event = null;
-      if (ao.position) ao.markerOptions = this.buildMarkerOptions(ao);
-      this.aos = [...this.aos];
+      this.rawEvents = this.rawEvents.filter(e => e.id !== ev.id);
+      this.rebuildDerivedFromRaw(true);
       this.closeModal();
     } catch (e: any) {
       this.saveError = e.message ?? 'Delete failed';
@@ -886,28 +1508,12 @@ export class MapPage implements OnInit {
       };
 
       const {event: saved} = await this.f3Api.createOrUpdateEvent(body);
-      day.event = this.mergeEventAfterSave(saved, Number(this.dayForm.eventTypeId));
+      const merged = this.mergeEventAfterSave(saved, Number(this.dayForm.eventTypeId));
+      const idx = merged.id ? this.rawEvents.findIndex(e => e.id === merged.id) : -1;
+      if (idx >= 0) this.rawEvents[idx] = merged;
+      else this.rawEvents.push(merged);
 
-      // If this is a freshly-placed AO (no real locationId yet), patch it from the API response
-      if (ao.locationId === 0 && saved.locationId) {
-        ao.locationId = saved.locationId;
-      }
-
-      const typeName = EVENT_TYPES.find(t => t.id === Number(this.dayForm.eventTypeId))?.name ?? '';
-      if (typeName && !ao.eventTypes.includes(typeName)) ao.eventTypes.push(typeName);
-
-      const rPick = this.pickBoiseRegion(
-          ao.days.map(d => d.event).filter((e): e is F3Event => !!e),
-      );
-      if (rPick.id) {
-        ao.regionId = rPick.id;
-        ao.region = rPick.name || ao.region;
-      }
-
-      // Refresh marker color/label after schedule change
-      if (ao.position) ao.markerOptions = this.buildMarkerOptions(ao);
-
-      this.aos = [...this.aos];
+      this.rebuildDerivedFromRaw(true);
       this.closeModal();
     } catch (e: any) {
       this.saveError = e.message ?? 'Save failed';
