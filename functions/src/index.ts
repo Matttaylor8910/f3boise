@@ -14,50 +14,53 @@ const USER_PROFILES_COLLECTION = "userProfiles";
  * Pax before they have ever signed into the app.
  */
 export const mergePendingRoles = functionsV1.auth.user().onCreate(
-    async (user) => {
-      const email = user.email?.toLowerCase().trim();
-      if (!email) return;
+  async (user) => {
+    const email = user.email?.toLowerCase().trim();
+    if (!email) return;
 
-      const db = admin.firestore();
-      const pendingRef = db.collection(PENDING_ROLES_COLLECTION).doc(email);
-      const pendingSnap = await pendingRef.get();
+    const db = admin.firestore();
+    const pendingRef = db.collection(PENDING_ROLES_COLLECTION).doc(email);
+    const pendingSnap = await pendingRef.get();
 
-      if (!pendingSnap.exists) return;
+    if (!pendingSnap.exists) return;
 
-      const pendingData = pendingSnap.data()!;
-      const pendingRoles: string[] = Array.isArray(pendingData['roles']) ?
-          pendingData['roles'] :
-          [];
+    const pendingData = pendingSnap.data();
+    if (!pendingData) return;
 
-      if (pendingRoles.length === 0) {
-        await pendingRef.delete();
-        return;
-      }
+    const rawPending = pendingData["roles"];
+    const pendingRoles: string[] =
+      Array.isArray(rawPending) ? [...rawPending] : [];
 
-      const profileRef =
-          db.collection(USER_PROFILES_COLLECTION).doc(user.uid);
-      const profileSnap = await profileRef.get();
-      const profileData = profileSnap.data();
-      const existingRoles: string[] =
-          Array.isArray(profileData?.['roles']) ? profileData!['roles'] : [];
-
-      // Merge: union + dedupe + sort
-      const merged =
-          [...new Set([...existingRoles, ...pendingRoles])].sort(
-              (a, b) => a.localeCompare(b));
-
-      await profileRef.set(
-          {
-            roles: merged,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-          },
-          {merge: true},
-      );
-
-      // Delete the consumed pending doc
+    if (pendingRoles.length === 0) {
       await pendingRef.delete();
+      return;
+    }
 
-      functionsV1.logger.info(
-          `Merged pending roles for ${email} into uid ${user.uid}`,
-          {roles: merged});
-    });
+    const profileRef =
+      db.collection(USER_PROFILES_COLLECTION).doc(user.uid);
+    const profileSnap = await profileRef.get();
+    const profileData = profileSnap.data();
+    const rawExisting = profileData?.["roles"];
+    const existingRoles: string[] =
+      Array.isArray(rawExisting) ? [...rawExisting] : [];
+
+    // Merge: union + dedupe + sort
+    const merged =
+      [...new Set([...existingRoles, ...pendingRoles])].sort(
+        (a, b) => a.localeCompare(b));
+
+    await profileRef.set(
+      {
+        roles: merged,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      {merge: true},
+    );
+
+    // Delete the consumed pending doc
+    await pendingRef.delete();
+
+    functionsV1.logger.info(
+      `Merged pending roles for ${email} into uid ${user.uid}`,
+      {roles: merged});
+  });
