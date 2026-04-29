@@ -1,4 +1,5 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
+import {AlertController, ToastController} from '@ionic/angular';
 import {
   BOISE_REGION_IDS,
   CreateOrUpdateEventRequest,
@@ -45,7 +46,12 @@ export interface GroupedAo {
   parentAoId?: number;
   regionId: number;
   name: string;
+  /** Formatted address for display */
   address: string;
+  /** Structured address parts for editing */
+  addressStreet?: string;
+  addressCity?: string;
+  addressZip?: string;
   region: string;
   description: string;
   eventTypes: string[];
@@ -88,6 +94,17 @@ export class MapPage implements OnInit {
   newAoForm: NewAoForm = this.emptyNewAoForm();
   private pendingLatLng: google.maps.LatLngLiteral|null = null;
 
+  // AO detail inline editing
+  isEditingAo = false;
+  aoEditName = '';
+  aoEditDescription = '';
+  aoEditAddressStreet = '';
+  aoEditAddressCity = '';
+  aoEditAddressZip = '';
+  aoSaving = false;
+  aoSaveError: string|null = null;
+  isDeletingAo = false;
+
   readonly eventTypes = EVENT_TYPES;
   readonly boiseRegions = [
     {id: BOISE_REGION_IDS.cityOfTrees, name: 'City of Trees'},
@@ -114,19 +131,26 @@ export class MapPage implements OnInit {
 
   private geocoder!: google.maps.Geocoder;
 
-  constructor(private readonly f3Api: F3ApiService) {}
+  constructor(
+      private readonly f3Api: F3ApiService,
+      private readonly alertController: AlertController,
+      private readonly toastController: ToastController,
+  ) {}
 
   async ngOnInit() {
     this.geocoder = new google.maps.Geocoder();
     try {
       const boiseRegionIds = Object.values(BOISE_REGION_IDS) as number[];
-      const [{events}, {orgs}, {locations}] = await Promise.all([
-        this.f3Api.listEvents(),
+      const [{events}, {orgs}, regionalLocs, mineLocs] = await Promise.all([
+        this.f3Api.listEvents({pageSize: 500}),
         this.f3Api.listOrgs({orgTypes: ['ao'], onlyMine: true, pageSize: 200}),
-        // All Boise-area locations (canonical lat/lng), not onlyMine — needed to place
-        // event-backed AOs that share those location IDs (avoids ambiguous geocode text).
         this.f3Api.listLocations({regionIds: boiseRegionIds, pageSize: 500}),
+        // AO locations we created can have regionId = AO org id (not Boise metro IDs)
+        // and are omitted from regional list — merge onlyMine coords for pin placement.
+        this.f3Api.listLocations({onlyMine: true, pageSize: 500}),
       ]);
+
+      const locations = this.mergeLocationsById(regionalLocs.locations, mineLocs.locations);
 
       this.aos = this.mergeAll(events, orgs, locations);
       this.loading = false;
@@ -195,12 +219,26 @@ export class MapPage implements OnInit {
         regionId: regionPick.id,
         name: aoName,
         address,
+        addressStreet: first.locationAddress || undefined,
+        addressCity: first.locationCity || undefined,
+        addressZip: first.locationZip || undefined,
         region: regionPick.name,
         description: first.description,
         eventTypes: Array.from(allEventTypes),
         days,
       };
     });
+  }
+
+  /**
+   * Merges two location arrays; second array overwrites duplicates by id
+   * (onlyMine payloads can include rows missing from regional-filter lists).
+   */
+  private mergeLocationsById(a: F3Location[], b: F3Location[]): F3Location[] {
+    const map = new Map<number, F3Location>();
+    for (const loc of a) map.set(loc.id, loc);
+    for (const loc of b) map.set(loc.id, loc);
+    return Array.from(map.values());
   }
 
   /**
@@ -217,24 +255,31 @@ export class MapPage implements OnInit {
 
     const emptyAos: GroupedAo[] = [];
     for (const org of orgs) {
+      if (!boiseRegionIds.has(org.parentId)) continue;  // AO not under Boise metros
+
       const locId = org.defaultLocationId;
       if (!locId) continue;
       if (eventLocationIds.has(locId)) continue;  // already represented
 
       const loc = locationById.get(locId);
       if (!loc) continue;
-      if (!boiseRegionIds.has(loc.regionId)) continue;  // outside our regions
+      // Do not gate on loc.regionId — new locations sometimes use AO org id as regionId.
 
       const address = [loc.addressStreet, loc.addressCity, loc.addressState]
           .filter(Boolean).join(', ');
 
+      const parentRegion = this.boiseRegions.find(r => r.id === org.parentId);
+
       const ao: GroupedAo = {
         locationId: locId,
         orgId: org.id,
-        regionId: loc.regionId,
+        regionId: org.parentId,
         name: org.name,
         address,
-        region: loc.regionName,
+        addressStreet: loc.addressStreet || undefined,
+        addressCity: loc.addressCity || undefined,
+        addressZip: loc.addressZip || undefined,
+        region: parentRegion?.name ?? loc.regionName,
         description: org.description ?? '',
         eventTypes: [],
         days: DAYS.map((dayName, i) => ({dayIndex: i, dayName, event: null})),
@@ -512,6 +557,20 @@ export class MapPage implements OnInit {
         addressCountry: 'US',
       });
 
+      // Tie org ↔ default location (API returns defaultLocationId: null until patched)
+      await this.f3Api.createOrg({
+        id: org.id,
+        parentId: this.newAoForm.regionId,
+        defaultLocationId: location.id,
+        name,
+        isActive: true,
+        orgType: 'ao',
+        website: 'https://f3boise.com',
+        twitter: '',
+        facebook: '',
+        instagram: '',
+      });
+
       const region = this.boiseRegions.find(r => r.id === this.newAoForm.regionId);
       const address = [
         this.newAoForm.addressStreet,
@@ -547,12 +606,192 @@ export class MapPage implements OnInit {
 
   onMarkerClick(ao: GroupedAo) {
     this.selectedAo = ao;
+    this.isEditingAo = false;
+    this.aoSaveError = null;
     this.closeModal();
   }
 
   clearSelection() {
     this.selectedAo = null;
+    this.isEditingAo = false;
     this.closeModal();
+  }
+
+  // ── AO detail editing ─────────────────────────────────────────────
+
+  startAoEdit() {
+    if (!this.selectedAo) return;
+    this.aoEditName = this.selectedAo.name;
+    this.aoEditDescription = this.selectedAo.description;
+    this.aoEditAddressStreet = this.selectedAo.addressStreet ?? '';
+    this.aoEditAddressCity = this.selectedAo.addressCity ?? '';
+    this.aoEditAddressZip = this.selectedAo.addressZip ?? '';
+    this.aoSaveError = null;
+    this.isEditingAo = true;
+  }
+
+  cancelAoEdit() {
+    this.isEditingAo = false;
+    this.aoSaveError = null;
+  }
+
+  async saveAoDetails() {
+    if (!this.selectedAo) return;
+    const ao = this.selectedAo;
+    const orgId = ao.orgId ?? ao.parentAoId;
+    const name = this.aoEditName.trim();
+    if (!name) return;
+
+    this.aoSaving = true;
+    this.aoSaveError = null;
+
+    try {
+      if (orgId) {
+        await this.f3Api.createOrg({
+          id: orgId,
+          parentId: ao.regionId,
+          name,
+          description: this.aoEditDescription.trim(),
+          isActive: true,
+          orgType: 'ao',
+          website: 'https://f3boise.com',
+          twitter: '',
+          facebook: '',
+          instagram: '',
+        });
+      }
+
+      if (ao.locationId) {
+        await this.f3Api.createLocation({
+          id: ao.locationId,
+          orgId: orgId ?? ao.locationId,
+          name,
+          isActive: true,
+          ...(this.aoEditAddressStreet.trim() ? {addressStreet: this.aoEditAddressStreet.trim()} : {}),
+          ...(this.aoEditAddressCity.trim()   ? {addressCity:   this.aoEditAddressCity.trim()}   : {}),
+          addressState: 'ID',
+          ...(this.aoEditAddressZip.trim()    ? {addressZip:    this.aoEditAddressZip.trim()}     : {}),
+          addressCountry: 'US',
+        });
+      }
+
+      // Patch local state
+      ao.name = name;
+      ao.description = this.aoEditDescription.trim();
+      ao.addressStreet = this.aoEditAddressStreet.trim() || undefined;
+      ao.addressCity = this.aoEditAddressCity.trim() || undefined;
+      ao.addressZip = this.aoEditAddressZip.trim() || undefined;
+      ao.address = [ao.addressStreet, ao.addressCity, 'ID', ao.addressZip]
+          .filter(Boolean).join(', ');
+      if (ao.position) ao.markerOptions = this.buildMarkerOptions(ao);
+      this.aos = [...this.aos];
+      this.isEditingAo = false;
+    } catch (e: any) {
+      this.aoSaveError = e.message ?? 'Failed to save changes';
+    } finally {
+      this.aoSaving = false;
+    }
+  }
+
+  async confirmDeleteAo() {
+    if (!this.selectedAo || this.isDeletingAo) return;
+    const ao = this.selectedAo;
+    const activeEvents = ao.days.filter(d => d.event);
+    const n = activeEvents.length;
+    const eventLine = n > 0
+        ? `${n} workout event${n !== 1 ? 's' : ''} at this location`
+        : 'no scheduled events';
+
+    const alert = await this.alertController.create({
+      header: 'Remove AO?',
+      message:
+          `This will permanently deactivate the AO org, its location, and ${eventLine}. ` +
+          `This cannot be undone.`,
+      buttons: [
+        {text: 'Cancel', role: 'cancel'},
+        {
+          text: 'Remove AO',
+          role: 'destructive',
+          cssClass: 'alert-button-destructive',
+          handler: () => { this.deleteAo(); },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private async deleteAo() {
+    if (!this.selectedAo || this.isDeletingAo) return;
+    const ao = this.selectedAo;
+    const orgId = ao.orgId ?? ao.parentAoId;
+    this.isDeletingAo = true;
+    this.aoSaveError = null;
+
+    try {
+      // 1. Deactivate all events at this location
+      for (const day of ao.days) {
+        const ev = day.event;
+        if (!ev) continue;
+        await this.f3Api.createOrUpdateEvent({
+          id: ev.id,
+          aoId: this.aoIdForPayload(ev, ao),
+          regionId: this.regionIdForPayload(ev, ao),
+          locationId: ev.locationId ?? ao.locationId,
+          eventTypeIds: ev.eventTypes?.map(t => t.eventTypeId) ?? [1],
+          name: ev.name,
+          description: ev.description,
+          isActive: false,
+          isPrivate: ev.isPrivate,
+          highlight: false,
+          startDate: ev.startDate,
+          dayOfWeek: ev.dayOfWeek,
+          startTime: ev.startTime,
+          endTime: ev.endTime,
+        });
+      }
+
+      // 2. Deactivate the org
+      if (orgId) {
+        await this.f3Api.createOrg({
+          id: orgId,
+          parentId: ao.regionId,
+          name: ao.name,
+          isActive: false,
+          orgType: 'ao',
+          twitter: '',
+          facebook: '',
+          instagram: '',
+        });
+      }
+
+      // 3. Deactivate the location
+      if (ao.locationId) {
+        await this.f3Api.createLocation({
+          id: ao.locationId,
+          orgId: orgId ?? ao.locationId,
+          name: ao.name,
+          isActive: false,
+        });
+      }
+
+      // Remove from local list and clear selection
+      this.aos = this.aos.filter(a => a.locationId !== ao.locationId);
+      this.selectedAo = null;
+      this.isEditingAo = false;
+      this.scheduleFitMapToPins();
+
+      const toast = await this.toastController.create({
+        message: `${ao.name} has been removed.`,
+        duration: 3000,
+        color: 'dark',
+        position: 'bottom',
+      });
+      await toast.present();
+    } catch (e: any) {
+      this.aoSaveError = e.message ?? 'Failed to remove AO';
+    } finally {
+      this.isDeletingAo = false;
+    }
   }
 
   // ── Day edit ─────────────────────────────────────────────────────

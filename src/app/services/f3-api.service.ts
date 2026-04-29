@@ -102,7 +102,8 @@ export interface F3Org {
 
 export interface F3Location {
   id: number;
-  LocationName: string;
+  /** API returns `locationName` */
+  locationName: string;
   regionId: number;
   regionName: string;
   description: string;

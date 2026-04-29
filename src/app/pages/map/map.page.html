@@ -53,55 +53,123 @@
 
         <!-- AO detail -->
         <div class="ao-detail" *ngIf="selectedAo">
-          <button class="back-button" (click)="clearSelection()">← Back</button>
 
-          <div class="ao-title">
-            <h3>{{ selectedAo.name }}</h3>
-            <span class="region-badge">{{ selectedAo.region }}</span>
+          <!-- Header row -->
+          <div class="ao-detail-header">
+            <button class="back-button" (click)="clearSelection()">← Back</button>
+            <button class="edit-toggle-btn"
+                    *ngIf="!isEditingAo"
+                    (click)="startAoEdit()"
+                    title="Edit AO details">
+              <ion-icon name="create-outline"></ion-icon>
+              Edit
+            </button>
           </div>
 
-          <p class="ao-ids">
-            Location {{ selectedAo.locationId }}<ng-container *ngIf="selectedAo.orgId ?? selectedAo.parentAoId"> · AO {{ selectedAo.orgId ?? selectedAo.parentAoId }}</ng-container>
-          </p>
+          <!-- ── VIEW MODE ── -->
+          <ng-container *ngIf="!isEditingAo">
+            <div class="ao-title">
+              <h3>{{ selectedAo.name }}</h3>
+              <span class="region-badge">{{ selectedAo.region }}</span>
+            </div>
 
-          <div class="ao-meta" *ngIf="selectedAo.address">
-            <ion-icon name="location-outline"></ion-icon>
-            <span>{{ selectedAo.address }}</span>
-          </div>
+            <p class="ao-ids">
+              Location {{ selectedAo.locationId }}<ng-container *ngIf="selectedAo.orgId ?? selectedAo.parentAoId"> · AO {{ selectedAo.orgId ?? selectedAo.parentAoId }}</ng-container>
+            </p>
 
-          <div class="ao-meta" *ngIf="selectedAo.eventTypes.length">
-            <ion-icon name="barbell-outline"></ion-icon>
-            <span>{{ selectedAo.eventTypes.join(' · ') }}</span>
-          </div>
+            <div class="ao-meta" *ngIf="selectedAo.address">
+              <ion-icon name="location-outline"></ion-icon>
+              <span>{{ selectedAo.address }}</span>
+            </div>
 
-          <div class="days-section">
-            <h4>Schedule</h4>
-            <div class="day-list">
-              <div
-                class="day-item"
-                [class.filled]="day.event"
-                [class.empty]="!day.event"
-                *ngFor="let day of selectedAo.days"
-                (click)="openDayEdit(day)">
-                <div class="day-item-content">
-                  <div class="day-label">{{ day.dayName }}</div>
-                  <div class="day-content" *ngIf="day.event">
-                    <span class="ao-name">{{ day.event.name }}</span>
-                    <span class="time-range">
-                      {{ formatTime(day.event.startTime) }} – {{ formatTime(day.event.endTime) }}
-                    </span>
+            <div class="ao-meta" *ngIf="selectedAo.eventTypes.length">
+              <ion-icon name="barbell-outline"></ion-icon>
+              <span>{{ selectedAo.eventTypes.join(' · ') }}</span>
+            </div>
+
+            <div class="days-section">
+              <h4>Schedule</h4>
+              <div class="day-list">
+                <div
+                  class="day-item"
+                  [class.filled]="day.event"
+                  [class.empty]="!day.event"
+                  *ngFor="let day of selectedAo.days"
+                  (click)="openDayEdit(day)">
+                  <div class="day-item-content">
+                    <div class="day-label">{{ day.dayName }}</div>
+                    <div class="day-content" *ngIf="day.event">
+                      <span class="ao-name">{{ day.event.name }}</span>
+                      <span class="time-range">
+                        {{ formatTime(day.event.startTime) }} – {{ formatTime(day.event.endTime) }}
+                      </span>
+                    </div>
+                    <div class="day-content no-workout" *ngIf="!day.event">No workout scheduled</div>
                   </div>
-                  <div class="day-content no-workout" *ngIf="!day.event">No workout scheduled</div>
+                  <span class="day-item-action">{{ day.event ? 'Edit' : 'Add' }}</span>
                 </div>
-                <span class="day-item-action">{{ day.event ? 'Edit' : 'Add' }}</span>
               </div>
             </div>
-          </div>
 
-          <div class="description" *ngIf="selectedAo.description">
-            <h4>About</h4>
-            <p>{{ selectedAo.description }}</p>
-          </div>
+            <div class="description">
+              <h4>About</h4>
+              <p *ngIf="selectedAo.description">{{ selectedAo.description }}</p>
+              <p *ngIf="!selectedAo.description" class="description-empty">No description yet — tap Edit to add one.</p>
+            </div>
+          </ng-container>
+
+          <!-- ── EDIT MODE ── -->
+          <ng-container *ngIf="isEditingAo">
+            <div class="edit-section">
+              <h4 class="edit-section-title">Edit AO Details</h4>
+
+              <div class="edit-field">
+                <label>Name</label>
+                <input type="text" [(ngModel)]="aoEditName" placeholder="AO name">
+              </div>
+
+              <div class="edit-field">
+                <label>Address</label>
+                <input type="text" [(ngModel)]="aoEditAddressStreet" placeholder="123 Main St">
+              </div>
+
+              <div class="edit-field-row">
+                <div class="edit-field">
+                  <label>City</label>
+                  <input type="text" [(ngModel)]="aoEditAddressCity" placeholder="Boise">
+                </div>
+                <div class="edit-field edit-field--zip">
+                  <label>Zip</label>
+                  <input type="text" [(ngModel)]="aoEditAddressZip" placeholder="83701">
+                </div>
+              </div>
+
+              <div class="edit-field">
+                <label>About</label>
+                <textarea
+                  [(ngModel)]="aoEditDescription"
+                  rows="5"
+                  placeholder="Describe the AO — meeting spot, vibe, what to expect…"></textarea>
+              </div>
+
+              <div class="save-error" *ngIf="aoSaveError">{{ aoSaveError }}</div>
+
+              <div class="edit-actions">
+                <button class="btn-save" (click)="saveAoDetails()" [disabled]="!aoEditName.trim() || aoSaving || isDeletingAo">
+                  {{ aoSaving ? 'Saving…' : 'Save Changes' }}
+                </button>
+                <button class="btn-cancel" (click)="cancelAoEdit()" [disabled]="aoSaving || isDeletingAo">Cancel</button>
+              </div>
+
+              <div class="delete-ao-section">
+                <button class="btn-delete-ao" (click)="confirmDeleteAo()" [disabled]="aoSaving || isDeletingAo">
+                  <ion-icon name="trash-outline"></ion-icon>
+                  {{ isDeletingAo ? 'Removing…' : 'Remove AO' }}
+                </button>
+              </div>
+            </div>
+          </ng-container>
+
         </div>
 
       </div>
