@@ -119,8 +119,9 @@ export class AdminPage implements OnInit, OnDestroy {
   profiles: UserProfile[] = [];
   profileRows: ProfileRowVm[] = [];
 
-  // ── Pax enrichment (email → Slack name + avatar) ──────────────────
+  // ── Pax enrichment (uid → data, email → data) ─────────────────────
   paxInfo = new Map<string, {f3Name: string; avatarUrl: string}>();
+  paxInfoByEmail = new Map<string, {f3Name: string; avatarUrl: string}>();
 
   // ── Pending role assignments ───────────────────────────────────────
   pendingAssignments: PendingRoleAssignment[] = [];
@@ -211,7 +212,7 @@ export class AdminPage implements OnInit, OnDestroy {
     this.subs.add(this.userProfiles.watchAllPendingAssignments().subscribe(
         pending => {
           this.pendingAssignments = pending;
-          this.rebuildOrgChartVm();
+          void this.refreshPaxForPendingAndRebuildOrgChart();
         },
     ));
 
@@ -228,17 +229,38 @@ export class AdminPage implements OnInit, OnDestroy {
   private async enrichWithPax(profiles: UserProfile[]): Promise<void> {
     await this.pax.getAllData();
     for (const p of profiles) {
-      if (!p.email || this.paxInfo.has(p.uid)) continue;
+      if (!p.email) continue;
       const found = await this.pax.getPaxByEmail(p.email);
       if (found) {
-        this.paxInfo.set(p.uid, {
-          f3Name: found.name,
-          avatarUrl: found.img_url ?? '',
-        });
+        const info = {f3Name: found.name, avatarUrl: found.img_url ?? ''};
+        this.paxInfo.set(p.uid, info);
+        this.paxInfoByEmail.set(p.email.toLowerCase().trim(), info);
       }
     }
+    await this.ensurePaxInfoForEmails(
+        this.pendingAssignments.map(pa => pa.email));
     this.rebuildProfileRows();
     this.rebuildOrgChartVm();
+  }
+
+  /**
+   * Load Pax avatar/name for emails not yet covered (e.g. pending assignments
+   * where the user has no `userProfiles` row).
+   */
+  private async ensurePaxInfoForEmails(emails: readonly string[]): Promise<void> {
+    await this.pax.getAllData();
+    for (const raw of emails) {
+      const key = raw?.toLowerCase()?.trim() ?? '';
+      if (!key || this.paxInfoByEmail.has(key)) continue;
+      const found = await this.pax.getPaxByEmail(key);
+      if (found) {
+        const info = {f3Name: found.name, avatarUrl: found.img_url ?? ''};
+        this.paxInfoByEmail.set(key, info);
+        const prof =
+            this.profiles.find(p => p.email?.toLowerCase().trim() === key);
+        if (prof) this.paxInfo.set(prof.uid, info);
+      }
+    }
   }
 
   private displayName(p: UserProfile): string {
@@ -318,15 +340,21 @@ export class AdminPage implements OnInit, OnDestroy {
                      pa => pa.roles.includes(aoqRole) &&
                          !profileEmails.has(pa.email.toLowerCase())) ??
                  null);
+            const pendingPax = aoqPending ?
+                this.paxInfoByEmail.get(aoqPending.email.toLowerCase().trim()) :
+                null;
             const effectiveDn = aoqProfile ?
                 this.displayName(aoqProfile) :
-                (aoqPending?.displayName || aoqPending?.email || '');
+                (pendingPax?.f3Name || aoqPending?.displayName ||
+                 aoqPending?.email || '');
             return {
               ao,
               aoqProfile,
               aoqPendingAssignment: aoqPending,
               aoqDisplayName: effectiveDn,
-              aoqAvatarUrl: aoqProfile ? this.avatarUrl(aoqProfile) : '',
+              aoqAvatarUrl: aoqProfile ?
+                  this.avatarUrl(aoqProfile) :
+                  (pendingPax?.avatarUrl ?? ''),
               aoqInitialsChar: this.initialsChar(effectiveDn),
               aoqIsPending: !aoqProfile && !!aoqPending,
               canAssignAoq:
@@ -358,15 +386,22 @@ export class AdminPage implements OnInit, OnDestroy {
   }
 
   private toPendingPersonVm(pa: PendingRoleAssignment): OrgChartPersonVm {
-    const dn = pa.displayName || pa.email;
+    const pax = this.paxInfoByEmail.get(pa.email.toLowerCase().trim());
+    const dn = pax?.f3Name || pa.displayName || pa.email;
     return {
       profile: null,
       pendingAssignment: pa,
       displayName: dn,
-      avatarUrl: '',
+      avatarUrl: pax?.avatarUrl ?? '',
       initialsChar: this.initialsChar(dn),
       isPending: true,
     };
+  }
+
+  private async refreshPaxForPendingAndRebuildOrgChart(): Promise<void> {
+    await this.ensurePaxInfoForEmails(
+        this.pendingAssignments.map(pa => pa.email));
+    this.rebuildOrgChartVm();
   }
 
   // ── AO list ────────────────────────────────────────────────────────

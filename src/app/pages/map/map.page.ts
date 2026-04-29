@@ -131,6 +131,14 @@ export interface TreeRegion {
   expanded: boolean;
 }
 
+/** Boise AO org row not covered by normal event/location merge (no location, etc.). */
+interface OrphanOrgPlacement {
+  readonly org: F3Org;
+  readonly locationId: number;
+  readonly loc: F3Location|undefined;
+  readonly isSyntheticLocation: boolean;
+}
+
 @Component({
   selector: 'app-map',
   templateUrl: 'map.page.html',
@@ -156,6 +164,8 @@ export class MapPage implements OnInit, OnDestroy {
   private rawEvents: F3Event[] = [];
   private rawOrgs: F3Org[] = [];
   private rawLocations: F3Location[] = [];
+  /** Set in {@link mergeAll} for {@link buildRegionTree} orphan rows. */
+  private lastOrphanPlacements: OrphanOrgPlacement[] = [];
 
   // Tree inline edit state
   editingAoId: number|null = null;
@@ -300,8 +310,10 @@ export class MapPage implements OnInit, OnDestroy {
           continue;
         }
         loc.permEditLocation =
+            loc.locationId > 0 &&
             this.canEditSharedLocationRecord(loc.regionId, loc.locationId);
-        loc.permDeleteLocation = p.canDeleteAo({regionId: loc.regionId});
+        loc.permDeleteLocation = loc.locationId > 0 &&
+            p.canDeleteAo({regionId: loc.regionId});
         for (const ao of loc.aos) {
           ao.permRenameAo = p.canEditAo({
             regionId: loc.regionId,
@@ -331,9 +343,10 @@ export class MapPage implements OnInit, OnDestroy {
       parentAoId: ao.parentAoId,
     });
     this.detailDeleteAo = p.canDeleteAo({regionId: ao.regionId});
+    const locOk = ao.locationId > 0;
     this.detailEditLocation =
-        this.canEditSharedLocationRecord(ao.regionId, ao.locationId);
-    this.detailEditSchedule = p.canEditDay({
+        locOk && this.canEditSharedLocationRecord(ao.regionId, ao.locationId);
+    this.detailEditSchedule = locOk && p.canEditDay({
       regionId: ao.regionId,
       orgId: ao.orgId,
       parentAoId: ao.parentAoId,
@@ -373,7 +386,13 @@ export class MapPage implements OnInit, OnDestroy {
       const boiseRegionIds = Object.values(BOISE_REGION_IDS) as number[];
       const [{events}, {orgs}, regionalLocs, mineLocs] = await Promise.all([
         this.f3Api.listEvents({pageSize: 500}),
-        this.f3Api.listOrgs({orgTypes: ['ao'], onlyMine: true, pageSize: 200}),
+        // Fetch all AOs under the Boise metro regions (not just onlyMine) so
+        // orphan orgs created by other users are visible and can be managed.
+        this.f3Api.listOrgs({
+          orgTypes: ['ao'],
+          parentOrgIds: boiseRegionIds,
+          pageSize: 500,
+        }),
         this.f3Api.listLocations({regionIds: boiseRegionIds, pageSize: 500}),
         // AO locations we created can have regionId = AO org id (not Boise
         // metro IDs) and are omitted from regional list — merge onlyMine coords
@@ -544,33 +563,23 @@ export class MapPage implements OnInit, OnDestroy {
     return Array.from(map.values());
   }
 
-  /**
-   * Merges event-based AOs with orgs/locations that have no events yet.
-   * Orgs fetched via onlyMine give us AOs we own; locations supply lat/lng
-   * directly.
-   */
-  private mergeAll(events: F3Event[], orgs: F3Org[], locations: F3Location[]):
-      GroupedAo[] {
-    const eventAos = this.groupEvents(events);
-
-    // Index locations and event-based AOs for quick lookup
-    const locationById = new Map(locations.map(l => [l.id, l]));
-    const eventLocationIds = new Set(eventAos.map(a => a.locationId));
+  private collectEmptyAoRows(
+      orgs: F3Org[],
+      locationById: Map<number, F3Location>,
+      eventLocationIds: Set<number>,
+      ): GroupedAo[] {
+    const emptyAos: GroupedAo[] = [];
     const boiseRegionIds = new Set<number>(Object.values(BOISE_REGION_IDS));
 
-    const emptyAos: GroupedAo[] = [];
     for (const org of orgs) {
-      if (!boiseRegionIds.has(org.parentId))
-        continue;  // AO not under Boise metros
+      if (!boiseRegionIds.has(org.parentId)) continue;
 
       const locId = org.defaultLocationId;
       if (!locId) continue;
-      if (eventLocationIds.has(locId)) continue;  // already represented
+      if (eventLocationIds.has(locId)) continue;
 
       const loc = locationById.get(locId);
       if (!loc) continue;
-      // Do not gate on loc.regionId — new locations sometimes use AO org id as
-      // regionId.
 
       const address = [
         loc.addressStreet, loc.addressCity, loc.addressState
@@ -593,7 +602,6 @@ export class MapPage implements OnInit, OnDestroy {
         days: DAYS.map((dayName, i) => ({dayIndex: i, dayName, event: null})),
       };
 
-      // Use lat/lng directly — no geocoding needed
       if (loc.latitude && loc.longitude) {
         ao.position = {lat: loc.latitude, lng: loc.longitude};
         ao.markerOptions = this.buildMarkerOptions(ao);
@@ -602,8 +610,112 @@ export class MapPage implements OnInit, OnDestroy {
       emptyAos.push(ao);
     }
 
-    // Canonical coordinates from Locations API override Geocoder for events at
-    // that id
+    return emptyAos;
+  }
+
+  /**
+   * AOs that never appear in {@link groupEvents} or {@link collectEmptyAoRows}
+   * (e.g. no `defaultLocationId`, or location row missing from the API).
+   */
+  private computeOrphanOrgPlacements(
+      orgs: F3Org[],
+      eventAos: GroupedAo[],
+      emptyAos: GroupedAo[],
+      locationById: Map<number, F3Location>,
+      eventLocationIds: Set<number>,
+      ): OrphanOrgPlacement[] {
+    const coveredOrgIds = new Set<number>();
+    for (const a of [...eventAos, ...emptyAos]) {
+      if (a.orgId != null && a.orgId > 0) coveredOrgIds.add(a.orgId);
+      if (a.parentAoId != null && a.parentAoId > 0)
+        coveredOrgIds.add(a.parentAoId);
+    }
+
+    const boiseRegionIds = new Set<number>(Object.values(BOISE_REGION_IDS));
+    const out: OrphanOrgPlacement[] = [];
+
+    for (const org of orgs) {
+      if (!boiseRegionIds.has(org.parentId)) continue;
+      if (coveredOrgIds.has(org.id)) continue;
+
+      const lid = org.defaultLocationId;
+      if (lid != null && lid > 0) {
+        if (eventLocationIds.has(lid)) continue;
+        out.push({
+          org,
+          locationId: lid,
+          loc: locationById.get(lid),
+          isSyntheticLocation: false,
+        });
+      } else {
+        out.push({
+          org,
+          locationId: -org.id,
+          loc: undefined,
+          isSyntheticLocation: true,
+        });
+      }
+    }
+
+    return out;
+  }
+
+  private groupedAoFromOrphanPlacement(p: OrphanOrgPlacement): GroupedAo {
+    const {org, locationId, loc, isSyntheticLocation} = p;
+    const parentRegion = this.boiseRegions.find(r => r.id === org.parentId);
+
+    let address: string;
+    if (isSyntheticLocation) {
+      address = '(no location on file — assign a location or delete this AO)';
+    } else if (loc) {
+      address = [
+        loc.addressStreet, loc.addressCity, loc.addressState
+      ].filter(Boolean).join(', ');
+    } else {
+      address =
+          `(location id ${locationId} not returned by API — you can still delete the AO)`;
+    }
+
+    const ao: GroupedAo = {
+      locationId,
+      orgId: org.id,
+      regionId: org.parentId,
+      name: org.name,
+      address,
+      addressStreet: loc?.addressStreet || undefined,
+      addressCity: loc?.addressCity || undefined,
+      addressZip: loc?.addressZip || undefined,
+      region: parentRegion?.name ?? '',
+      description: org.description ?? '',
+      eventTypes: [],
+      days: DAYS.map((dayName, i) => ({dayIndex: i, dayName, event: null})),
+    };
+
+    if (loc?.latitude && loc.longitude) {
+      ao.position = {lat: loc.latitude, lng: loc.longitude};
+      ao.markerOptions = this.buildMarkerOptions(ao);
+    }
+
+    return ao;
+  }
+
+  /**
+   * Merges event-based AOs with orgs/locations that have no events yet, plus
+   * orphan org rows (no location / missing location record) so they stay
+   * visible in the sidebar and detail panel.
+   */
+  private mergeAll(events: F3Event[], orgs: F3Org[], locations: F3Location[]):
+      GroupedAo[] {
+    const eventAos = this.groupEvents(events);
+    const locationById = new Map(locations.map(l => [l.id, l]));
+    const eventLocationIds = new Set(eventAos.map(a => a.locationId));
+    const emptyAos =
+        this.collectEmptyAoRows(orgs, locationById, eventLocationIds);
+    this.lastOrphanPlacements = this.computeOrphanOrgPlacements(
+        orgs, eventAos, emptyAos, locationById, eventLocationIds);
+    const orphanAos = this.lastOrphanPlacements.map(
+        p => this.groupedAoFromOrphanPlacement(p));
+
     for (const ao of eventAos) {
       const loc = locationById.get(ao.locationId);
       if (loc?.latitude != null && loc.longitude != null &&
@@ -613,7 +725,7 @@ export class MapPage implements OnInit, OnDestroy {
       }
     }
 
-    return [...eventAos, ...emptyAos];
+    return [...eventAos, ...emptyAos, ...orphanAos];
   }
 
   /** Prefer a Boise-area region; API may list other metros first. */
@@ -864,6 +976,54 @@ export class MapPage implements OnInit, OnDestroy {
         permEditLocation: false,
         permDeleteLocation: false,
       });
+    }
+
+    for (const p of this.lastOrphanPlacements) {
+      const {org, locationId, loc, isSyntheticLocation} = p;
+      const regionId = org.parentId;
+      const regionLocs = regionMap.get(regionId);
+      if (!regionLocs) continue;
+
+      const address = loc ?
+          [
+            loc.addressStreet, loc.addressCity, loc.addressState
+          ].filter(Boolean).join(', ') :
+          '';
+
+      const displayName = (loc?.locationName?.trim()) ||
+          (isSyntheticLocation ?
+               '(no location)' :
+               `Location ${locationId} (missing)`);
+
+      const treeAo: TreeAo = {
+        orgId: org.id,
+        name: org.name,
+        events: [],
+        permRenameAo: false,
+        permDeleteAo: false,
+      };
+
+      const existing = regionLocs.get(locationId);
+      if (existing) {
+        if (!existing.aos.some(a => a.orgId === org.id)) {
+          existing.aos.push(treeAo);
+          existing.aos.sort((a, b) => a.name.localeCompare(b.name));
+        }
+      } else {
+        regionLocs.set(locationId, {
+          locationId,
+          regionId,
+          orgId: org.id,
+          displayName,
+          address,
+          lat: loc?.latitude ?? null,
+          lng: loc?.longitude ?? null,
+          aos: [treeAo],
+          expanded: false,
+          permEditLocation: false,
+          permDeleteLocation: false,
+        });
+      }
     }
 
     return this.boiseRegions.map(
@@ -2026,8 +2186,8 @@ export class MapPage implements OnInit, OnDestroy {
         });
       }
 
-      // 3. Deactivate the location
-      if (ao.locationId) {
+      // 3. Deactivate the location (skip synthetic / missing rows: id ≤ 0)
+      if (ao.locationId > 0) {
         await this.f3Api.createLocation({
           id: ao.locationId,
           orgId: orgId ?? ao.locationId,
@@ -2037,9 +2197,18 @@ export class MapPage implements OnInit, OnDestroy {
       }
 
       const lid = ao.locationId!;
-      this.rawEvents = this.rawEvents.filter(e => e.locationId !== lid);
-      this.rawOrgs = this.rawOrgs.filter(o => o.defaultLocationId !== lid);
-      this.rawLocations = this.rawLocations.filter(l => l.id !== lid);
+      const oid = orgId ?? 0;
+      if (lid < 0) {
+        if (oid > 0) {
+          this.rawOrgs = this.rawOrgs.filter(o => o.id !== oid);
+        }
+        this.rawEvents = this.rawEvents.filter(
+            e => (e.parents?.[0]?.parentId ?? 0) !== oid);
+      } else {
+        this.rawEvents = this.rawEvents.filter(e => e.locationId !== lid);
+        this.rawOrgs = this.rawOrgs.filter(o => o.defaultLocationId !== lid);
+        this.rawLocations = this.rawLocations.filter(l => l.id !== lid);
+      }
       this.selectedAo = null;
       this.closeDetailEditModals();
       this.closeModal();
