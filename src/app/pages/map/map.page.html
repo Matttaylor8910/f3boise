@@ -44,15 +44,28 @@
           <p>{{ aos.length }} active locations across {{ boiseRegions.length }} regions</p>
         </ng-container>
         <ng-container *ngIf="selectedAo">
-          <button
-            type="button"
-            class="ao-panel-title-btn"
-            (click)="openAoMetaModal()"
-            title="Edit AO name and about">
-            {{ detailPanelAoTitle(selectedAo) }}
-          </button>
-          <div class="ao-panel-region-row">
-            <span class="region-badge">{{ selectedAo.region }}</span>
+          <div class="ao-panel-header">
+            <div class="ao-panel-header-text">
+              <button
+                type="button"
+                class="ao-panel-title-btn"
+                (click)="openAoMetaModal()"
+                title="Edit AO name and about">
+                {{ detailPanelAoTitle(selectedAo) }}
+              </button>
+              <div class="ao-panel-region-row">
+                <span class="region-badge">{{ selectedAo.region }}</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="ao-detail-menu-btn"
+              [disabled]="isDeletingAo || aoSaving"
+              title="More actions"
+              aria-label="More actions"
+              (click)="openAoDetailMenu($event)">
+              <ion-icon name="ellipsis-horizontal"></ion-icon>
+            </button>
           </div>
         </ng-container>
       </div>
@@ -212,15 +225,6 @@
 
           <div class="ao-detail-header">
             <button class="back-button" (click)="clearSelection()">← Back</button>
-            <button
-              type="button"
-              class="ao-detail-menu-btn"
-              [disabled]="isDeletingAo || aoSaving"
-              title="More actions"
-              aria-label="More actions"
-              (click)="openAoDetailMenu($event)">
-              <ion-icon name="ellipsis-horizontal"></ion-icon>
-            </button>
           </div>
 
           <div class="ao-location-block">

@@ -1,19 +1,9 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
+import {GoogleMap} from '@angular/google-maps';
 import {AlertController, PopoverController, ToastController} from '@ionic/angular';
 import {ActionsPopoverPageComponent} from 'src/app/components/actions-popover/actions-popover-page.component';
-import {
-  PopoverAction,
-} from 'src/app/components/actions-popover/actions-popover.component';
-import {
-  BOISE_REGION_IDS,
-  CreateOrUpdateEventRequest,
-  F3ApiService,
-  F3Event,
-  F3Location,
-  F3Org,
-  F3_REGION_WEBSITE_URL,
-} from 'src/app/services/f3-api.service';
-import {GoogleMap} from '@angular/google-maps';
+import {PopoverAction,} from 'src/app/components/actions-popover/actions-popover.component';
+import {BOISE_REGION_IDS, CreateOrUpdateEventRequest, F3_REGION_WEBSITE_URL, F3ApiService, F3Event, F3Location, F3Org,} from 'src/app/services/f3-api.service';
 
 interface NewAoForm {
   name: string;
@@ -24,10 +14,17 @@ interface NewAoForm {
   addressZip: string;
 }
 
-const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAYS = [
+  'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
+];
 const DAY_INDEX: Record<string, number> = {
-  sunday: 0, monday: 1, tuesday: 2, wednesday: 3,
-  thursday: 4, friday: 5, saturday: 6,
+  sunday: 0,
+  monday: 1,
+  tuesday: 2,
+  wednesday: 3,
+  thursday: 4,
+  friday: 5,
+  saturday: 6,
 };
 
 export const EVENT_TYPES = [
@@ -46,7 +43,8 @@ export interface AoDay {
 
 export interface GroupedAo {
   locationId: number;
-  orgId?: number;  // org ID returned from POST /v1/org; used as aoId in event payloads
+  orgId?: number;  // org ID returned from POST /v1/org; used as aoId in event
+                   // payloads
   /** AO org ID from events API parents chain when present */
   parentAoId?: number;
   regionId: number;
@@ -65,7 +63,10 @@ export interface GroupedAo {
   markerOptions?: google.maps.MarkerOptions;
 }
 
-/** Narrow shape for `/event` POST id resolution. Every `GroupedAo` is assignable. */
+/**
+ * Narrow shape for `/event` POST id resolution. Every `GroupedAo` is
+ * assignable.
+ */
 type AoPayloadContext = Pick<GroupedAo, 'locationId'>&
     Partial<Pick<GroupedAo, 'orgId'|'parentAoId'|'regionId'>>;
 
@@ -98,7 +99,10 @@ export interface TreeAo {
 
 export interface TreeLocation {
   locationId: number;
-  /** The org that owns this location — required for API update/deactivate calls. */
+  /**
+   * The org that owns this location — required for API update/deactivate
+   * calls.
+   */
   orgId: number;
   displayName: string;
   address: string;
@@ -173,13 +177,16 @@ export class MapPage implements OnInit {
   readonly eventTypes = EVENT_TYPES;
   readonly boiseRegions = [
     {id: BOISE_REGION_IDS.cityOfTrees, name: 'City of Trees'},
-    {id: BOISE_REGION_IDS.settlers,    name: 'Settlers'},
-    {id: BOISE_REGION_IDS.highDesert,  name: 'High Desert'},
-    {id: BOISE_REGION_IDS.canyon,      name: 'Canyon'},
+    {id: BOISE_REGION_IDS.settlers, name: 'Settlers'},
+    {id: BOISE_REGION_IDS.highDesert, name: 'High Desert'},
+    {id: BOISE_REGION_IDS.canyon, name: 'Canyon'},
   ];
 
   mapCenter: google.maps.LatLngLiteral = {lat: 43.615, lng: -116.35};
-  /** Omit zoom — `fitBounds` sets viewport; avoids fighting programmatic fitting. */
+  /**
+   * Omit zoom — `fitBounds` sets viewport; avoids fighting programmatic
+   * fitting.
+   */
   readonly mapOptions: google.maps.MapOptions = {
     mapTypeId: 'roadmap',
     disableDefaultUI: false,
@@ -188,8 +195,7 @@ export class MapPage implements OnInit {
     mapTypeControl: false,
   };
 
-  @ViewChild('mapRef')
-  private readonly mapComponent?: GoogleMap;
+  @ViewChild('mapRef') private readonly mapComponent?: GoogleMap;
 
   /** Coalesce rapid pin updates from parallel geocoder callbacks */
   private fitBoundsTimer?: number;
@@ -210,7 +216,10 @@ export class MapPage implements OnInit {
     await this.loadData();
   }
 
-  /** Full fetch — only on startup (or explicit refresh). Mutations patch `raw*` and call `rebuildDerivedFromRaw`. */
+  /**
+   * Full fetch — only on startup (or explicit refresh). Mutations patch `raw*`
+   * and call `rebuildDerivedFromRaw`.
+   */
   private async loadData() {
     this.loading = true;
     this.error = null;
@@ -220,12 +229,14 @@ export class MapPage implements OnInit {
         this.f3Api.listEvents({pageSize: 500}),
         this.f3Api.listOrgs({orgTypes: ['ao'], onlyMine: true, pageSize: 200}),
         this.f3Api.listLocations({regionIds: boiseRegionIds, pageSize: 500}),
-        // AO locations we created can have regionId = AO org id (not Boise metro IDs)
-        // and are omitted from regional list — merge onlyMine coords for pin placement.
+        // AO locations we created can have regionId = AO org id (not Boise
+        // metro IDs) and are omitted from regional list — merge onlyMine coords
+        // for pin placement.
         this.f3Api.listLocations({onlyMine: true, pageSize: 500}),
       ]);
 
-      const locations = this.mergeLocationsById(regionalLocs.locations, mineLocs.locations);
+      const locations =
+          this.mergeLocationsById(regionalLocs.locations, mineLocs.locations);
 
       this.rawEvents = events;
       this.rawOrgs = orgs;
@@ -239,7 +250,8 @@ export class MapPage implements OnInit {
     }
   }
 
-  private captureTreeExpansion(): {regions: Map<number, boolean>; locations: Map<string, boolean>} {
+  private captureTreeExpansion():
+      {regions: Map<number, boolean>; locations: Map<string, boolean>} {
     const regions = new Map<number, boolean>();
     const locs = new Map<string, boolean>();
     for (const r of this.regionTree) {
@@ -271,12 +283,14 @@ export class MapPage implements OnInit {
     const sel = this.selectedAo;
 
     this.aos = this.mergeAll(this.rawEvents, this.rawOrgs, this.rawLocations);
-    this.regionTree = this.buildRegionTree(this.rawEvents, this.rawOrgs, this.rawLocations);
+    this.regionTree =
+        this.buildRegionTree(this.rawEvents, this.rawOrgs, this.rawLocations);
     if (snap) this.restoreTreeExpansion(snap, this.regionTree);
 
     if (sel) {
       const match = this.findGroupedAoInList(this.aos, sel);
-      if (match) this.selectedAo = match;
+      if (match)
+        this.selectedAo = match;
       else {
         this.selectedAo = null;
         this.closeDetailEditModals();
@@ -290,7 +304,8 @@ export class MapPage implements OnInit {
 
   private findGroupedAoInList(
       list: GroupedAo[],
-      snapshot: Pick<GroupedAo, 'locationId'>& Partial<Pick<GroupedAo, 'orgId'|'parentAoId'>>,
+      snapshot: Pick<GroupedAo, 'locationId'>&
+      Partial<Pick<GroupedAo, 'orgId'|'parentAoId'>>,
       ): GroupedAo|undefined {
     const oid = snapshot.orgId ?? snapshot.parentAoId;
     const atLoc = list.filter(a => a.locationId === snapshot.locationId);
@@ -321,26 +336,28 @@ export class MapPage implements OnInit {
       }
 
       const days: AoDay[] = DAYS.map((dayName, i) => ({
-        dayIndex: i, dayName, event: dayMap.get(i) ?? null,
-      }));
+                                       dayIndex: i,
+                                       dayName,
+                                       event: dayMap.get(i) ?? null,
+                                     }));
 
       const allEventTypes = new Set<string>();
       for (const ev of evts) {
-        for (const et of (ev.eventTypes ?? [])) allEventTypes.add(et.eventTypeName);
+        for (const et of (ev.eventTypes ?? []))
+          allEventTypes.add(et.eventTypeName);
       }
 
       const aoName = first.locationName || first.name;
-      // Prefer structured address for maps; prose-only location strings (e.g. "meet near
-      // Gem Island…") confuse Geocoder — "Gem Island" can resolve outside Idaho.
+      // Prefer structured address for maps; prose-only location strings (e.g.
+      // "meet near Gem Island…") confuse Geocoder — "Gem Island" can resolve
+      // outside Idaho.
       const structuredAddress = [
         first.locationAddress,
         first.locationCity,
         first.locationState,
         first.locationZip,
       ].filter(Boolean).join(', ');
-      const address =
-          structuredAddress || first.location ||
-          '';
+      const address = structuredAddress || first.location || '';
 
       let parentAoId: number|undefined;
       for (const ev of evts) {
@@ -382,9 +399,11 @@ export class MapPage implements OnInit {
 
   /**
    * Merges event-based AOs with orgs/locations that have no events yet.
-   * Orgs fetched via onlyMine give us AOs we own; locations supply lat/lng directly.
+   * Orgs fetched via onlyMine give us AOs we own; locations supply lat/lng
+   * directly.
    */
-  private mergeAll(events: F3Event[], orgs: F3Org[], locations: F3Location[]): GroupedAo[] {
+  private mergeAll(events: F3Event[], orgs: F3Org[], locations: F3Location[]):
+      GroupedAo[] {
     const eventAos = this.groupEvents(events);
 
     // Index locations and event-based AOs for quick lookup
@@ -394,7 +413,8 @@ export class MapPage implements OnInit {
 
     const emptyAos: GroupedAo[] = [];
     for (const org of orgs) {
-      if (!boiseRegionIds.has(org.parentId)) continue;  // AO not under Boise metros
+      if (!boiseRegionIds.has(org.parentId))
+        continue;  // AO not under Boise metros
 
       const locId = org.defaultLocationId;
       if (!locId) continue;
@@ -402,10 +422,12 @@ export class MapPage implements OnInit {
 
       const loc = locationById.get(locId);
       if (!loc) continue;
-      // Do not gate on loc.regionId — new locations sometimes use AO org id as regionId.
+      // Do not gate on loc.regionId — new locations sometimes use AO org id as
+      // regionId.
 
-      const address = [loc.addressStreet, loc.addressCity, loc.addressState]
-          .filter(Boolean).join(', ');
+      const address = [
+        loc.addressStreet, loc.addressCity, loc.addressState
+      ].filter(Boolean).join(', ');
 
       const parentRegion = this.boiseRegions.find(r => r.id === org.parentId);
 
@@ -433,15 +455,12 @@ export class MapPage implements OnInit {
       emptyAos.push(ao);
     }
 
-    // Canonical coordinates from Locations API override Geocoder for events at that id
+    // Canonical coordinates from Locations API override Geocoder for events at
+    // that id
     for (const ao of eventAos) {
       const loc = locationById.get(ao.locationId);
-      if (
-        loc?.latitude != null &&
-        loc.longitude != null &&
-        loc.latitude !== 0 &&
-        loc.longitude !== 0
-      ) {
+      if (loc?.latitude != null && loc.longitude != null &&
+          loc.latitude !== 0 && loc.longitude !== 0) {
         ao.position = {lat: loc.latitude!, lng: loc.longitude!};
         ao.markerOptions = this.buildMarkerOptions(ao);
       }
@@ -464,22 +483,29 @@ export class MapPage implements OnInit {
     return {id: r0?.regionId ?? 0, name: r0?.regionName ?? ''};
   }
 
-  /** Region id for POST: prefer Boise on the event; fall back to context; last resort default region. */
-  private regionIdForPayload(ev: F3Event|null|undefined, fallback: AoPayloadContext): number {
+  /**
+   * Region id for POST: prefer Boise on the event; fall back to context; last
+   * resort default region.
+   */
+  private regionIdForPayload(
+      ev: F3Event|null|undefined, fallback: AoPayloadContext): number {
     const allowed = new Set<number>(Object.values(BOISE_REGION_IDS));
     if (ev?.regions?.length) {
       const hit = ev.regions.find(r => allowed.has(r.regionId));
       if (hit) return hit.regionId;
     }
-    if (fallback.regionId && allowed.has(fallback.regionId)) return fallback.regionId;
+    if (fallback.regionId && allowed.has(fallback.regionId))
+      return fallback.regionId;
     return BOISE_REGION_IDS.cityOfTrees;
   }
 
   /**
    * aoId MUST be the AO org id — never `locationId`.
-   * Order: event parent → ctx org ids → org whose defaultLocationId is this location.
+   * Order: event parent → ctx org ids → org whose defaultLocationId is this
+   * location.
    */
-  private aoIdForPayload(ev: F3Event|null|undefined, ctx: AoPayloadContext): number {
+  private aoIdForPayload(ev: F3Event|null|undefined, ctx: AoPayloadContext):
+      number {
     const fromEvent = ev?.parents?.[0]?.parentId;
     if (fromEvent != null && fromEvent > 0) return fromEvent;
 
@@ -488,15 +514,20 @@ export class MapPage implements OnInit {
 
     const fromOrgAtLocation =
         this.rawOrgs.find(o => o.defaultLocationId === ctx.locationId)?.id;
-    if (fromOrgAtLocation != null && fromOrgAtLocation > 0) return fromOrgAtLocation;
+    if (fromOrgAtLocation != null && fromOrgAtLocation > 0)
+      return fromOrgAtLocation;
 
     throw new Error(
         'Cannot save workout: missing AO org id for this location. Try reopening the AO from the map.',
     );
   }
 
-  /** Prefer `event.locationId` when positive; skip `0` from bad API payloads (use ctx). */
-  private locationIdForPayload(ev: F3Event|null|undefined, ctx: AoPayloadContext): number {
+  /**
+   * Prefer `event.locationId` when positive; skip `0` from bad API payloads
+   * (use ctx).
+   */
+  private locationIdForPayload(
+      ev: F3Event|null|undefined, ctx: AoPayloadContext): number {
     const fromEv = ev?.locationId;
     const lid = fromEv != null && fromEv > 0 ? fromEv : ctx.locationId;
     if (!lid || lid <= 0) {
@@ -505,11 +536,9 @@ export class MapPage implements OnInit {
     return lid;
   }
 
-  private eventIdsForMutation(ev: F3Event|null|undefined, ctx: AoPayloadContext): {
-    aoId: number;
-    regionId: number;
-    locationId: number;
-  } {
+  private eventIdsForMutation(
+      ev: F3Event|null|undefined, ctx: AoPayloadContext):
+      {aoId: number; regionId: number; locationId: number;} {
     return {
       aoId: this.aoIdForPayload(ev, ctx),
       regionId: this.regionIdForPayload(ev, ctx),
@@ -517,15 +546,20 @@ export class MapPage implements OnInit {
     };
   }
 
-  private payloadContextFromTreeLocation(loc: TreeLocation, sampleEv?: F3Event|null): AoPayloadContext {
+  private payloadContextFromTreeLocation(
+      loc: TreeLocation, sampleEv?: F3Event|null): AoPayloadContext {
     const picked = sampleEv ? this.pickBoiseRegion([sampleEv]) : null;
     const allowed = new Set<number>(Object.values(BOISE_REGION_IDS));
-    const regionId =
-      picked?.id && allowed.has(picked.id) ? picked.id : BOISE_REGION_IDS.cityOfTrees;
+    const regionId = picked?.id && allowed.has(picked.id) ?
+        picked.id :
+        BOISE_REGION_IDS.cityOfTrees;
     return {locationId: loc.locationId, regionId};
   }
 
-  /** Tree AO flow: pin org ids to the `TreeAo` row; region from a sample raw event when present. */
+  /**
+   * Tree AO flow: pin org ids to the `TreeAo` row; region from a sample raw
+   * event when present.
+   */
   private payloadContextFromTreeAo(
       loc: TreeLocation,
       treeAo: TreeAo,
@@ -540,7 +574,8 @@ export class MapPage implements OnInit {
 
   // ── Region tree ──────────────────────────────────────────────────
 
-  private buildRegionTree(events: F3Event[], orgs: F3Org[], locations: F3Location[]): TreeRegion[] {
+  private buildRegionTree(
+      events: F3Event[], orgs: F3Org[], locations: F3Location[]): TreeRegion[] {
     const boiseRegionIdSet = new Set<number>(this.boiseRegions.map(r => r.id));
     const locationById = new Map(locations.map(l => [l.id, l]));
 
@@ -569,7 +604,8 @@ export class MapPage implements OnInit {
     // Fallback: org's parentId for locations whose regionId is non-standard
     for (const org of orgs) {
       if (!boiseRegionIdSet.has(org.parentId)) continue;
-      if (org.defaultLocationId && !locationToRegion.has(org.defaultLocationId)) {
+      if (org.defaultLocationId &&
+          !locationToRegion.has(org.defaultLocationId)) {
         locationToRegion.set(org.defaultLocationId, org.parentId);
       }
     }
@@ -578,7 +614,10 @@ export class MapPage implements OnInit {
       if (!locationToRegion.has(locId)) {
         for (const ev of evs) {
           const r = ev.regions?.find(r => boiseRegionIdSet.has(r.regionId));
-          if (r) { locationToRegion.set(locId, r.regionId); break; }
+          if (r) {
+            locationToRegion.set(locId, r.regionId);
+            break;
+          }
         }
       }
     }
@@ -586,15 +625,15 @@ export class MapPage implements OnInit {
     // Collect all relevant locationIds (from events + org.defaultLocationId)
     const allLocIds = new Set<number>(locationToRegion.keys());
     for (const org of orgs) {
-      if (org.defaultLocationId && locationToRegion.has(org.defaultLocationId)) {
+      if (org.defaultLocationId &&
+          locationToRegion.has(org.defaultLocationId)) {
         allLocIds.add(org.defaultLocationId);
       }
     }
 
     // Build region → TreeLocation map
     const regionMap = new Map<number, Map<number, TreeLocation>>(
-      this.boiseRegions.map(r => [r.id, new Map()])
-    );
+        this.boiseRegions.map(r => [r.id, new Map()]));
 
     for (const locId of allLocIds) {
       const regionId = locationToRegion.get(locId);
@@ -603,13 +642,16 @@ export class MapPage implements OnInit {
       if (!regionLocs) continue;
 
       const loc = locationById.get(locId);
-      const parts = [loc?.addressStreet, loc?.addressCity, loc?.addressState].filter(Boolean);
+      const parts = [
+        loc?.addressStreet, loc?.addressCity, loc?.addressState
+      ].filter(Boolean);
       const address = parts.join(', ');
 
       // Build AO map for this location
       const aoMap = new Map<number, TreeAo>();
 
-      // Seed from orgs that default to this location (captures AOs with no events)
+      // Seed from orgs that default to this location (captures AOs with no
+      // events)
       for (const org of orgs) {
         if (org.defaultLocationId === locId) {
           aoMap.set(org.id, {orgId: org.id, name: org.name, events: []});
@@ -621,7 +663,8 @@ export class MapPage implements OnInit {
         const [kLoc, kOrg] = key.split(':').map(Number);
         if (kLoc !== locId) continue;
         const orgId = kOrg;
-        const firstName = evs[0]?.parents?.[0]?.parentName ?? evs[0]?.name ?? `AO ${orgId}`;
+        const firstName =
+            evs[0]?.parents?.[0]?.parentName ?? evs[0]?.name ?? `AO ${orgId}`;
         if (!aoMap.has(orgId)) {
           aoMap.set(orgId, {orgId, name: firstName, events: []});
         }
@@ -640,44 +683,48 @@ export class MapPage implements OnInit {
 
       // Sort events within each AO by day
       for (const ao of aoMap.values()) {
-        ao.events.sort((a, b) =>
-          (DAY_INDEX[a.dayOfWeek?.toLowerCase()] ?? 7) - (DAY_INDEX[b.dayOfWeek?.toLowerCase()] ?? 7)
-        );
+        ao.events.sort(
+            (a, b) => (DAY_INDEX[a.dayOfWeek?.toLowerCase()] ?? 7) -
+                (DAY_INDEX[b.dayOfWeek?.toLowerCase()] ?? 7));
       }
 
       regionLocs.set(locId, {
         locationId: locId,
-        // Prefer an org that explicitly points to this location; fall back to loc.regionId
-        // (which for newly-created AOs is the AO org id).
-        orgId: orgs.find(o => o.defaultLocationId === locId)?.id ?? loc?.regionId ?? locId,
+        // Prefer an org that explicitly points to this location; fall back to
+        // loc.regionId (which for newly-created AOs is the AO org id).
+        orgId: orgs.find(o => o.defaultLocationId === locId)?.id ??
+            loc?.regionId ?? locId,
         displayName: loc?.locationName ?? '',
         address,
         lat: loc?.latitude ?? null,
         lng: loc?.longitude ?? null,
-        aos: Array.from(aoMap.values()).sort((a, b) => a.name.localeCompare(b.name)),
+        aos: Array.from(aoMap.values())
+                 .sort((a, b) => a.name.localeCompare(b.name)),
         expanded: false,
       });
     }
 
-    return this.boiseRegions.map(r => ({
-      regionId: r.id,
-      regionName: r.name,
-      locations: Array.from(regionMap.get(r.id)?.values() ?? [])
-        .sort((a, b) =>
-          this.treeLocationSortKey(a).localeCompare(
-            this.treeLocationSortKey(b),
-            undefined,
-            {sensitivity: 'base'},
-          ),
-        ),
-      expanded: true,
-    }));
+    return this.boiseRegions.map(
+        r => ({
+          regionId: r.id,
+          regionName: r.name,
+          locations:
+              Array.from(regionMap.get(r.id)?.values() ?? [])
+                  .sort(
+                      (a, b) => this.treeLocationSortKey(a).localeCompare(
+                          this.treeLocationSortKey(b),
+                          undefined,
+                          {sensitivity: 'base'},
+                          ),
+                      ),
+          expanded: true,
+        }));
   }
 
   selectTreeAo(ao: TreeAo, loc: TreeLocation) {
-    const match = this.aos.find(a =>
-      (a.orgId === ao.orgId || a.parentAoId === ao.orgId) && a.locationId === loc.locationId
-    );
+    const match = this.aos.find(
+        a => (a.orgId === ao.orgId || a.parentAoId === ao.orgId) &&
+            a.locationId === loc.locationId);
     if (match) {
       this.selectAo(match);
     } else if (loc.lat !== null && loc.lng !== null) {
@@ -685,25 +732,31 @@ export class MapPage implements OnInit {
     }
   }
 
-  /** Expand / focus a tree location row without changing zoom — avoids fighting `fitBounds` zoom pulses. */
+  /**
+   * Expand / focus a tree location row without changing zoom — avoids fighting
+   * `fitBounds` zoom pulses.
+   */
   panToLocation(loc: TreeLocation) {
     if (loc.lat !== null && loc.lng !== null) {
       this.panMapPreserveZoom(loc.lat, loc.lng);
     }
   }
 
-  /** Smooth pan only; preserves current zoom (for marker taps we skip camera entirely). */
+  /**
+   * Smooth pan only; preserves current zoom (for marker taps we skip camera
+   * entirely).
+   */
   private panMapPreserveZoom(lat: number, lng: number): void {
     const gmap = this.mapComponent?.googleMap;
     if (!gmap) return;
     gmap.panTo({lat, lng});
-    google.maps.event.addListenerOnce(gmap, 'idle', () =>
-        this.syncMapCenterFromNativeMap(gmap));
+    google.maps.event.addListenerOnce(
+        gmap, 'idle', () => this.syncMapCenterFromNativeMap(gmap));
   }
 
   /**
-   * Alphabetical sort key for region tree rows: the sole AO name when exactly one AO;
-   * otherwise location name (covers 0 or 2+ AOs at the pin).
+   * Alphabetical sort key for region tree rows: the sole AO name when exactly
+   * one AO; otherwise location name (covers 0 or 2+ AOs at the pin).
    */
   private treeLocationSortKey(loc: TreeLocation): string {
     if (loc.aos.length === 1) {
@@ -714,7 +767,8 @@ export class MapPage implements OnInit {
   }
 
   /**
-   * When a pin has exactly one AO, the tree lists that AO name instead of the location row label.
+   * When a pin has exactly one AO, the tree lists that AO name instead of the
+   * location row label.
    */
   treeLocationHeaderLabel(loc: TreeLocation): string {
     return this.treeLocationSortKey(loc) || '— unnamed —';
@@ -735,7 +789,8 @@ export class MapPage implements OnInit {
   }
 
   /**
-   * When the row shows a single AO, second line: location roster name if it differs from the AO title.
+   * When the row shows a single AO, second line: location roster name if it
+   * differs from the AO title.
    */
   treeLocationSubtitleSingleAo(loc: TreeLocation): string {
     if (loc.aos.length !== 1) return '';
@@ -803,16 +858,20 @@ export class MapPage implements OnInit {
 
   async confirmDeleteLocation(loc: TreeLocation, event: Event) {
     event.stopPropagation();
-    const eventsAtLoc = this.rawEvents.filter(e => e.locationId === loc.locationId);
-    const orgsAtLoc = this.rawOrgs.filter(o => o.defaultLocationId === loc.locationId);
+    const eventsAtLoc =
+        this.rawEvents.filter(e => e.locationId === loc.locationId);
+    const orgsAtLoc =
+        this.rawOrgs.filter(o => o.defaultLocationId === loc.locationId);
     const n = eventsAtLoc.length;
     const a = orgsAtLoc.length;
 
     const lines: string[] = [];
     if (a > 0) lines.push(`${a} AO org${a !== 1 ? 's' : ''}`);
     if (n > 0) lines.push(`${n} workout event${n !== 1 ? 's' : ''}`);
-    const detail =
-        lines.length ? `This will also deactivate ${lines.join(' and ')} associated with it. ` : '';
+    const detail = lines.length ?
+        `This will also deactivate ${
+            lines.join(' and ')} associated with it. ` :
+        '';
 
     const alert = await this.alertController.create({
       header: 'Delete location?',
@@ -823,14 +882,17 @@ export class MapPage implements OnInit {
           text: 'Delete',
           role: 'destructive',
           cssClass: 'alert-button-destructive',
-          handler: () => { this.deleteLocation(loc, eventsAtLoc, orgsAtLoc); },
+          handler: () => {
+            this.deleteLocation(loc, eventsAtLoc, orgsAtLoc);
+          },
         },
       ],
     });
     await alert.present();
   }
 
-  private async deleteLocation(loc: TreeLocation, eventsAtLoc: F3Event[], orgsAtLoc: F3Org[]) {
+  private async deleteLocation(
+      loc: TreeLocation, eventsAtLoc: F3Event[], orgsAtLoc: F3Org[]) {
     this.treeActionError = null;
     try {
       // 1. Deactivate all events at this location
@@ -902,20 +964,22 @@ export class MapPage implements OnInit {
   async confirmDeleteTreeAo(ao: TreeAo, loc: TreeLocation, event: Event) {
     event.stopPropagation();
     const n = ao.events.length;
-    const eventLine = n > 0
-        ? ` and its ${n} workout event${n !== 1 ? 's' : ''}`
-        : '';
+    const eventLine =
+        n > 0 ? ` and its ${n} workout event${n !== 1 ? 's' : ''}` : '';
 
     const alert = await this.alertController.create({
       header: 'Delete AO?',
-      message: `This will deactivate "${ao.name}"${eventLine}. This cannot be undone.`,
+      message: `This will deactivate "${ao.name}"${
+          eventLine}. This cannot be undone.`,
       buttons: [
         {text: 'Cancel', role: 'cancel'},
         {
           text: 'Delete',
           role: 'destructive',
           cssClass: 'alert-button-destructive',
-          handler: () => { this.deleteTreeAo(ao, loc); },
+          handler: () => {
+            this.deleteTreeAo(ao, loc);
+          },
         },
       ],
     });
@@ -964,8 +1028,10 @@ export class MapPage implements OnInit {
 
       const lid = loc.locationId;
       const orgIdRemoved = ao.orgId;
-      this.rawEvents = this.rawEvents.filter(e =>
-        !(e.locationId === lid && (e.parents?.[0]?.parentId ?? 0) === orgIdRemoved),
+      this.rawEvents = this.rawEvents.filter(
+          e =>
+              !(e.locationId === lid &&
+                (e.parents?.[0]?.parentId ?? 0) === orgIdRemoved),
       );
       this.rawOrgs = this.rawOrgs.filter(o => o.id !== orgIdRemoved);
 
@@ -996,28 +1062,34 @@ export class MapPage implements OnInit {
 
   private geocodeAll() {
     for (const ao of this.aos) {
-      if (ao.position) continue;  // Locations API coords or newly created AO coords
+      if (ao.position)
+        continue;  // Locations API coords or newly created AO coords
       if (ao.address) this.geocodeAo(ao);
     }
   }
 
   private geocodeAo(ao: GroupedAo) {
-    this.geocoder.geocode({address: ao.address + ', Idaho, USA'}, (
-        results: google.maps.GeocoderResult[]|null,
-        status: string,
-        ) => {
-      if (status === 'OK' && results?.length) {
-        const loc = results[0].geometry.location;
-        ao.position = {lat: loc.lat(), lng: loc.lng()};
-        ao.markerOptions = this.buildMarkerOptions(ao);
-        // Trigger change detection by reassigning the array reference
-        this.aos = [...this.aos];
-        this.scheduleFitMapToPins();
-      }
-    });
+    this.geocoder.geocode(
+        {address: ao.address + ', Idaho, USA'},
+        (
+            results: google.maps.GeocoderResult[]|null,
+            status: string,
+            ) => {
+          if (status === 'OK' && results?.length) {
+            const loc = results[0].geometry.location;
+            ao.position = {lat: loc.lat(), lng: loc.lng()};
+            ao.markerOptions = this.buildMarkerOptions(ao);
+            // Trigger change detection by reassigning the array reference
+            this.aos = [...this.aos];
+            this.scheduleFitMapToPins();
+          }
+        });
   }
 
-  /** Fit viewport to every pin (as zoomed as possible subject to fitting all markers). */
+  /**
+   * Fit viewport to every pin (as zoomed as possible subject to fitting all
+   * markers).
+   */
   scheduleFitMapToPins(): void {
     window.clearTimeout(this.fitBoundsTimer);
     this.fitBoundsTimer = window.setTimeout(() => {
@@ -1033,11 +1105,13 @@ export class MapPage implements OnInit {
     const gmap = this.mapComponent?.googleMap;
     if (!gmap) return;
 
-    const coords = this.aos
-        .filter(
-            (ao): ao is GroupedAo&{position: google.maps.LatLngLiteral} => !!ao.position,
-        )
-        .map(ao => ao.position);
+    const coords =
+        this.aos
+            .filter(
+                (ao): ao is GroupedAo&{position: google.maps.LatLngLiteral} =>
+                    !!ao.position,
+                )
+            .map(ao => ao.position);
     if (coords.length === 0) return;
 
     const PAD = 56;
@@ -1061,8 +1135,9 @@ export class MapPage implements OnInit {
   }
 
   /**
-   * Eased pan + zoom for overview → AO: `fitBounds` + `setZoom` on idle snaps abruptly;
-   * Google's pattern is many `moveCamera` frames (see move-camera-ease sample).
+   * Eased pan + zoom for overview → AO: `fitBounds` + `setZoom` on idle snaps
+   * abruptly; Google's pattern is many `moveCamera` frames (see
+   * move-camera-ease sample).
    */
   private animateCameraToPoint(lat: number, lng: number): void {
     const gmap = this.mapComponent?.googleMap;
@@ -1082,16 +1157,17 @@ export class MapPage implements OnInit {
     const tStart = performance.now();
 
     const move = (camera: google.maps.CameraOptions) => {
-      const gm = gmap as google.maps.Map&{
-        moveCamera?(camera: google.maps.CameraOptions): void;
+      const gm = gmap as google.maps.Map & {
+        moveCamera ? (camera: google.maps.CameraOptions) : void;
       };
       if (typeof gm.moveCamera === 'function') {
         gm.moveCamera(camera);
       } else if (camera.center) {
         const c = camera.center;
-        const lit = c instanceof google.maps.LatLng ?
-            c.toJSON() :
-            {lat: (c as google.maps.LatLngLiteral).lat, lng: (c as google.maps.LatLngLiteral).lng};
+        const lit = c instanceof google.maps.LatLng ? c.toJSON() : {
+          lat: (c as google.maps.LatLngLiteral).lat,
+          lng: (c as google.maps.LatLngLiteral).lng
+        };
         gmap.setCenter(lit);
         if (camera.zoom !== undefined) {
           gmap.setZoom(Math.round(camera.zoom));
@@ -1128,7 +1204,10 @@ export class MapPage implements OnInit {
     requestAnimationFrame(frame);
   }
 
-  /** AO selection from overview — slower than default so zoom-in reads as deliberate (Back still uses native `fitBounds`). */
+  /**
+   * AO selection from overview — slower than default so zoom-in reads as
+   * deliberate (Back still uses native `fitBounds`).
+   */
   private static readonly AO_CAMERA_DURATION_MS = 1450;
 
   private static easeOutCubic(t: number): number {
@@ -1164,12 +1243,15 @@ export class MapPage implements OnInit {
       // "New / empty" pin — a simple circle with a + sign
       const SIZE = 32, CARET_H = 7, totalH = SIZE + CARET_H;
       const cx = SIZE / 2;
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${totalH}">
-  <circle cx="${cx}" cy="${cx}" r="${cx - 1.5}" fill="#2196f3" stroke="white" stroke-width="2"
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${
+          SIZE}" height="${totalH}">
+  <circle cx="${cx}" cy="${cx}" r="${
+          cx - 1.5}" fill="#2196f3" stroke="white" stroke-width="2"
           style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.25))"/>
   <text x="${cx}" y="${cx + 5}" font-size="18" font-weight="700" fill="white"
         text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,sans-serif">+</text>
-  <path d="M${cx - 5} ${SIZE} L${cx} ${totalH} L${cx + 5} ${SIZE} Z" fill="#2196f3"/>
+  <path d="M${cx - 5} ${SIZE} L${cx} ${totalH} L${cx + 5} ${
+          SIZE} Z" fill="#2196f3"/>
 </svg>`;
       return {
         title: ao.name,
@@ -1190,7 +1272,9 @@ export class MapPage implements OnInit {
     return {
       title: ao.name,
       icon: {
-        url: this.buildMarkerSvgUri(activeDays, {boxW, boxH, totalH, PILL_W, PILL_H, PAD, GAP, CARET_H}),
+        url: this.buildMarkerSvgUri(
+            activeDays,
+            {boxW, boxH, totalH, PILL_W, PILL_H, PAD, GAP, CARET_H}),
         scaledSize: new google.maps.Size(boxW, totalH),
         anchor: new google.maps.Point(boxW / 2, totalH),
       },
@@ -1203,30 +1287,49 @@ export class MapPage implements OnInit {
    */
   private buildMarkerSvgUri(
       activeDays: AoDay[],
-      dim: {boxW: number, boxH: number, totalH: number, PILL_W: number, PILL_H: number, PAD: number, GAP: number, CARET_H: number},
+      dim: {
+        boxW: number,
+        boxH: number,
+        totalH: number,
+        PILL_W: number,
+        PILL_H: number,
+        PAD: number,
+        GAP: number,
+        CARET_H: number
+      },
       ): string {
     const {boxW, boxH, totalH, PILL_W, PILL_H, PAD, GAP, CARET_H} = dim;
 
-    const pills = activeDays.map((d, i) => {
-      const color = MapPage.DAY_COLORS[d.dayIndex] ?? '#aaa';
-      const abbrev = MapPage.DAY_ABBREVS[d.dayIndex];
-      const x = PAD + i * (PILL_W + GAP);
-      const y = PAD;
-      const cx = x + PILL_W / 2;
-      return `<rect x="${x}" y="${y}" width="${PILL_W}" height="${PILL_H}" rx="4" fill="${color}"/>` +
-          `<text x="${cx}" y="${y + 14}" font-size="9.5" font-weight="700" fill="white" ` +
-          `text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,sans-serif">${abbrev}</text>`;
-    }).join('');
+    const pills =
+        activeDays
+            .map((d, i) => {
+              const color = MapPage.DAY_COLORS[d.dayIndex] ?? '#aaa';
+              const abbrev = MapPage.DAY_ABBREVS[d.dayIndex];
+              const x = PAD + i * (PILL_W + GAP);
+              const y = PAD;
+              const cx = x + PILL_W / 2;
+              return `<rect x="${x}" y="${y}" width="${PILL_W}" height="${
+                         PILL_H}" rx="4" fill="${color}"/>` +
+                  `<text x="${cx}" y="${
+                         y +
+                         14}" font-size="9.5" font-weight="700" fill="white" ` +
+                  `text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,sans-serif">${
+                         abbrev}</text>`;
+            })
+            .join('');
 
-    // Caret: gray outline triangle then white-fill triangle to simulate a border
+    // Caret: gray outline triangle then white-fill triangle to simulate a
+    // border
     const cx = boxW / 2;
     const caretOuter =
         `M${cx - 7} ${boxH} L${cx} ${totalH} L${cx + 7} ${boxH} Z`;
     const caretInner =
         `M${cx - 5} ${boxH - 1} L${cx} ${totalH - 2} L${cx + 5} ${boxH - 1} Z`;
 
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${boxW}" height="${totalH}">
-  <rect width="${boxW}" height="${boxH}" rx="6" fill="white" stroke="#ccc" stroke-width="1.5"
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${
+        boxW}" height="${totalH}">
+  <rect width="${boxW}" height="${
+        boxH}" rx="6" fill="white" stroke="#ccc" stroke-width="1.5"
         style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.18))"/>
   ${pills}
   <path d="${caretOuter}" fill="#ccc"/>
@@ -1281,14 +1384,21 @@ export class MapPage implements OnInit {
         isActive: true,
         latitude: this.pendingLatLng!.lat,
         longitude: this.pendingLatLng!.lng,
-        ...(this.newAoForm.addressStreet.trim() ? {addressStreet: this.newAoForm.addressStreet.trim()} : {}),
-        ...(this.newAoForm.addressCity.trim()   ? {addressCity:   this.newAoForm.addressCity.trim()}   : {}),
+        ...(this.newAoForm.addressStreet.trim() ?
+                {addressStreet: this.newAoForm.addressStreet.trim()} :
+                {}),
+        ...(this.newAoForm.addressCity.trim() ?
+                {addressCity: this.newAoForm.addressCity.trim()} :
+                {}),
         addressState: this.newAoForm.addressState.trim() || 'ID',
-        ...(this.newAoForm.addressZip.trim()    ? {addressZip:    this.newAoForm.addressZip.trim()}     : {}),
+        ...(this.newAoForm.addressZip.trim() ?
+                {addressZip: this.newAoForm.addressZip.trim()} :
+                {}),
         addressCountry: 'US',
       });
 
-      // Tie org ↔ default location (API returns defaultLocationId: null until patched)
+      // Tie org ↔ default location (API returns defaultLocationId: null until
+      // patched)
       await this.f3Api.createOrg({
         id: org.id,
         parentId: this.newAoForm.regionId,
@@ -1302,7 +1412,8 @@ export class MapPage implements OnInit {
         instagram: '',
       });
 
-      const region = this.boiseRegions.find(r => r.id === this.newAoForm.regionId);
+      const region =
+          this.boiseRegions.find(r => r.id === this.newAoForm.regionId);
 
       this.rawOrgs.push({
         id: org.id,
@@ -1335,7 +1446,10 @@ export class MapPage implements OnInit {
 
       this.selectedAo = null;
       this.rebuildDerivedFromRaw(false);
-      this.selectedAo = this.findGroupedAoInList(this.aos, {locationId: location.id, orgId: org.id}) ?? null;
+      this.selectedAo =
+          this.findGroupedAoInList(
+              this.aos, {locationId: location.id, orgId: org.id}) ??
+          null;
 
       this.pendingLatLng = null;
       this.newAoModalOpen = false;
@@ -1346,7 +1460,10 @@ export class MapPage implements OnInit {
     }
   }
 
-  /** Marker on the map — select detail only (camera stays where the user already panned/zoomed). */
+  /**
+   * Marker on the map — select detail only (camera stays where the user
+   * already panned/zoomed).
+   */
   onMarkerClick(ao: GroupedAo) {
     this.applyAoSelection(ao);
   }
@@ -1386,7 +1503,10 @@ export class MapPage implements OnInit {
     this.aoSaveError = null;
   }
 
-  /** Prefer org roster name when we have an AO org id (event rows can mix workout/location naming). */
+  /**
+   * Prefer org roster name when we have an AO org id (event rows can mix
+   * workout/location naming).
+   */
   detailPanelAoTitle(ao: GroupedAo): string {
     const oid = ao.orgId ?? ao.parentAoId;
     if (oid) {
@@ -1397,8 +1517,9 @@ export class MapPage implements OnInit {
   }
 
   /**
-   * Sidebar "About" text: AO org `/org` description, not `GroupedAo.description`
-   * (that field is seeded from the first *event* workout row and can diverge).
+   * Sidebar "About" text: AO org `/org` description, not
+   * `GroupedAo.description` (that field is seeded from the first *event*
+   * workout row and can diverge).
    */
   detailPanelAoAbout(ao: GroupedAo): string {
     const oid = ao.orgId ?? ao.parentAoId;
@@ -1421,7 +1542,8 @@ export class MapPage implements OnInit {
     const firstEv = eventsHere[0];
     this.aoEditLocationName =
         (loc?.locationName ?? firstEv?.locationName ?? '').trim();
-    this.aoEditAddressStreet = loc?.addressStreet ?? firstEv?.locationAddress ?? '';
+    this.aoEditAddressStreet =
+        loc?.addressStreet ?? firstEv?.locationAddress ?? '';
     this.aoEditAddressCity = loc?.addressCity ?? firstEv?.locationCity ?? '';
     this.aoEditAddressZip = loc?.addressZip ?? firstEv?.locationZip ?? '';
   }
@@ -1430,6 +1552,20 @@ export class MapPage implements OnInit {
     ev.preventDefault();
     ev.stopPropagation();
     const actions: PopoverAction[] = [
+      {
+        label: 'Edit AO',
+        icon: 'create-outline',
+        onClick: () => {
+          this.openAoMetaModal();
+        },
+      },
+      {
+        label: 'Edit Location',
+        icon: 'location-outline',
+        onClick: () => {
+          this.openLocationEditModal();
+        },
+      },
       {
         label: 'Delete AO',
         icon: 'trash-outline',
@@ -1528,7 +1664,8 @@ export class MapPage implements OnInit {
       }
       for (const ev of this.rawEvents) {
         const ps = ev.parents;
-        if (ps?.length && ps[0].parentId === orgId) ps[0] = {...ps[0], parentName: name};
+        if (ps?.length && ps[0].parentId === orgId)
+          ps[0] = {...ps[0], parentName: name};
       }
 
       this.rebuildDerivedFromRaw(true);
@@ -1552,11 +1689,10 @@ export class MapPage implements OnInit {
     const locRecord = this.rawLocations.find(l => l.id === locationId);
 
     const nameFallback =
-        (ao ? this.detailPanelAoTitle(ao) : locRecord?.locationName?.trim()) || '';
-    const newLocName =
-        this.aoEditLocationName.trim() ||
-        locRecord?.locationName?.trim() ||
-        nameFallback ||
+        (ao ? this.detailPanelAoTitle(ao) : locRecord?.locationName?.trim()) ||
+        '';
+    const newLocName = this.aoEditLocationName.trim() ||
+        locRecord?.locationName?.trim() || nameFallback ||
         `Location ${locationId}`;
 
     const street = this.aoEditAddressStreet.trim();
@@ -1566,19 +1702,21 @@ export class MapPage implements OnInit {
     const aoOrgFallback = ao ? (ao.orgId ?? ao.parentAoId) : undefined;
     let locOrgId: number;
     if (locRecord) {
-      locOrgId = this.rawOrgs.find(o => o.defaultLocationId === locationId)?.id ??
+      locOrgId =
+          this.rawOrgs.find(o => o.defaultLocationId === locationId)?.id ??
           locRecord.regionId;
     } else {
-      locOrgId = (this.locationEditTreeOrgId && this.locationEditTreeOrgId > 0)
-        ? this.locationEditTreeOrgId
-        : (aoOrgFallback && aoOrgFallback > 0 ? aoOrgFallback : locationId);
+      locOrgId =
+          (this.locationEditTreeOrgId && this.locationEditTreeOrgId > 0) ?
+          this.locationEditTreeOrgId :
+          (aoOrgFallback && aoOrgFallback > 0 ? aoOrgFallback : locationId);
     }
 
     const locDirty = !locRecord ||
-      newLocName !== (locRecord.locationName ?? '').trim() ||
-      street !== (locRecord.addressStreet ?? '').trim() ||
-      city !== (locRecord.addressCity ?? '').trim() ||
-      zip !== (locRecord.addressZip ?? '').trim();
+        newLocName !== (locRecord.locationName ?? '').trim() ||
+        street !== (locRecord.addressStreet ?? '').trim() ||
+        city !== (locRecord.addressCity ?? '').trim() ||
+        zip !== (locRecord.addressZip ?? '').trim();
 
     if (!locDirty) {
       this.closeLocationEditModal();
@@ -1595,9 +1733,9 @@ export class MapPage implements OnInit {
         name: newLocName || `Location ${locationId}`,
         isActive: true,
         ...(street ? {addressStreet: street} : {}),
-        ...(city   ? {addressCity: city}   : {}),
+        ...(city ? {addressCity: city} : {}),
         addressState: 'ID',
-        ...(zip    ? {addressZip: zip}     : {}),
+        ...(zip ? {addressZip: zip} : {}),
         addressCountry: 'US',
       });
 
@@ -1631,22 +1769,25 @@ export class MapPage implements OnInit {
     const ao = this.selectedAo;
     const activeEvents = ao.days.filter(d => d.event);
     const n = activeEvents.length;
-    const eventLine = n > 0
-        ? `${n} workout event${n !== 1 ? 's' : ''} at this location`
-        : 'no scheduled events';
+    const eventLine = n > 0 ?
+        `${n} workout event${n !== 1 ? 's' : ''} at this location` :
+        'no scheduled events';
 
     const alert = await this.alertController.create({
-      header: 'Remove AO?',
+      header: 'Delete AO?',
       message:
-          `This will permanently deactivate the AO org, its location, and ${eventLine}. ` +
+          `This will permanently deactivate the AO org, its location, and ${
+              eventLine}. ` +
           `This cannot be undone.`,
       buttons: [
         {text: 'Cancel', role: 'cancel'},
         {
-          text: 'Remove AO',
+          text: 'Delete AO',
           role: 'destructive',
           cssClass: 'alert-button-destructive',
-          handler: () => { this.deleteAo(); },
+          handler: () => {
+            this.deleteAo();
+          },
         },
       ],
     });
@@ -1828,11 +1969,15 @@ export class MapPage implements OnInit {
       };
 
       const {event: saved} = await this.f3Api.createOrUpdateEvent(body);
-      let merged = this.mergeEventAfterSave(saved, Number(this.dayForm.eventTypeId));
+      let merged =
+          this.mergeEventAfterSave(saved, Number(this.dayForm.eventTypeId));
       merged = this.normalizeEventAfterSave(merged, aoPayloadId, ao.name, lid);
-      const idx = merged.id ? this.rawEvents.findIndex(e => e.id === merged.id) : -1;
-      if (idx >= 0) this.rawEvents[idx] = merged;
-      else this.rawEvents.push(merged);
+      const idx =
+          merged.id ? this.rawEvents.findIndex(e => e.id === merged.id) : -1;
+      if (idx >= 0)
+        this.rawEvents[idx] = merged;
+      else
+        this.rawEvents.push(merged);
 
       this.rebuildDerivedFromRaw(true);
       this.closeModal();
@@ -1869,9 +2014,11 @@ export class MapPage implements OnInit {
 
   /**
    * POST /event often returns an event without `eventTypes`. Fill from the type
-   * we just submitted so the next open/edit doesn't default the dropdown to Bootcamp.
+   * we just submitted so the next open/edit doesn't default the dropdown to
+   * Bootcamp.
    */
-  private mergeEventAfterSave(saved: F3Event, submittedTypeId: number): F3Event {
+  private mergeEventAfterSave(saved: F3Event, submittedTypeId: number):
+      F3Event {
     if (saved.eventTypes?.length) return saved;
     const name =
         EVENT_TYPES.find(t => t.id === submittedTypeId)?.name ?? 'Bootcamp';
@@ -1886,8 +2033,9 @@ export class MapPage implements OnInit {
   }
 
   /**
-   * API sometimes echoes `parents[0].parentId: 0`; keep local model aligned with the
-   * org + location we POSTed so merges / tree never treat the workout as orphan.
+   * API sometimes echoes `parents[0].parentId: 0`; keep local model aligned
+   * with the org + location we POSTed so merges / tree never treat the workout
+   * as orphan.
    */
   private normalizeEventAfterSave(
       ev: F3Event,
@@ -1915,7 +2063,8 @@ export class MapPage implements OnInit {
   /** Converts `<input type="time">` value → F3 API "HHMM". */
   private inputTimeToApi(time: string): string {
     if (!time) return '0000';
-    // Browsers may emit "HH:MM" or "HH:MM:SS" — never use replace(':', '') once.
+    // Browsers may emit "HH:MM" or "HH:MM:SS" — never use replace(':', '')
+    // once.
     const [h = '0', m = '0'] = time.trim().split(':');
     return `${h.padStart(2, '0')}${m.padStart(2, '0')}`;
   }
@@ -1931,8 +2080,7 @@ export class MapPage implements OnInit {
   /** Workout type label(s) for schedule row (from `/event` `eventTypes`). */
   dayEventTypeLine(ev: F3Event): string {
     if (!ev.eventTypes?.length) return '';
-    return ev.eventTypes
-      .map(t => t.eventTypeName)
+    return ev.eventTypes.map(t => t.eventTypeName)
         .filter((n): n is string => !!n && n.trim().length > 0)
         .join(' · ');
   }
