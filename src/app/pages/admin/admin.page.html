@@ -1,0 +1,238 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/"></ion-back-button>
+    </ion-buttons>
+    <ion-title>User roles</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div *ngIf="loading" class="state state--pad">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Loading profiles…</p>
+  </div>
+
+  <div *ngIf="!loading && error" class="state state--pad state--error">
+    <ion-icon name="warning-outline"></ion-icon>
+    <p>{{ error }}</p>
+    <p class="hint">
+      Deploy Firestore security rules allowing authenticated admins to write
+      <code>userProfiles</code> (see repo <code>firestore.rules</code>).
+    </p>
+  </div>
+
+  <ng-container *ngIf="!loading && !error">
+    <p class="lede">Users appear here once they've signed in at least once.</p>
+
+    <div class="table-wrap">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Roles</th>
+            <th>Last seen</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of profileRows">
+            <td>
+              <div class="user-cell">
+                <img *ngIf="row.avatarUrl" class="user-avatar" [src]="row.avatarUrl" [alt]="row.displayName">
+                <div *ngIf="!row.avatarUrl" class="user-avatar user-avatar--initials">
+                  {{ row.initialsChar }}
+                </div>
+                <span class="user-name">{{ row.displayName }}</span>
+              </div>
+            </td>
+            <td class="email-cell">{{ row.profile.email || '—' }}</td>
+            <td>{{ row.rolesLabel }}</td>
+            <td class="muted">{{ row.lastSeenFormatted }}</td>
+            <td class="col-actions">
+              <ion-button size="small" fill="outline" (click)="openRoleDialog(row.profile)">
+                Edit roles
+              </ion-button>
+            </td>
+          </tr>
+          <tr *ngIf="profileRows.length === 0">
+            <td colspan="5" class="empty-row">No profiles yet — sign in once to seed your row.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+</ion-content>
+
+<!-- ══ Role assignment modal ══════════════════════════════════════════════ -->
+<ion-modal [isOpen]="roleModalOpen" (didDismiss)="closeRoleDialog()">
+  <ng-template>
+
+    <!-- ── Header ──────────────────────────────────────────────────── -->
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-button *ngIf="addRoleStep" (click)="cancelAddRole()">
+            <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+        <ion-title>
+          <ng-container *ngIf="!addRoleStep">Roles</ng-container>
+          <ng-container *ngIf="addRoleStep === 'pick-type'">Add role</ng-container>
+          <ng-container *ngIf="addRoleStep === 'pick-region'">Select region</ng-container>
+          <ng-container *ngIf="addRoleStep === 'pick-ao'">Select AO</ng-container>
+        </ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeRoleDialog()">Done</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+      <div class="modal-sub" *ngIf="selected">
+        <img *ngIf="modalAvatarUrl" class="modal-avatar" [src]="modalAvatarUrl" [alt]="modalDisplayName">
+        <div *ngIf="!modalAvatarUrl" class="modal-avatar modal-avatar--initials">
+          {{ modalInitialChar }}
+        </div>
+        <div class="modal-sub-text">
+          <strong>{{ modalDisplayName }}</strong>
+          <span class="muted">{{ selected.email }}</span>
+        </div>
+      </div>
+    </ion-header>
+
+    <ion-content class="ion-padding">
+
+      <!-- ── Step: current roles list ─────────────────────────────── -->
+      <ng-container *ngIf="!addRoleStep">
+
+        <div class="roles-empty" *ngIf="draftRoleRows.length === 0">
+          No roles assigned yet.
+        </div>
+
+        <div class="role-list" *ngIf="draftRoleRows.length > 0">
+          <div class="role-item" *ngFor="let r of draftRoleRows; trackBy: trackRoleRow">
+            <div class="role-item-text">
+              <span class="role-item-label">{{ r.label }}</span>
+              <span class="role-item-sub" *ngIf="r.sublabel">{{ r.sublabel }}</span>
+            </div>
+            <button type="button" class="role-remove-btn" (click)="removeRole(r.key)" aria-label="Remove role">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+
+        <button type="button" class="add-role-btn" (click)="startAddRole()">
+          <ion-icon name="add-outline"></ion-icon>
+          Add role
+        </button>
+
+        <ion-button
+          expand="block"
+          class="save-btn"
+          (click)="saveRoles()"
+          [disabled]="saving">
+          {{ saving ? 'Saving…' : 'Save' }}
+        </ion-button>
+
+      </ng-container>
+
+      <!-- ── Step: pick type ─────────────────────────────────────── -->
+      <ng-container *ngIf="addRoleStep === 'pick-type'">
+        <p class="step-hint">What kind of role?</p>
+        <div class="type-list">
+
+          <button type="button" class="type-item" (click)="selectRoleType('admin')"
+                  [disabled]="draftHasAdmin">
+            <div class="type-item-icon type-item-icon--admin">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+            </div>
+            <div class="type-item-text">
+              <span class="type-item-label">Admin</span>
+              <span class="type-item-desc">Full access — create, edit, delete across all regions</span>
+            </div>
+            <ion-icon name="checkmark-circle" class="type-item-check" *ngIf="draftHasAdmin"></ion-icon>
+            <ion-icon name="chevron-forward-outline" class="type-item-arrow" *ngIf="!draftHasAdmin"></ion-icon>
+          </button>
+
+          <button type="button" class="type-item" (click)="selectRoleType('nantan')">
+            <div class="type-item-icon type-item-icon--nantan">
+              <ion-icon name="people-outline"></ion-icon>
+            </div>
+            <div class="type-item-text">
+              <span class="type-item-label">Nantan</span>
+              <span class="type-item-desc">Region leader — create, edit, delete AOs in one region</span>
+            </div>
+            <ion-icon name="chevron-forward-outline" class="type-item-arrow"></ion-icon>
+          </button>
+
+          <button type="button" class="type-item" (click)="selectRoleType('aoq')">
+            <div class="type-item-icon type-item-icon--aoq">
+              <ion-icon name="location-outline"></ion-icon>
+            </div>
+            <div class="type-item-text">
+              <span class="type-item-label">AOQ</span>
+              <span class="type-item-desc">AO leader — edit their AO and manage its schedule</span>
+            </div>
+            <ion-icon name="chevron-forward-outline" class="type-item-arrow"></ion-icon>
+          </button>
+
+        </div>
+      </ng-container>
+
+      <!-- ── Step: pick region (Nantan) ─────────────────────────── -->
+      <ng-container *ngIf="addRoleStep === 'pick-region'">
+        <p class="step-hint">Which region?</p>
+        <div class="pick-list">
+          <button
+            type="button"
+            class="pick-item"
+            *ngFor="let r of boiseRegions"
+            [disabled]="draftNantanRegionIds.has(r.id)"
+            (click)="selectNantanRegion(r.id)">
+            <span class="pick-item-name">{{ r.name }}</span>
+            <ion-icon name="checkmark-circle" class="pick-item-check" *ngIf="draftNantanRegionIds.has(r.id)"></ion-icon>
+            <ion-icon name="chevron-forward-outline" class="pick-item-arrow" *ngIf="!draftNantanRegionIds.has(r.id)"></ion-icon>
+          </button>
+        </div>
+      </ng-container>
+
+      <!-- ── Step: pick AO (AOQ) ─────────────────────────────────── -->
+      <ng-container *ngIf="addRoleStep === 'pick-ao'">
+        <div class="ao-search-wrap">
+          <ion-icon name="search-outline" class="ao-search-icon"></ion-icon>
+          <input
+            type="search"
+            class="ao-search-input"
+            placeholder="Search AOs…"
+            [(ngModel)]="aoSearch"
+            (ngModelChange)="onAoSearchChange()"
+            autocomplete="off">
+        </div>
+
+        <div class="state state--pad" *ngIf="aoListLoading">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Loading AOs…</p>
+        </div>
+
+        <div class="pick-list" *ngIf="!aoListLoading">
+          <button
+            type="button"
+            class="pick-item"
+            *ngFor="let ao of filteredAoPickItems; trackBy: trackAoOrg"
+            [disabled]="draftAoqOrgIds.has(ao.orgId)"
+            (click)="selectAoqOrg(ao.orgId)">
+            <div class="pick-item-text">
+              <span class="pick-item-name">{{ ao.name }}</span>
+              <span class="pick-item-sub">{{ ao.regionName }}</span>
+            </div>
+            <ion-icon name="checkmark-circle" class="pick-item-check" *ngIf="draftAoqOrgIds.has(ao.orgId)"></ion-icon>
+            <ion-icon name="chevron-forward-outline" class="pick-item-arrow" *ngIf="!draftAoqOrgIds.has(ao.orgId)"></ion-icon>
+          </button>
+          <div class="empty-row" *ngIf="filteredAoPickItems.length === 0 && !aoListLoading">
+            No AOs found.
+          </div>
+        </div>
+      </ng-container>
+
+    </ion-content>
+  </ng-template>
+</ion-modal>

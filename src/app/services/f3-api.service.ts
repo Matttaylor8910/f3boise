@@ -2,8 +2,7 @@ import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {firstValueFrom} from 'rxjs';
 
-// TODO: move bearer token to a backend secret rather than shipping it in the client bundle
-const F3_BEARER_TOKEN = 'f3_13eff916823aab61bd149ba8eb4e2a09f1f3e0241b0ef440';
+const token = 'f3_13eff916823aab61bd149ba8eb4e2a09f1f3e0241b0ef440';
 
 const F3_API_BASE = 'https://api.f3nation.com/v1';
 
@@ -17,7 +16,10 @@ export const BOISE_REGION_IDS = {
   canyon: 50162,
 } as const;
 
-/** Website URL sent on org create/update payloads — required by the Nation API `website` field. */
+/**
+ * Website URL sent on org create/update payloads — required by the Nation API
+ * `website` field.
+ */
 export const F3_REGION_WEBSITE_URL = 'https://f3boise.com';
 
 export type RegionId = (typeof BOISE_REGION_IDS)[keyof typeof BOISE_REGION_IDS];
@@ -157,7 +159,10 @@ export interface CreateOrgRequest {
 }
 
 export interface CreateOrgResponse {
-  org: {id: number; parentId: number; name: string; orgType: string; defaultLocationId: number};
+  org: {
+    id: number; parentId: number; name: string; orgType: string;
+    defaultLocationId: number
+  };
 }
 
 export interface CreateLocationRequest {
@@ -179,21 +184,23 @@ export interface CreateLocationRequest {
 }
 
 export interface CreateLocationResponse {
-  location: {id: number; orgId: number; name: string; latitude: number; longitude: number};
+  location: {
+    id: number; orgId: number; name: string; latitude: number; longitude: number
+  };
 }
 
 @Injectable({providedIn: 'root'})
 export class F3ApiService {
   private readonly headers = new HttpHeaders({
     'Accept': 'application/json',
-    'Authorization': `Bearer ${F3_BEARER_TOKEN}`,
+    'Authorization': `Bearer ${token}`,
     'client': 'scalar-api',
   });
 
   private readonly postHeaders = new HttpHeaders({
     'Accept': 'application/json',
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${F3_BEARER_TOKEN}`,
+    'Authorization': `Bearer ${token}`,
     'client': 'scalar-api',
   });
 
@@ -217,8 +224,10 @@ export class F3ApiService {
     for (const id of regionIds) {
       httpParams = httpParams.append('regionIds', String(id));
     }
-    if (pageIndex !== undefined) httpParams = httpParams.set('pageIndex', pageIndex);
-    if (pageSize !== undefined) httpParams = httpParams.set('pageSize', pageSize);
+    if (pageIndex !== undefined)
+      httpParams = httpParams.set('pageIndex', pageIndex);
+    if (pageSize !== undefined)
+      httpParams = httpParams.set('pageSize', pageSize);
     if (searchTerm) httpParams = httpParams.set('searchTerm', searchTerm);
     if (sorting) httpParams = httpParams.set('sorting', sorting);
 
@@ -230,26 +239,39 @@ export class F3ApiService {
     );
   }
 
-  listOrgs(params: ListOrgsParams = {}): Promise<{orgs: F3Org[]; total: number}> {
-    const {orgTypes = ['ao'], onlyMine, parentOrgIds, statuses = 'active', pageIndex, pageSize} = params;
+  listOrgs(params: ListOrgsParams = {}):
+      Promise<{orgs: F3Org[]; total: number}> {
+    const {
+      orgTypes = ['ao'],
+      onlyMine,
+      parentOrgIds,
+      statuses = 'active',
+      pageIndex,
+      pageSize
+    } = params;
     let p = new HttpParams().set('statuses', statuses);
     for (const t of orgTypes) p = p.append('orgTypes', t);
     if (onlyMine) p = p.set('onlyMine', 'true');
-    if (parentOrgIds?.length) for (const id of parentOrgIds) p = p.append('parentOrgIds', String(id));
+    if (parentOrgIds?.length)
+      for (const id of parentOrgIds) p = p.append('parentOrgIds', String(id));
     if (pageIndex !== undefined) p = p.set('pageIndex', pageIndex);
-    if (pageSize  !== undefined) p = p.set('pageSize',  pageSize);
+    if (pageSize !== undefined) p = p.set('pageSize', pageSize);
     return firstValueFrom(
-        this.http.get<{orgs: F3Org[]; total: number}>(`${F3_API_BASE}/org`, {headers: this.headers, params: p}),
+        this.http.get<{orgs: F3Org[]; total: number}>(
+            `${F3_API_BASE}/org`, {headers: this.headers, params: p}),
     );
   }
 
-  listLocations(params: ListLocationsParams = {}): Promise<{locations: F3Location[]; totalCount: number}> {
-    const {regionIds, onlyMine, statuses = 'active', pageIndex, pageSize} = params;
+  listLocations(params: ListLocationsParams = {}):
+      Promise<{locations: F3Location[]; totalCount: number}> {
+    const {regionIds, onlyMine, statuses = 'active', pageIndex, pageSize} =
+        params;
     let p = new HttpParams().set('statuses', statuses);
     if (onlyMine) p = p.set('onlyMine', 'true');
-    if (regionIds?.length) for (const id of regionIds) p = p.append('regionIds', String(id));
+    if (regionIds?.length)
+      for (const id of regionIds) p = p.append('regionIds', String(id));
     if (pageIndex !== undefined) p = p.set('pageIndex', pageIndex);
-    if (pageSize  !== undefined) p = p.set('pageSize',  pageSize);
+    if (pageSize !== undefined) p = p.set('pageSize', pageSize);
     return firstValueFrom(
         this.http.get<{locations: F3Location[]; totalCount: number}>(
             `${F3_API_BASE}/location`, {headers: this.headers, params: p}),
@@ -258,7 +280,8 @@ export class F3ApiService {
 
   createOrg(body: CreateOrgRequest): Promise<CreateOrgResponse> {
     return firstValueFrom(
-        this.http.post<CreateOrgResponse>(`${F3_API_BASE}/org`, body, {headers: this.postHeaders}),
+        this.http.post<CreateOrgResponse>(
+            `${F3_API_BASE}/org`, body, {headers: this.postHeaders}),
     );
   }
 

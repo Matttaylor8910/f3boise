@@ -70,10 +70,22 @@ ion-content {
   color: #222;
   line-height: 1.25;
 
-  &:hover {
+  &:hover:not(:disabled) {
     color: #1565c0;
     text-decoration: underline;
   }
+}
+
+/** AO title when user cannot edit org metadata — same weight, no control chrome */
+.ao-panel-title-text {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #222;
+  line-height: 1.25;
 }
 
 .ao-panel-region-row {
@@ -181,10 +193,20 @@ ion-content {
   text-align: left;
   max-width: 100%;
 
-  &:hover {
+  &:hover:not(:disabled) {
     color: #1565c0;
     text-decoration: underline;
   }
+}
+
+/** Location label when editing address isn’t allowed — plain text */
+.ao-location-name-text {
+  display: inline-block;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+  max-width: 100%;
 }
 
 .ao-location-address {
@@ -262,6 +284,23 @@ ion-content {
 
   &.filled { background: #f0f7ff; border-color: #2196f3; }
   &.empty  { opacity: 0.6; }
+
+  &.day-item--readonly {
+    cursor: default;
+    pointer-events: none;
+
+    &:hover {
+      border-color: #e8e8e8;
+      background: white;
+    }
+
+    &.filled {
+      background: #f0f7ff;
+      border-color: #2196f3;
+
+      &:hover { background: #f0f7ff; border-color: #2196f3; }
+    }
+  }
 }
 
 .day-item-content { flex: 1; display: flex; flex-direction: column; gap: 2px; }

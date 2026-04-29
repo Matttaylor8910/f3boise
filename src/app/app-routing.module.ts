@@ -1,6 +1,7 @@
 import {Component, NgModule} from '@angular/core';
 import {PreloadAllModules, RouterModule, Routes} from '@angular/router';
 
+import {AdminGuard} from './guards/admin.guard';
 import {LuckyGuard} from './guards/lucky.guard';
 import {MapGuard} from './guards/map.guard';
 
@@ -98,6 +99,12 @@ const routes: Routes = [
     path: 'exicon',
     loadChildren: () =>
         import('./pages/exicon/exicon.module').then(m => m.ExiconPageModule)
+  },
+  {
+    path: 'admin',
+    loadChildren: () =>
+        import('./pages/admin/admin.module').then(m => m.AdminPageModule),
+    canActivate: [AdminGuard],
   },
   {
     path: ':year',

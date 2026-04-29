@@ -1,9 +1,11 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {GoogleMap} from '@angular/google-maps';
 import {AlertController, PopoverController, ToastController} from '@ionic/angular';
+import {Subscription} from 'rxjs';
 import {ActionsPopoverPageComponent} from 'src/app/components/actions-popover/actions-popover-page.component';
 import {PopoverAction,} from 'src/app/components/actions-popover/actions-popover.component';
 import {BOISE_REGION_IDS, CreateOrUpdateEventRequest, F3_REGION_WEBSITE_URL, F3ApiService, F3Event, F3Location, F3Org,} from 'src/app/services/f3-api.service';
+import {MapPermissions, UserPermissionsService} from 'src/app/services/user-permissions.service';
 
 interface NewAoForm {
   name: string;
@@ -95,10 +97,16 @@ export interface TreeAo {
   orgId: number;
   name: string;
   events: TreeEvent[];
+  /** Whether current user may rename this AO from the region tree */
+  permRenameAo: boolean;
+  /** Whether current user may delete/deactivate this AO (region gate) */
+  permDeleteAo: boolean;
 }
 
 export interface TreeLocation {
   locationId: number;
+  /** Boise metro region id — same semantics as {@link GroupedAo.regionId}. */
+  regionId: number;
   /**
    * The org that owns this location — required for API update/deactivate
    * calls.
@@ -110,6 +118,10 @@ export interface TreeLocation {
   lng: number|null;
   aos: TreeAo[];
   expanded: boolean;
+  /** Edit shared location record (every AO at pin must be editable) */
+  permEditLocation: boolean;
+  /** Delete/deactivate entire location pin */
+  permDeleteLocation: boolean;
 }
 
 export interface TreeRegion {
@@ -124,7 +136,7 @@ export interface TreeRegion {
   templateUrl: 'map.page.html',
   styleUrls: ['map.page.scss'],
 })
-export class MapPage implements OnInit {
+export class MapPage implements OnInit, OnDestroy {
   loading = true;
   error: string|null = null;
   aos: GroupedAo[] = [];
@@ -163,6 +175,8 @@ export class MapPage implements OnInit {
   locationEditModalOpen = false;
   /** Modal target when editing from sidebar or region tree */
   locationEditModalLocationId: number|null = null;
+  /** Boise region id for permission checks when saving location edits */
+  locationEditModalRegionId: number|null = null;
   locationEditTreeOrgId: number|null = null;
   aoEditLocationName = '';
   aoEditName = '';
@@ -181,6 +195,20 @@ export class MapPage implements OnInit {
     {id: BOISE_REGION_IDS.highDesert, name: 'High Desert'},
     {id: BOISE_REGION_IDS.canyon, name: 'Canyon'},
   ];
+
+  /** Current user's effective permissions — updated reactively. */
+  permissions: MapPermissions|null = null;
+  private permSub?: Subscription;
+
+  /** Detail panel — synced when selection or permissions change (no template helpers). */
+  detailEditAoTitle = false;
+  detailDeleteAo = false;
+  detailEditLocation = false;
+  detailEditSchedule = false;
+  detailShowOverflowMenu = false;
+
+  /** Regions listed in New AO modal — filtered from {@link permissions}. */
+  newAoRegionOptions: ReadonlyArray<{id: number; name: string}> = [];
 
   mapCenter: google.maps.LatLngLiteral = {lat: 43.615, lng: -116.35};
   /**
@@ -209,12 +237,130 @@ export class MapPage implements OnInit {
       private readonly alertController: AlertController,
       private readonly toastController: ToastController,
       private readonly popoverController: PopoverController,
+      private readonly userPermissions: UserPermissionsService,
   ) {}
 
   async ngOnInit() {
     this.geocoder = new google.maps.Geocoder();
+    this.permSub =
+        this.userPermissions.mapPermissions$.subscribe(p => {
+          this.permissions = p;
+          this.syncPermissionDerivedViews();
+        });
     await this.loadData();
   }
+
+  ngOnDestroy(): void {
+    this.permSub?.unsubscribe();
+  }
+
+  // ── Permission-derived view fields (synced; avoid getters/functions in templates)
+
+  /** Shared location row — requires edit rights on every AO org at this pin. */
+  private canEditSharedLocationRecord(regionId: number, locationId: number): boolean {
+    const p = this.permissions;
+    if (!p) return false;
+    const orgIds = this.orgIdsAtLocation(locationId);
+    if (orgIds.length === 0) {
+      return p.canDeleteAo({regionId});
+    }
+    return orgIds.every(oid =>
+        p.canEditAo({
+          regionId,
+          orgId: oid,
+          parentAoId: oid,
+        }));
+  }
+
+  /** AO org ids sharing this physical location (pin). */
+  private orgIdsAtLocation(locationId: number): number[] {
+    const ids = new Set<number>();
+    for (const o of this.rawOrgs) {
+      if (o.defaultLocationId === locationId) ids.add(o.id);
+    }
+    for (const e of this.rawEvents) {
+      if (e.locationId !== locationId) continue;
+      const pid = e.parents?.[0]?.parentId;
+      if (pid) ids.add(pid);
+    }
+    return [...ids];
+  }
+
+  private patchRegionTreePermissions(): void {
+    const p = this.permissions;
+    for (const region of this.regionTree) {
+      for (const loc of region.locations) {
+        if (!p) {
+          loc.permEditLocation = false;
+          loc.permDeleteLocation = false;
+          for (const ao of loc.aos) {
+            ao.permRenameAo = false;
+            ao.permDeleteAo = false;
+          }
+          continue;
+        }
+        loc.permEditLocation =
+            this.canEditSharedLocationRecord(loc.regionId, loc.locationId);
+        loc.permDeleteLocation = p.canDeleteAo({regionId: loc.regionId});
+        for (const ao of loc.aos) {
+          ao.permRenameAo = p.canEditAo({
+            regionId: loc.regionId,
+            orgId: ao.orgId,
+            parentAoId: ao.orgId,
+          });
+          ao.permDeleteAo = p.canDeleteAo({regionId: loc.regionId});
+        }
+      }
+    }
+  }
+
+  private refreshDetailSelectionVm(): void {
+    const ao = this.selectedAo;
+    const p = this.permissions;
+    if (!ao || !p) {
+      this.detailEditAoTitle = false;
+      this.detailDeleteAo = false;
+      this.detailEditLocation = false;
+      this.detailEditSchedule = false;
+      this.detailShowOverflowMenu = false;
+      return;
+    }
+    this.detailEditAoTitle = p.canEditAo({
+      regionId: ao.regionId,
+      orgId: ao.orgId,
+      parentAoId: ao.parentAoId,
+    });
+    this.detailDeleteAo = p.canDeleteAo({regionId: ao.regionId});
+    this.detailEditLocation =
+        this.canEditSharedLocationRecord(ao.regionId, ao.locationId);
+    this.detailEditSchedule = p.canEditDay({
+      regionId: ao.regionId,
+      orgId: ao.orgId,
+      parentAoId: ao.parentAoId,
+    });
+    this.detailShowOverflowMenu =
+        this.detailEditAoTitle || this.detailEditLocation || this.detailDeleteAo;
+  }
+
+  private syncPermissionDerivedViews(): void {
+    this.patchRegionTreePermissions();
+    this.refreshDetailSelectionVm();
+    this.refreshNewAoRegionOptions();
+  }
+
+  /** Builds the region dropdown options from {@link permissions}. */
+  private refreshNewAoRegionOptions(): void {
+    const p = this.permissions;
+    if (!p?.canCreate || !p.creatableRegionIds.length) {
+      this.newAoRegionOptions = [];
+      return;
+    }
+    const allowed = new Set(p.creatableRegionIds);
+    this.newAoRegionOptions =
+        this.boiseRegions.filter(r => allowed.has(r.id));
+  }
+
+  // ── Legacy bridge removed — templates bind detail* and Tree*.perm* fields only.
 
   /**
    * Full fetch — only on startup (or explicit refresh). Mutations patch `raw*`
@@ -298,6 +444,7 @@ export class MapPage implements OnInit {
       }
     }
 
+    this.syncPermissionDerivedViews();
     this.geocodeAll();
     this.scheduleFitMapToPins();
   }
@@ -654,7 +801,13 @@ export class MapPage implements OnInit {
       // events)
       for (const org of orgs) {
         if (org.defaultLocationId === locId) {
-          aoMap.set(org.id, {orgId: org.id, name: org.name, events: []});
+          aoMap.set(org.id, {
+            orgId: org.id,
+            name: org.name,
+            events: [],
+            permRenameAo: false,
+            permDeleteAo: false,
+          });
         }
       }
 
@@ -666,7 +819,13 @@ export class MapPage implements OnInit {
         const firstName =
             evs[0]?.parents?.[0]?.parentName ?? evs[0]?.name ?? `AO ${orgId}`;
         if (!aoMap.has(orgId)) {
-          aoMap.set(orgId, {orgId, name: firstName, events: []});
+          aoMap.set(orgId, {
+            orgId,
+            name: firstName,
+            events: [],
+            permRenameAo: false,
+            permDeleteAo: false,
+          });
         }
         const ao = aoMap.get(orgId)!;
         for (const ev of evs) {
@@ -690,6 +849,7 @@ export class MapPage implements OnInit {
 
       regionLocs.set(locId, {
         locationId: locId,
+        regionId,
         // Prefer an org that explicitly points to this location; fall back to
         // loc.regionId (which for newly-created AOs is the AO org id).
         orgId: orgs.find(o => o.defaultLocationId === locId)?.id ??
@@ -701,6 +861,8 @@ export class MapPage implements OnInit {
         aos: Array.from(aoMap.values())
                  .sort((a, b) => a.name.localeCompare(b.name)),
         expanded: false,
+        permEditLocation: false,
+        permDeleteLocation: false,
       });
     }
 
@@ -806,8 +968,9 @@ export class MapPage implements OnInit {
 
   // ── Tree: rename AO ──────────────────────────────────────────────
 
-  startEditAoName(ao: TreeAo, event: Event) {
+  startEditAoName(ao: TreeAo, loc: TreeLocation, event: Event) {
     event.stopPropagation();
+    if (!ao.permRenameAo) return;
     this.editingAoId = ao.orgId;
     this.aoEditNameTree = ao.name;
     this.treeActionError = null;
@@ -819,8 +982,9 @@ export class MapPage implements OnInit {
     this.treeActionError = null;
   }
 
-  async saveAoName(ao: TreeAo, event: Event) {
+  async saveAoName(ao: TreeAo, loc: TreeLocation, event: Event) {
     event.stopPropagation();
+    if (!ao.permRenameAo) return;
     const name = this.aoEditNameTree.trim();
     if (!name) return;
     this.aoEditNameSaving = true;
@@ -858,6 +1022,7 @@ export class MapPage implements OnInit {
 
   async confirmDeleteLocation(loc: TreeLocation, event: Event) {
     event.stopPropagation();
+    if (!loc.permDeleteLocation) return;
     const eventsAtLoc =
         this.rawEvents.filter(e => e.locationId === loc.locationId);
     const orgsAtLoc =
@@ -893,6 +1058,7 @@ export class MapPage implements OnInit {
 
   private async deleteLocation(
       loc: TreeLocation, eventsAtLoc: F3Event[], orgsAtLoc: F3Org[]) {
+    if (!loc.permDeleteLocation) return;
     this.treeActionError = null;
     try {
       // 1. Deactivate all events at this location
@@ -963,6 +1129,7 @@ export class MapPage implements OnInit {
 
   async confirmDeleteTreeAo(ao: TreeAo, loc: TreeLocation, event: Event) {
     event.stopPropagation();
+    if (!ao.permDeleteAo) return;
     const n = ao.events.length;
     const eventLine =
         n > 0 ? ` and its ${n} workout event${n !== 1 ? 's' : ''}` : '';
@@ -987,6 +1154,7 @@ export class MapPage implements OnInit {
   }
 
   private async deleteTreeAo(ao: TreeAo, loc: TreeLocation) {
+    if (!ao.permDeleteAo) return;
     this.treeActionError = null;
     try {
       // 1. Deactivate all events for this AO
@@ -1343,10 +1511,15 @@ export class MapPage implements OnInit {
 
   onMapClick(event: google.maps.MapMouseEvent) {
     if (this.modalOpen || this.newAoModalOpen) return;
+    if (!this.permissions?.canCreate) return;
     const latLng = event.latLng?.toJSON();
     if (!latLng) return;
     this.pendingLatLng = latLng;
     this.newAoForm = this.emptyNewAoForm();
+    const opts = this.newAoRegionOptions;
+    if (opts.length >= 1) {
+      this.newAoForm.regionId = opts[0].id;
+    }
     this.createAoError = null;
     this.newAoModalOpen = true;
   }
@@ -1361,6 +1534,11 @@ export class MapPage implements OnInit {
   async createNewAo() {
     const name = this.newAoForm.name.trim();
     if (!name || !this.pendingLatLng) return;
+    const allowed = new Set(this.permissions?.creatableRegionIds ?? []);
+    if (!allowed.has(this.newAoForm.regionId)) {
+      this.createAoError = 'Choose a region you are allowed to create AOs in.';
+      return;
+    }
     this.creatingAo = true;
     this.createAoError = null;
 
@@ -1481,6 +1659,7 @@ export class MapPage implements OnInit {
     this.closeDetailEditModals();
     this.aoSaveError = null;
     this.closeModal();
+    this.refreshDetailSelectionVm();
   }
 
   clearSelection() {
@@ -1488,6 +1667,7 @@ export class MapPage implements OnInit {
     this.closeDetailEditModals();
     this.aoSaveError = null;
     this.closeModal();
+    this.refreshDetailSelectionVm();
     window.clearTimeout(this.fitBoundsTimer);
     this.fitBoundsTimer = undefined;
     this.fitMapToPins();
@@ -1499,6 +1679,7 @@ export class MapPage implements OnInit {
     this.aoMetaModalOpen = false;
     this.locationEditModalOpen = false;
     this.locationEditModalLocationId = null;
+    this.locationEditModalRegionId = null;
     this.locationEditTreeOrgId = null;
     this.aoSaveError = null;
   }
@@ -1551,29 +1732,29 @@ export class MapPage implements OnInit {
   async openAoDetailMenu(ev: Event): Promise<void> {
     ev.preventDefault();
     ev.stopPropagation();
-    const actions: PopoverAction[] = [
-      {
+    const actions: PopoverAction[] = [];
+    if (this.detailEditAoTitle) {
+      actions.push({
         label: 'Edit AO',
         icon: 'create-outline',
-        onClick: () => {
-          this.openAoMetaModal();
-        },
-      },
-      {
+        onClick: () => { this.openAoMetaModal(); },
+      });
+    }
+    if (this.detailEditLocation) {
+      actions.push({
         label: 'Edit Location',
         icon: 'location-outline',
-        onClick: () => {
-          this.openLocationEditModal();
-        },
-      },
-      {
+        onClick: () => { this.openLocationEditModal(); },
+      });
+    }
+    if (this.detailDeleteAo) {
+      actions.push({
         label: 'Delete AO',
         icon: 'trash-outline',
-        onClick: () => {
-          void this.confirmDeleteAo();
-        },
-      },
-    ];
+        onClick: () => { void this.confirmDeleteAo(); },
+      });
+    }
+    if (!actions.length) return;
     const popover = await this.popoverController.create({
       component: ActionsPopoverPageComponent,
       componentProps: {actions},
@@ -1589,6 +1770,7 @@ export class MapPage implements OnInit {
   openAoMetaModal(): void {
     const sel = this.selectedAo;
     if (!sel) return;
+    if (!this.detailEditAoTitle) return;
     const oid = sel.orgId ?? sel.parentAoId;
     const org = oid ? this.rawOrgs.find(o => o.id === oid) : undefined;
     this.aoEditName = (org?.name ?? this.detailPanelAoTitle(sel)).trim();
@@ -1605,7 +1787,9 @@ export class MapPage implements OnInit {
   openLocationEditModal(): void {
     const sel = this.selectedAo;
     if (!sel?.locationId) return;
+    if (!this.detailEditLocation) return;
     this.locationEditModalLocationId = sel.locationId;
+    this.locationEditModalRegionId = sel.regionId;
     this.locationEditTreeOrgId = null;
     this.populateLocationFormForLocationId(sel.locationId);
     this.aoSaveError = null;
@@ -1615,7 +1799,9 @@ export class MapPage implements OnInit {
   /** Region tree pencil — same form as AO detail “location name” edit. */
   openLocationEditModalFromTree(loc: TreeLocation, event?: Event): void {
     event?.stopPropagation?.();
+    if (!loc.permEditLocation) return;
     this.locationEditModalLocationId = loc.locationId;
+    this.locationEditModalRegionId = loc.regionId;
     this.locationEditTreeOrgId = loc.orgId;
     this.populateLocationFormForLocationId(loc.locationId);
     this.aoSaveError = null;
@@ -1625,12 +1811,13 @@ export class MapPage implements OnInit {
   closeLocationEditModal(): void {
     this.locationEditModalOpen = false;
     this.locationEditModalLocationId = null;
+    this.locationEditModalRegionId = null;
     this.locationEditTreeOrgId = null;
     this.aoSaveError = null;
   }
 
   async saveAoMetaFromModal(): Promise<void> {
-    if (!this.selectedAo) return;
+    if (!this.selectedAo || !this.detailEditAoTitle) return;
     const ao = this.selectedAo;
     const orgId = ao.orgId ?? ao.parentAoId;
     if (!orgId) {
@@ -1680,7 +1867,9 @@ export class MapPage implements OnInit {
   async saveLocationFromModal(): Promise<void> {
     const locationId =
         this.locationEditModalLocationId ?? this.selectedAo?.locationId ?? null;
-    if (!locationId || locationId <= 0) {
+    const regionId = this.locationEditModalRegionId;
+    if (!locationId || locationId <= 0 || regionId === null ||
+        !this.canEditSharedLocationRecord(regionId, locationId)) {
       this.closeLocationEditModal();
       return;
     }
@@ -1765,7 +1954,7 @@ export class MapPage implements OnInit {
   }
 
   async confirmDeleteAo() {
-    if (!this.selectedAo || this.isDeletingAo) return;
+    if (!this.selectedAo || this.isDeletingAo || !this.detailDeleteAo) return;
     const ao = this.selectedAo;
     const activeEvents = ao.days.filter(d => d.event);
     const n = activeEvents.length;
@@ -1795,7 +1984,7 @@ export class MapPage implements OnInit {
   }
 
   private async deleteAo() {
-    if (!this.selectedAo || this.isDeletingAo) return;
+    if (!this.selectedAo || this.isDeletingAo || !this.detailDeleteAo) return;
     const ao = this.selectedAo;
     const orgId = ao.orgId ?? ao.parentAoId;
     this.isDeletingAo = true;
@@ -1873,6 +2062,7 @@ export class MapPage implements OnInit {
   // ── Day edit ─────────────────────────────────────────────────────
 
   openDayEdit(day: AoDay) {
+    if (!this.detailEditSchedule) return;
     this.editingDay = day;
     this.saveError = null;
     this.modalOpen = true;

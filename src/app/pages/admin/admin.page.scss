@@ -1,0 +1,443 @@
+// ── User table page ────────────────────────────────────────────────────────
+
+.lede {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: var(--ion-color-medium-shade);
+  max-width: 52rem;
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  margin-top: 12px;
+
+  code { font-size: 12px; }
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  &.state--pad { padding: 32px 12px; }
+
+  &.state--error ion-icon {
+    font-size: 42px;
+    color: var(--ion-color-danger);
+    margin-bottom: 12px;
+  }
+
+  ion-spinner { margin-bottom: 12px; }
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--ion-color-light-shade, #dde0e3);
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: var(--ion-background-color);
+
+  thead th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ion-color-medium-shade);
+    border-bottom: 1px solid var(--ion-color-light-shade, #dde0e3);
+    background: var(--ion-color-light, #f4f5f8);
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--ion-color-light, #eaecee);
+    vertical-align: top;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  .email-cell {
+    font-size: 13px;
+    word-break: break-all;
+    max-width: 200px;
+  }
+
+  .nowrap {
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  .muted {
+    font-size: 12px;
+    color: var(--ion-color-medium);
+  }
+
+  .empty-row {
+    text-align: center;
+    padding: 24px !important;
+    color: var(--ion-color-medium);
+    font-size: 14px;
+  }
+}
+
+.col-actions {
+  text-align: right;
+  white-space: nowrap;
+  width: 1%;
+}
+
+// ── User cell (table) ──────────────────────────────────────────────────────
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.user-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--ion-color-light-shade);
+
+  &--initials {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ion-color-primary-tint, #d7e3ff);
+    color: var(--ion-color-primary-shade, #2054b5);
+    font-size: 14px;
+    font-weight: 700;
+  }
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ion-text-color);
+}
+
+// ── Modal shared ───────────────────────────────────────────────────────────
+
+.modal-sub {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+}
+
+.modal-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--ion-color-light-shade);
+
+  &--initials {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ion-color-primary-tint, #d7e3ff);
+    color: var(--ion-color-primary-shade, #2054b5);
+    font-size: 18px;
+    font-weight: 700;
+  }
+}
+
+.modal-sub-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  strong {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ion-text-color);
+  }
+
+  .muted {
+    font-size: 12px;
+    color: var(--ion-color-medium);
+  }
+}
+
+// ── Roles list (main step) ─────────────────────────────────────────────────
+
+.roles-empty {
+  padding: 24px 0 8px;
+  font-size: 14px;
+  color: var(--ion-color-medium);
+  text-align: center;
+}
+
+.role-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+
+.role-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--ion-color-light, #f4f5f8);
+}
+
+.role-item-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.role-item-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ion-text-color);
+}
+
+.role-item-sub {
+  font-size: 12px;
+  color: var(--ion-color-medium-shade);
+}
+
+.role-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ion-color-medium);
+  font-size: 20px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.07);
+    color: var(--ion-color-danger);
+  }
+}
+
+// ── Add role button ────────────────────────────────────────────────────────
+
+.add-role-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 20px;
+  border: 1.5px dashed var(--ion-color-primary, #3880ff);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ion-color-primary, #3880ff);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  ion-icon { font-size: 18px; }
+
+  &:hover { background: rgba(56, 128, 255, 0.06); }
+}
+
+.save-btn { margin-top: 4px; }
+
+// ── Add role: type picker ──────────────────────────────────────────────────
+
+.step-hint {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  margin: 0 0 12px;
+}
+
+.type-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.type-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--ion-color-light-shade, #dde0e3);
+  border-radius: 12px;
+  background: var(--ion-background-color);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.12s, background 0.12s;
+
+  &:hover:not(:disabled) {
+    border-color: var(--ion-color-primary, #3880ff);
+    background: rgba(56, 128, 255, 0.04);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+.type-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  font-size: 20px;
+
+  &--admin  { background: #fce8e6; color: #c5221f; }
+  &--nantan { background: #e8f0fe; color: #1a73e8; }
+  &--aoq    { background: #e6f4ea; color: #137333; }
+}
+
+.type-item-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.type-item-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ion-text-color);
+}
+
+.type-item-desc {
+  font-size: 12px;
+  color: var(--ion-color-medium-shade);
+  line-height: 1.4;
+}
+
+.type-item-arrow {
+  font-size: 18px;
+  color: var(--ion-color-medium);
+  flex-shrink: 0;
+}
+
+.type-item-check {
+  font-size: 20px;
+  color: var(--ion-color-success);
+  flex-shrink: 0;
+}
+
+// ── Add role: generic pick list (regions + AOs) ────────────────────────────
+
+.pick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pick-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+
+  &:hover:not(:disabled) { background: var(--ion-color-light, #f4f5f8); }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+.pick-item-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.pick-item-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ion-text-color);
+}
+
+.pick-item-sub {
+  font-size: 12px;
+  color: var(--ion-color-medium-shade);
+}
+
+.pick-item-arrow {
+  font-size: 18px;
+  color: var(--ion-color-medium);
+  flex-shrink: 0;
+}
+
+.pick-item-check {
+  font-size: 20px;
+  color: var(--ion-color-success);
+  flex-shrink: 0;
+}
+
+// ── AO search ──────────────────────────────────────────────────────────────
+
+.ao-search-wrap {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.ao-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: var(--ion-color-medium);
+  pointer-events: none;
+}
+
+.ao-search-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px 0 36px;
+  border: 1px solid var(--ion-color-light-shade, #d7d8da);
+  border-radius: 10px;
+  font-size: 14px;
+  background: var(--ion-background-color);
+  color: var(--ion-text-color);
+  outline: none;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: var(--ion-color-primary, #3880ff);
+    box-shadow: 0 0 0 2px rgba(56, 128, 255, 0.18);
+  }
+}

@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /** Legacy app data — keep permissive reads for public pages */
+    match /challenges/{challengeId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null;
+    }
+
+    match /challenge_participants/{participantId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null;
+    }
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function hasAdminRole(uid) {
+      return signedIn() &&
+          exists(/databases/$(database)/documents/userProfiles/$(uid)) &&
+          get(/databases/$(database)/documents/userProfiles/$(uid)).data.roles is list &&
+          'admin' in get(/databases/$(database)/documents/userProfiles/$(uid)).data.roles;
+    }
+
+    function isBootstrapSuperadmin() {
+      return signedIn() &&
+          request.auth.token.email == 'taylor.matt777@gmail.com';
+    }
+
+    match /userProfiles/{uid} {
+      allow read: if signedIn();
+
+      /** Created on first login merge from the app */
+      allow create: if signedIn() && request.auth.uid == uid;
+
+      /** Self can update non-role fields; admins / bootstrap can set roles */
+      allow update: if signedIn() && (
+          request.auth.uid == uid ||
+          hasAdminRole(request.auth.uid) ||
+          isBootstrapSuperadmin()
+      );
+    }
+
+    /** Default: deny until a collection is enumerated above */
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

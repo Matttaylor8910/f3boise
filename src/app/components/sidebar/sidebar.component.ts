@@ -7,6 +7,7 @@ import {AuthService} from 'src/app/services/auth.service';
 import {ChallengesService} from 'src/app/services/challenges.service';
 import {SidebarService} from 'src/app/services/sidebar.service';
 import {UtilService} from 'src/app/services/util.service';
+import {UserProfilesService} from 'src/app/services/user-profiles.service';
 import {Challenge} from 'types';
 
 import {CANYON_AOS, CITY_OF_TREES_AOS, DISCONTINUED_AOS, HIGH_DESERT_AOS, REGION_AGNOSTIC_AOS, SETTLERS_AOS} from '../../../../constants';
@@ -80,6 +81,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       private readonly authService: AuthService,
       private readonly toastController: ToastController,
       private readonly challengesService: ChallengesService,
+      readonly userProfilesService: UserProfilesService,
   ) {}
 
   ngOnInit() {
@@ -264,6 +266,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (window.innerWidth < 1024) {
       this.sidebarService.close();
     }
+  }
+
+  isAdminRoute(): boolean {
+    return this.router.url.startsWith('/admin');
   }
 
   navigate(route: string) {

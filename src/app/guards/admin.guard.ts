@@ -3,14 +3,12 @@ import {CanActivate, Router} from '@angular/router';
 import {Observable, of} from 'rxjs';
 import {map, switchMap, take} from 'rxjs/operators';
 
-import {
-  PRIVILEGED_MAP_ACCESS_EMAILS,
-} from 'src/app/config/privileged-users';
+import {emailIsAdminBootstrap} from 'src/app/config/privileged-users';
 import {AuthService} from 'src/app/services/auth.service';
 import {UserProfilesService} from 'src/app/services/user-profiles.service';
 
 @Injectable({providedIn: 'root'})
-export class MapGuard implements CanActivate {
+export class AdminGuard implements CanActivate {
   constructor(
       private readonly auth: AuthService,
       private readonly router: Router,
@@ -21,20 +19,19 @@ export class MapGuard implements CanActivate {
     return this.auth.authState$.pipe(
         take(1),
         switchMap(user => {
-          if (!user?.email) return of(false);
-          const trimmed = user.email.trim();
-          if (PRIVILEGED_MAP_ACCESS_EMAILS.has(trimmed)) {
-            return of(true);
-          }
+          if (!user?.uid) return of(false);
+          if (emailIsAdminBootstrap(user.email ?? undefined)) return of(true);
           return this.profiles.getProfileTakeOne$(user.uid).pipe(
               map(profile => {
                 const roles = profile?.roles ?? [];
-                return roles.includes('admin') ||
-                    roles.some(r => r.startsWith('nantan:') || r.startsWith('aoq:'));
-              }));
+                return roles.includes('admin');
+              }),
+          );
         }),
         map(allowed => {
-          if (!allowed) this.router.navigateByUrl('/');
+          if (!allowed) {
+            this.router.navigateByUrl('/');
+          }
           return allowed;
         }),
     );
