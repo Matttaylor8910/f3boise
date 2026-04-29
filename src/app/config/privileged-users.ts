@@ -3,7 +3,7 @@
  * Keep in sync when onboarding new admins.
  */
 
-/** AO Map route — allowlist for bootstrap access before roles are assigned. */
+/** Source list for {@link ADMIN_BOOTSTRAP_EMAILS} (legacy name). */
 export const PRIVILEGED_MAP_ACCESS_EMAILS = new Set<string>([
   'taylor.matt777@gmail.com',
 ]);

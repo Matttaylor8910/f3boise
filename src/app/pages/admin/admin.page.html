@@ -3,69 +3,284 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/"></ion-back-button>
     </ion-buttons>
-    <ion-title>User roles</ion-title>
+    <ion-title>Staff Console</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        *ngIf="capabilities.canEditArbitraryRoles || capabilities.assignableAoqRegionIds.size > 0"
+        (click)="openAddUserModal()">
+        <ion-icon name="person-add-outline" slot="start"></ion-icon>
+        Add User
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-segment [(ngModel)]="activeTab" mode="md">
+      <ion-segment-button value="users">
+        <ion-label>Users</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="org-chart">
+        <ion-label>Org Chart</ion-label>
+      </ion-segment-button>
+    </ion-segment>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <div *ngIf="loading" class="state state--pad">
-    <ion-spinner name="crescent"></ion-spinner>
-    <p>Loading profiles…</p>
-  </div>
 
-  <div *ngIf="!loading && error" class="state state--pad state--error">
-    <ion-icon name="warning-outline"></ion-icon>
-    <p>{{ error }}</p>
-    <p class="hint">
-      Deploy Firestore security rules allowing authenticated admins to write
-      <code>userProfiles</code> (see repo <code>firestore.rules</code>).
-    </p>
-  </div>
+  <!-- ── Users tab ───────────────────────────────────────────────────── -->
+  <ng-container *ngIf="activeTab === 'users'">
 
-  <ng-container *ngIf="!loading && !error">
-    <p class="lede">Users appear here once they've signed in at least once.</p>
-
-    <div class="table-wrap">
-      <table class="user-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Roles</th>
-            <th>Last seen</th>
-            <th class="col-actions">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let row of profileRows">
-            <td>
-              <div class="user-cell">
-                <img *ngIf="row.avatarUrl" class="user-avatar" [src]="row.avatarUrl" [alt]="row.displayName">
-                <div *ngIf="!row.avatarUrl" class="user-avatar user-avatar--initials">
-                  {{ row.initialsChar }}
-                </div>
-                <span class="user-name">{{ row.displayName }}</span>
-              </div>
-            </td>
-            <td class="email-cell">{{ row.profile.email || '—' }}</td>
-            <td>{{ row.rolesLabel }}</td>
-            <td class="muted">{{ row.lastSeenFormatted }}</td>
-            <td class="col-actions">
-              <ion-button size="small" fill="outline" (click)="openRoleDialog(row.profile)">
-                Edit roles
-              </ion-button>
-            </td>
-          </tr>
-          <tr *ngIf="profileRows.length === 0">
-            <td colspan="5" class="empty-row">No profiles yet — sign in once to seed your row.</td>
-          </tr>
-        </tbody>
-      </table>
+    <div *ngIf="loading" class="state state--pad">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading profiles…</p>
     </div>
+
+    <div *ngIf="!loading && error" class="state state--pad state--error">
+      <ion-icon name="warning-outline"></ion-icon>
+      <p>{{ error }}</p>
+      <p class="hint">
+        Deploy Firestore security rules allowing authenticated admins to write
+        <code>userProfiles</code> (see repo <code>firestore.rules</code>).
+      </p>
+    </div>
+
+    <ng-container *ngIf="!loading && !error">
+      <p class="lede">Users appear here once they've signed in at least once.</p>
+
+      <div class="table-wrap">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Roles</th>
+              <th>Last seen</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of profileRows">
+              <td>
+                <div class="user-cell">
+                  <img *ngIf="row.avatarUrl" class="user-avatar" [src]="row.avatarUrl" [alt]="row.displayName">
+                  <div *ngIf="!row.avatarUrl" class="user-avatar user-avatar--initials">
+                    {{ row.initialsChar }}
+                  </div>
+                  <span class="user-name">{{ row.displayName }}</span>
+                </div>
+              </td>
+              <td class="email-cell">{{ row.profile.email || '—' }}</td>
+              <td>{{ row.rolesLabel }}</td>
+              <td class="muted">{{ row.lastSeenFormatted }}</td>
+              <td class="col-actions">
+                <ion-button
+                  *ngIf="capabilities.canEditArbitraryRoles || capabilities.assignableAoqRegionIds.size > 0"
+                  size="small"
+                  fill="outline"
+                  (click)="openRoleDialog(row.profile)">
+                  Edit roles
+                </ion-button>
+              </td>
+            </tr>
+            <tr *ngIf="profileRows.length === 0">
+              <td colspan="5" class="empty-row">No profiles yet — sign in once to seed your row.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
   </ng-container>
+
+  <!-- ── Org chart tab ───────────────────────────────────────────────── -->
+  <ng-container *ngIf="activeTab === 'org-chart'">
+
+    <div *ngIf="loading" class="state state--pad">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading…</p>
+    </div>
+
+    <ng-container *ngIf="!loading">
+
+      <!-- Admins section -->
+      <div class="org-section" *ngIf="orgChartVm.admins.length > 0">
+        <div class="org-section-header">
+          <ion-icon name="shield-checkmark-outline" class="org-section-icon org-section-icon--admin"></ion-icon>
+          <h3 class="org-section-title">Admins</h3>
+        </div>
+        <div class="org-person-list">
+          <div class="org-person-card" *ngFor="let a of orgChartVm.admins; trackBy: trackPersonVm">
+            <img *ngIf="a.avatarUrl" class="org-avatar" [src]="a.avatarUrl" [alt]="a.displayName">
+            <div *ngIf="!a.avatarUrl" class="org-avatar org-avatar--initials">{{ a.initialsChar }}</div>
+            <div class="org-person-info">
+              <span class="org-person-name">{{ a.displayName }}</span>
+              <span class="org-person-email">{{ a.profile!.email }}</span>
+            </div>
+            <ion-button
+              *ngIf="capabilities.canEditArbitraryRoles"
+              fill="clear"
+              size="small"
+              class="org-edit-btn"
+              (click)="openRoleDialog(a.profile!)">
+              <ion-icon name="pencil-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Per-region sections -->
+      <div
+        class="org-region-section"
+        *ngFor="let region of orgChartVm.regions; trackBy: trackRegionSection">
+
+        <div class="org-region-header">
+          <span class="org-region-name">{{ region.regionName }}</span>
+        </div>
+
+        <!-- Nantan row(s) -->
+        <div class="org-role-block">
+          <span class="org-role-label org-role-label--nantan">Nantan</span>
+          <div class="org-role-holders" *ngIf="region.nantanProfiles.length > 0">
+            <div
+              class="org-person-card org-person-card--sm"
+              *ngFor="let n of region.nantanProfiles; trackBy: trackPersonVm">
+              <img *ngIf="n.avatarUrl" class="org-avatar org-avatar--sm" [src]="n.avatarUrl" [alt]="n.displayName">
+              <div *ngIf="!n.avatarUrl" class="org-avatar org-avatar--sm org-avatar--initials">{{ n.initialsChar }}</div>
+              <span class="org-person-name">{{ n.displayName }}</span>
+              <ion-icon
+                *ngIf="n.isPending"
+                name="time-outline"
+                class="org-pending-icon"
+                title="Pending — applies on first sign-in">
+              </ion-icon>
+              <ion-button
+                *ngIf="capabilities.canEditArbitraryRoles"
+                fill="clear"
+                size="small"
+                class="org-edit-btn"
+                (click)="openPersonRoleDialog(n)">
+                <ion-icon name="pencil-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+          <ng-container *ngIf="region.nantanProfiles.length === 0">
+            <span class="org-unassigned" *ngIf="!capabilities.canEditArbitraryRoles">Unassigned</span>
+            <button *ngIf="capabilities.canEditArbitraryRoles" class="org-assign-btn" type="button"
+                    (click)="openAssignNantanModal(region)">
+              <ion-icon name="person-add-outline"></ion-icon>
+              Assign Nantan
+            </button>
+          </ng-container>
+        </div>
+
+        <!-- AO rows -->
+        <div class="org-ao-list">
+          <div
+            class="org-ao-row"
+            *ngFor="let ao of region.aos; trackBy: trackOrgChartAo">
+            <span class="org-ao-name">{{ ao.ao.name }}</span>
+
+            <!-- AOQ assigned (real profile or pending) -->
+            <ng-container *ngIf="ao.aoqProfile || ao.aoqIsPending">
+              <div class="org-person-card org-person-card--sm org-person-card--inline">
+                <img *ngIf="ao.aoqAvatarUrl" class="org-avatar org-avatar--sm" [src]="ao.aoqAvatarUrl" [alt]="ao.aoqDisplayName">
+                <div *ngIf="!ao.aoqAvatarUrl" class="org-avatar org-avatar--sm org-avatar--initials">{{ ao.aoqInitialsChar }}</div>
+                <span class="org-person-name">{{ ao.aoqDisplayName }}</span>
+                <ion-icon
+                  *ngIf="ao.aoqIsPending"
+                  name="time-outline"
+                  class="org-pending-icon"
+                  title="Pending — applies on first sign-in">
+                </ion-icon>
+                <ion-button
+                  *ngIf="ao.canAssignAoq"
+                  fill="clear"
+                  size="small"
+                  class="org-edit-btn"
+                  (click)="ao.aoqProfile ? openRoleDialog(ao.aoqProfile) : openRoleDialogForEmail(ao.aoqPendingAssignment!.email, ao.aoqDisplayName)">
+                  <ion-icon name="pencil-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+              </div>
+            </ng-container>
+
+            <!-- AOQ unassigned -->
+            <ng-container *ngIf="!ao.aoqProfile && !ao.aoqIsPending">
+              <span class="org-unassigned" *ngIf="!ao.canAssignAoq">No AOQ</span>
+              <button *ngIf="ao.canAssignAoq" class="org-assign-btn" (click)="openAssignAoqModal(ao)">
+                <ion-icon name="person-add-outline"></ion-icon>
+                Assign AOQ
+              </button>
+            </ng-container>
+          </div>
+        </div>
+
+      </div>
+
+    </ng-container>
+  </ng-container>
+
 </ion-content>
 
-<!-- ══ Role assignment modal ══════════════════════════════════════════════ -->
+<!-- ══ Add User search modal ═════════════════════════════════════════════ -->
+<ion-modal [isOpen]="addUserModalOpen" (didDismiss)="closeAddUserModal()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Add User</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeAddUserModal()">Cancel</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding">
+      <div class="ao-search-wrap">
+        <ion-icon name="search-outline" class="ao-search-icon"></ion-icon>
+        <input
+          type="search"
+          class="ao-search-input"
+          placeholder="Search by name or email…"
+          [(ngModel)]="addUserSearch"
+          (ngModelChange)="onAddUserSearchChange()"
+          autocomplete="off"
+          autofocus>
+      </div>
+
+      <div class="state state--pad" *ngIf="addUserSearching">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Searching…</p>
+      </div>
+
+      <div class="search-hint" *ngIf="!addUserSearch.trim() && !addUserSearching">
+        Type a name or email to find existing users or Pax members.
+      </div>
+
+      <div class="pick-list" *ngIf="!addUserSearching && addUserResults.length > 0">
+        <button
+          type="button"
+          class="pick-item search-result-item"
+          *ngFor="let r of addUserResults; trackBy: trackUserSearchResult"
+          (click)="selectAddUserResult(r)">
+          <img *ngIf="r.avatarUrl" class="user-avatar" [src]="r.avatarUrl" [alt]="r.displayName">
+          <div *ngIf="!r.avatarUrl" class="user-avatar user-avatar--initials">{{ r.initialsChar }}</div>
+          <div class="pick-item-text">
+            <span class="pick-item-name">{{ r.displayName }}</span>
+            <span class="pick-item-sub">{{ r.email || '(no email)' }}</span>
+          </div>
+          <ion-badge *ngIf="r.profile" color="success" class="profile-badge">Profile</ion-badge>
+          <ion-badge *ngIf="!r.profile" color="medium" class="profile-badge">Pax only</ion-badge>
+          <ion-icon name="chevron-forward-outline" class="pick-item-arrow"></ion-icon>
+        </button>
+      </div>
+
+      <div class="empty-row"
+        *ngIf="!addUserSearching && addUserSearch.trim() && addUserResults.length === 0">
+        No results for "{{ addUserSearch }}"
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- ══ Role assignment modal ════════════════════════════════════════════ -->
 <ion-modal [isOpen]="roleModalOpen" (didDismiss)="closeRoleDialog()">
   <ng-template>
 
@@ -87,14 +302,15 @@
           <ion-button (click)="closeRoleDialog()">Done</ion-button>
         </ion-buttons>
       </ion-toolbar>
-      <div class="modal-sub" *ngIf="selected">
+      <div class="modal-sub">
         <img *ngIf="modalAvatarUrl" class="modal-avatar" [src]="modalAvatarUrl" [alt]="modalDisplayName">
         <div *ngIf="!modalAvatarUrl" class="modal-avatar modal-avatar--initials">
           {{ modalInitialChar }}
         </div>
         <div class="modal-sub-text">
           <strong>{{ modalDisplayName }}</strong>
-          <span class="muted">{{ selected.email }}</span>
+          <span class="muted" *ngIf="selected">{{ selected.email }}</span>
+          <ion-badge color="warning" class="pending-badge" *ngIf="modalIsPending">Pending — applies on sign-in</ion-badge>
         </div>
       </div>
     </ion-header>
@@ -114,13 +330,18 @@
               <span class="role-item-label">{{ r.label }}</span>
               <span class="role-item-sub" *ngIf="r.sublabel">{{ r.sublabel }}</span>
             </div>
-            <button type="button" class="role-remove-btn" (click)="removeRole(r.key)" aria-label="Remove role">
+            <button
+              *ngIf="r.canRemove"
+              type="button"
+              class="role-remove-btn"
+              (click)="removeRole(r.key)"
+              aria-label="Remove role">
               <ion-icon name="close-outline"></ion-icon>
             </button>
           </div>
         </div>
 
-        <button type="button" class="add-role-btn" (click)="startAddRole()">
+        <button *ngIf="modalCanAddRole" type="button" class="add-role-btn" (click)="startAddRole()">
           <ion-icon name="add-outline"></ion-icon>
           Add role
         </button>
@@ -130,7 +351,7 @@
           class="save-btn"
           (click)="saveRoles()"
           [disabled]="saving">
-          {{ saving ? 'Saving…' : 'Save' }}
+          {{ saving ? 'Saving…' : (modalIsPending ? 'Save pending assignment' : 'Save') }}
         </ion-button>
 
       </ng-container>

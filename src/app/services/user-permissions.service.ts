@@ -45,6 +45,13 @@ export function parseAoqOrgIds(roles: string[]): number[] {
       .filter(n => !isNaN(n));
 }
 
+/** True for any role tier that can open the Staff Console (/admin). */
+export function hasAnyStaffRole(roles: string[]): boolean {
+  return roles.includes('admin') ||
+      roles.some(r => r.startsWith('nantan:')) ||
+      roles.some(r => r.startsWith('aoq:'));
+}
+
 /** Human-readable summary of a role string array for the users table. */
 export function rolesDisplayLabel(roles: string[]): string {
   if (!roles.length) return '—';
@@ -102,7 +109,7 @@ const NO_ACCESS: MapPermissions = {
 };
 
 /** Map edit powers come only from Firestore `roles` — never from bootstrap emails.
- * (Privileged emails still reach /map via MapGuard; AdminGuard handles /admin.) */
+ * `/map` is public; without roles the map page is read-only. AdminGuard handles `/admin`. */
 function permissionsFromProfile(profile: UserProfile|null): MapPermissions {
   const roles = profile?.roles ?? [];
   const isAdmin = roles.includes('admin');

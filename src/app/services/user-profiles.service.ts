@@ -11,10 +11,20 @@ import {
 } from 'rxjs/operators';
 
 import {emailIsAdminBootstrap} from 'src/app/config/privileged-users';
+import {hasAnyStaffRole} from 'src/app/services/user-permissions.service';
 
 import {AuthService} from './auth.service';
 
 export const USER_PROFILES_COLLECTION = 'userProfiles';
+export const PENDING_ROLES_COLLECTION = 'pendingRoleAssignments';
+
+export interface PendingRoleAssignment {
+  email: string;
+  displayName: string|null;
+  roles: string[];
+  assignedAt: firebase.firestore.Timestamp|null;
+  assignedByUid: string|null;
+}
 
 /** Simple (non-parameterised) role ids that the admin UI manages via checkboxes.
  *  Nantan / AOQ are parameterised and managed separately. */
@@ -132,7 +142,75 @@ export class UserProfilesService implements OnDestroy {
     );
   }
 
-  /** Sidebar / nav: bootstrap superadmin email or Firestore `admin` role */
+  /**
+   * Write a pending role assignment keyed by normalized email.
+   * A Cloud Function merges this into `userProfiles/{uid}` on first sign-in.
+   */
+  async setPendingRoles(
+      email: string,
+      roles: string[],
+      assignedByUid: string,
+      displayName?: string,
+      ): Promise<void> {
+    const normalized = email.toLowerCase().trim();
+    const sorted = [...new Set(roles)].sort((a, b) => a.localeCompare(b));
+    await this.firestore.doc(`${PENDING_ROLES_COLLECTION}/${normalized}`).set({
+      email: normalized,
+      displayName: displayName ?? null,
+      roles: sorted,
+      assignedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      assignedByUid,
+    });
+  }
+
+  watchAllPendingAssignments(): Observable<PendingRoleAssignment[]> {
+    return this.firestore
+        .collection<PendingRoleAssignment>(PENDING_ROLES_COLLECTION)
+        .snapshotChanges()
+        .pipe(
+            map(actions => actions.map(a => {
+              const d = a.payload.doc.data() as unknown as Record<string, unknown>;
+              return {
+                email: (d['email'] as string|undefined) ??
+                    a.payload.doc.id,
+                displayName:
+                    (d['displayName'] as string|null|undefined) ?? null,
+                roles: Array.isArray(d['roles']) ?
+                    [...(d['roles'] as string[])] :
+                    [],
+                assignedAt:
+                    (d['assignedAt'] as
+                         firebase.firestore.Timestamp|undefined) ??
+                    null,
+                assignedByUid:
+                    (d['assignedByUid'] as string|null|undefined) ?? null,
+              } as PendingRoleAssignment;
+            })),
+        );
+  }
+
+  getPendingAssignment$(email: string): Observable<PendingRoleAssignment|null> {
+    const normalized = email.toLowerCase().trim();
+    return this.firestore.doc(`${PENDING_ROLES_COLLECTION}/${normalized}`)
+        .valueChanges()
+        .pipe(map(data => {
+          if (!data || typeof data !== 'object') return null;
+          const d = data as Record<string, unknown>;
+          return {
+            email: (d['email'] as string|undefined) ?? normalized,
+            displayName: (d['displayName'] as string|null|undefined) ?? null,
+            roles: Array.isArray(d['roles']) ? [...(d['roles'] as string[])] :
+                                               [],
+            assignedAt:
+                (d['assignedAt'] as firebase.firestore.Timestamp|undefined) ??
+                null,
+            assignedByUid:
+                (d['assignedByUid'] as string|null|undefined) ?? null,
+          };
+        }));
+  }
+
+  /** Sidebar / nav: bootstrap superadmin email or any staff role */
   readonly canAccessAdminPage$: Observable<boolean> =
       this.auth.authState$.pipe(
           filter((u): u is firebase.User => !!u?.uid),
@@ -142,7 +220,7 @@ export class UserProfilesService implements OnDestroy {
               return of(true);
             }
             return this.getProfile$(user.uid).pipe(
-                map(p => (p?.roles ?? []).includes('admin')),
+                map(p => hasAnyStaffRole(p?.roles ?? [])),
             );
           }),
           distinctUntilChanged(),

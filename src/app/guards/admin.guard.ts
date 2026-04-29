@@ -5,6 +5,7 @@ import {map, switchMap, take} from 'rxjs/operators';
 
 import {emailIsAdminBootstrap} from 'src/app/config/privileged-users';
 import {AuthService} from 'src/app/services/auth.service';
+import {hasAnyStaffRole} from 'src/app/services/user-permissions.service';
 import {UserProfilesService} from 'src/app/services/user-profiles.service';
 
 @Injectable({providedIn: 'root'})
@@ -22,10 +23,7 @@ export class AdminGuard implements CanActivate {
           if (!user?.uid) return of(false);
           if (emailIsAdminBootstrap(user.email ?? undefined)) return of(true);
           return this.profiles.getProfileTakeOne$(user.uid).pipe(
-              map(profile => {
-                const roles = profile?.roles ?? [];
-                return roles.includes('admin');
-              }),
+              map(profile => hasAnyStaffRole(profile?.roles ?? [])),
           );
         }),
         map(allowed => {
