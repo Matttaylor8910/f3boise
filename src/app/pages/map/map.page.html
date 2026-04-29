@@ -39,10 +39,22 @@
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-header">
-        <h2 *ngIf="!selectedAo">Region Overview</h2>
-        <h2 *ngIf="selectedAo">AO Details</h2>
-        <p *ngIf="!selectedAo">{{ aos.length }} active locations across {{ boiseRegions.length }} regions</p>
-        <p *ngIf="selectedAo">{{ aos.length }} active locations — click a marker to view</p>
+        <ng-container *ngIf="!selectedAo">
+          <h2>Region Overview</h2>
+          <p>{{ aos.length }} active locations across {{ boiseRegions.length }} regions</p>
+        </ng-container>
+        <ng-container *ngIf="selectedAo">
+          <button
+            type="button"
+            class="ao-panel-title-btn"
+            (click)="openAoMetaModal()"
+            title="Edit AO name and about">
+            {{ detailPanelAoTitle(selectedAo) }}
+          </button>
+          <div class="ao-panel-region-row">
+            <span class="region-badge">{{ selectedAo.region }}</span>
+          </div>
+        </ng-container>
       </div>
 
       <div class="sidebar-content">
@@ -66,27 +78,27 @@
             <div class="tree-region-body" *ngIf="region.expanded">
               <div class="tree-location" *ngFor="let loc of region.locations">
 
-                <!-- Location header (collapse toggle + actions) -->
-                <div class="tree-location-header" (click)="loc.expanded = !loc.expanded; panToLocation(loc)">
-                  <ion-icon [name]="loc.expanded ? 'chevron-down-outline' : 'chevron-forward-outline'" class="tree-chevron tree-chevron--sm"></ion-icon>
+                <!-- Single AO: compact row → opens AO detail; location name as subtitle -->
+                <div *ngIf="loc.aos.length === 1"
+                     class="tree-location-header tree-location-header--single-ao"
+                     (click)="onTreeLocationRowClick(loc)">
+                  <span class="tree-loc-chevron-spacer" aria-hidden="true"></span>
                   <div class="tree-location-info">
-                    <span class="tree-location-name" [class.unnamed]="!loc.displayName">
-                      {{ loc.displayName || '— unnamed —' }}
+                    <span class="tree-location-name"
+                          [class.unnamed]="treeLocationHeaderIsUnnamed(loc)">
+                      {{ treeLocationHeaderLabel(loc) }}
+                    </span>
+                    <span class="tree-location-secondary"
+                          *ngIf="treeLocationSubtitleSingleAo(loc)">
+                      {{ treeLocationSubtitleSingleAo(loc) }}
                     </span>
                     <span class="tree-location-addr" *ngIf="loc.address">{{ loc.address }}</span>
-                    <span class="tree-location-id">loc {{ loc.locationId }}</span>
                   </div>
-                  <span class="tree-loc-badge"
-                        [class.warn]="loc.aos.length === 0"
-                        [class.multi]="loc.aos.length > 1">
-                    {{ loc.aos.length }} AO{{ loc.aos.length !== 1 ? 's' : '' }}
-                  </span>
-                  <!-- Location action buttons -->
-                  <div class="tree-loc-actions" *ngIf="editingLocationId !== loc.locationId"
+                  <div class="tree-loc-actions"
                        (click)="$event.stopPropagation()">
                     <button class="tree-action-btn"
-                            (click)="startEditLocationName(loc, $event)"
-                            title="Rename location">
+                            (click)="openLocationEditModalFromTree(loc, $event)"
+                            title="Edit location">
                       <ion-icon name="pencil-outline"></ion-icon>
                     </button>
                     <button class="tree-action-btn tree-action-btn--danger"
@@ -97,30 +109,40 @@
                   </div>
                 </div>
 
-                <!-- Inline rename form -->
-                <div class="tree-location-rename" *ngIf="editingLocationId === loc.locationId"
-                     (click)="$event.stopPropagation()">
-                  <input class="tree-rename-input"
-                         [(ngModel)]="locationEditName"
-                         placeholder="Location name"
-                         (keydown.enter)="saveLocationName(loc, $event)"
-                         (keydown.escape)="cancelEditLocation()"
-                         autofocus />
-                  <button class="tree-rename-btn tree-rename-btn--save"
-                          [disabled]="locationEditSaving || !locationEditName.trim()"
-                          (click)="saveLocationName(loc, $event)"
-                          title="Save">
-                    <ion-icon name="checkmark-outline"></ion-icon>
-                  </button>
-                  <button class="tree-rename-btn tree-rename-btn--cancel"
-                          (click)="cancelEditLocation()"
-                          title="Cancel">
-                    <ion-icon name="close-outline"></ion-icon>
-                  </button>
+                <!-- 0 or 2+ AOs: expandable row -->
+                <div *ngIf="loc.aos.length !== 1"
+                     class="tree-location-header"
+                     (click)="onTreeLocationRowClick(loc)">
+                  <ion-icon [name]="loc.expanded ? 'chevron-down-outline' : 'chevron-forward-outline'" class="tree-chevron tree-chevron--sm"></ion-icon>
+                  <div class="tree-location-info">
+                    <span class="tree-location-name"
+                          [class.unnamed]="treeLocationHeaderIsUnnamed(loc)">
+                      {{ treeLocationHeaderLabel(loc) }}
+                    </span>
+                    <span class="tree-location-addr" *ngIf="loc.address">{{ loc.address }}</span>
+                  </div>
+                  <span class="tree-loc-badge"
+                        [class.warn]="loc.aos.length === 0"
+                        [class.multi]="loc.aos.length > 1">
+                    {{ loc.aos.length }} AO{{ loc.aos.length !== 1 ? 's' : '' }}
+                  </span>
+                  <div class="tree-loc-actions"
+                       (click)="$event.stopPropagation()">
+                    <button class="tree-action-btn"
+                            (click)="openLocationEditModalFromTree(loc, $event)"
+                            title="Edit location">
+                      <ion-icon name="pencil-outline"></ion-icon>
+                    </button>
+                    <button class="tree-action-btn tree-action-btn--danger"
+                            (click)="confirmDeleteLocation(loc, $event)"
+                            title="Delete location">
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                  </div>
                 </div>
 
-                <!-- AO list -->
-                <div class="tree-ao-list" *ngIf="loc.expanded">
+                <!-- AO list (multi-AO or empty location only) -->
+                <div class="tree-ao-list" *ngIf="loc.aos.length !== 1 && loc.expanded">
                   <div class="tree-ao"
                        *ngFor="let ao of loc.aos"
                        [class.no-events]="ao.events.length === 0"
@@ -188,130 +210,76 @@
         <!-- AO detail -->
         <div class="ao-detail" *ngIf="selectedAo">
 
-          <!-- Header row -->
           <div class="ao-detail-header">
             <button class="back-button" (click)="clearSelection()">← Back</button>
-            <button class="edit-toggle-btn"
-                    *ngIf="!isEditingAo"
-                    (click)="startAoEdit()"
-                    title="Edit AO details">
-              <ion-icon name="create-outline"></ion-icon>
-              Edit
+            <button
+              type="button"
+              class="ao-detail-menu-btn"
+              [disabled]="isDeletingAo || aoSaving"
+              title="More actions"
+              aria-label="More actions"
+              (click)="openAoDetailMenu($event)">
+              <ion-icon name="ellipsis-horizontal"></ion-icon>
             </button>
           </div>
 
-          <!-- ── VIEW MODE ── -->
-          <ng-container *ngIf="!isEditingAo">
-            <div class="ao-title">
-              <h3>{{ selectedAo.name }}</h3>
-              <span class="region-badge">{{ selectedAo.region }}</span>
+          <div class="ao-location-block">
+            <ion-icon name="location-outline" class="ao-location-pin" aria-hidden="true"></ion-icon>
+            <div class="ao-location-block-text">
+              <button
+                type="button"
+                class="ao-location-name-btn"
+                (click)="openLocationEditModal()"
+                title="Edit location name and address">
+                {{ detailPanelLocationLabel(selectedAo) }}
+              </button>
+              <p class="ao-location-address" *ngIf="selectedAo.address">{{ selectedAo.address }}</p>
             </div>
+          </div>
 
-            <p class="ao-ids">
-              Location {{ selectedAo.locationId }}<ng-container *ngIf="selectedAo.orgId ?? selectedAo.parentAoId"> · AO {{ selectedAo.orgId ?? selectedAo.parentAoId }}</ng-container>
-            </p>
+          <div class="ao-meta" *ngIf="selectedAo.eventTypes.length">
+            <ion-icon name="barbell-outline"></ion-icon>
+            <span>{{ selectedAo.eventTypes.join(' · ') }}</span>
+          </div>
 
-            <div class="ao-meta" *ngIf="selectedAo.address">
-              <ion-icon name="location-outline"></ion-icon>
-              <span>{{ selectedAo.address }}</span>
-            </div>
-
-            <div class="ao-meta" *ngIf="selectedAo.eventTypes.length">
-              <ion-icon name="barbell-outline"></ion-icon>
-              <span>{{ selectedAo.eventTypes.join(' · ') }}</span>
-            </div>
-
-            <div class="days-section">
-              <h4>Schedule</h4>
-              <div class="day-list">
-                <div
-                  class="day-item"
-                  [class.filled]="day.event"
-                  [class.empty]="!day.event"
-                  *ngFor="let day of selectedAo.days"
-                  (click)="openDayEdit(day)">
-                  <div class="day-item-content">
-                    <div class="day-label">{{ day.dayName }}</div>
-                    <div class="day-content" *ngIf="day.event">
-                      <span class="ao-name">{{ day.event.name }}</span>
-                      <span class="time-range">
-                        {{ formatTime(day.event.startTime) }} – {{ formatTime(day.event.endTime) }}
-                      </span>
-                    </div>
-                    <div class="day-content no-workout" *ngIf="!day.event">No workout scheduled</div>
+          <div class="days-section">
+            <h4>Schedule</h4>
+            <div class="day-list">
+              <div
+                class="day-item"
+                [class.filled]="day.event"
+                [class.empty]="!day.event"
+                *ngFor="let day of selectedAo.days"
+                (click)="openDayEdit(day)">
+                <div class="day-item-content">
+                  <div class="day-label">{{ day.dayName }}</div>
+                  <div class="day-content" *ngIf="day.event">
+                    <span class="ao-name">{{ day.event.name }}</span>
+                    <span class="time-range">
+                      {{ formatTime(day.event.startTime) }} – {{ formatTime(day.event.endTime) }}
+                    </span>
+                    <span class="day-event-type-line" *ngIf="dayEventTypeLine(day.event!)">
+                      {{ dayEventTypeLine(day.event!) }}
+                    </span>
                   </div>
-                  <span class="day-item-action">{{ day.event ? 'Edit' : 'Add' }}</span>
+                  <div class="day-content no-workout" *ngIf="!day.event">No workout scheduled</div>
                 </div>
+                <span class="day-item-action">{{ day.event ? 'Edit' : 'Add' }}</span>
               </div>
             </div>
+          </div>
 
-            <div class="description">
-              <h4>About</h4>
-              <p *ngIf="selectedAo.description">{{ selectedAo.description }}</p>
-              <p *ngIf="!selectedAo.description" class="description-empty">No description yet — tap Edit to add one.</p>
-            </div>
-          </ng-container>
-
-          <!-- ── EDIT MODE ── -->
-          <ng-container *ngIf="isEditingAo">
-            <div class="edit-section">
-              <h4 class="edit-section-title">Location</h4>
-
-              <div class="edit-field">
-                <label>Location name</label>
-                <input type="text" [(ngModel)]="aoEditLocationName" placeholder="e.g. Fruitland High School, Liberty Park">
-              </div>
-
-              <div class="edit-field">
-                <label>Address</label>
-                <input type="text" [(ngModel)]="aoEditAddressStreet" placeholder="123 Main St">
-              </div>
-
-              <div class="edit-field-row">
-                <div class="edit-field">
-                  <label>City</label>
-                  <input type="text" [(ngModel)]="aoEditAddressCity" placeholder="Boise">
-                </div>
-                <div class="edit-field edit-field--zip">
-                  <label>Zip</label>
-                  <input type="text" [(ngModel)]="aoEditAddressZip" placeholder="83701">
-                </div>
-              </div>
-            </div>
-
-            <div class="edit-section">
-              <h4 class="edit-section-title">AO</h4>
-
-              <div class="edit-field">
-                <label>AO name</label>
-                <input type="text" [(ngModel)]="aoEditName" placeholder="AO name">
-              </div>
-
-              <div class="edit-field">
-                <label>About</label>
-                <textarea
-                  [(ngModel)]="aoEditDescription"
-                  rows="5"
-                  placeholder="Describe the AO — meeting spot, vibe, what to expect…"></textarea>
-              </div>
-            </div>
-
-            <div class="save-error" *ngIf="aoSaveError">{{ aoSaveError }}</div>
-
-            <div class="edit-actions">
-              <button class="btn-save" (click)="saveAoDetails()" [disabled]="!aoEditName.trim() || aoSaving || isDeletingAo">
-                {{ aoSaving ? 'Saving…' : 'Save Changes' }}
-              </button>
-              <button class="btn-cancel" (click)="cancelAoEdit()" [disabled]="aoSaving || isDeletingAo">Cancel</button>
-            </div>
-
-            <div class="delete-ao-section">
-              <button class="btn-delete-ao" (click)="confirmDeleteAo()" [disabled]="aoSaving || isDeletingAo">
-                <ion-icon name="trash-outline"></ion-icon>
-                {{ isDeletingAo ? 'Removing…' : 'Remove AO' }}
-              </button>
-            </div>
-          </ng-container>
+          <div class="description">
+            <h4>AO description</h4>
+            <ng-container *ngIf="detailPanelAoAbout(selectedAo) as about; else aoAboutEmpty">
+              <p>{{ about }}</p>
+            </ng-container>
+            <ng-template #aoAboutEmpty>
+              <p class="description-empty">
+                No AO description yet — use the AO title above to add one.
+              </p>
+            </ng-template>
+          </div>
 
         </div>
 
@@ -334,7 +302,7 @@
 
       <div class="form-group">
         <label>AO Name <span class="required-star">*</span></label>
-        <input type="text" [(ngModel)]="newAoForm.name" placeholder="e.g. The Bleach">
+        <input type="text" [(ngModel)]="newAoForm.name" placeholder="e.g. Bleach">
       </div>
 
       <div class="form-group">
@@ -383,11 +351,19 @@
             ? 'Update the workout details for ' + editingDay.dayName
             : 'Add a new workout for ' + editingDay.dayName }}
         </p>
+        <p class="modal-hint">
+          Workout name and description apply to this day only. The AO-wide name and description are edited from the AO title at the top of the side panel.
+        </p>
       </div>
 
       <div class="form-group">
-        <label>AO Name</label>
-        <input type="text" [(ngModel)]="dayForm.name" placeholder="e.g. Bleach">
+        <label>Workout name</label>
+        <input type="text" [(ngModel)]="dayForm.name" placeholder="e.g. Ruck and Discuss or Bleach">
+      </div>
+
+      <div class="form-group">
+        <label>Workout description</label>
+        <textarea [(ngModel)]="dayForm.description" rows="4" placeholder="Details for this day’s workout (separate from the AO description)"></textarea>
       </div>
 
       <div class="form-row">
@@ -422,6 +398,79 @@
           {{ deleting ? 'Removing…' : 'Remove' }}
         </button>
         <button class="btn-cancel" (click)="closeModal()" [disabled]="saving || deleting">Cancel</button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>
+
+<!-- Edit AO org (name + about) -->
+<ion-modal [isOpen]="aoMetaModalOpen" (didDismiss)="closeAoMetaModal()" [backdropDismiss]="!aoSaving">
+  <ng-template>
+    <div class="modal-inner" *ngIf="selectedAo">
+      <div class="modal-header">
+        <h3>Edit AO</h3>
+        <p class="modal-meta-id">AO org ID {{ selectedAo.orgId ?? selectedAo.parentAoId ?? '—' }}</p>
+      </div>
+
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" [(ngModel)]="aoEditName" placeholder="AO name">
+      </div>
+
+      <div class="form-group">
+        <label>About</label>
+        <textarea [(ngModel)]="aoEditDescription" rows="5" placeholder="Describe the AO…"></textarea>
+      </div>
+
+      <div class="save-error" *ngIf="aoSaveError">{{ aoSaveError }}</div>
+
+      <div class="modal-buttons">
+        <button class="btn-save" (click)="saveAoMetaFromModal()" [disabled]="!aoEditName.trim() || aoSaving">
+          {{ aoSaving ? 'Saving…' : 'Save' }}
+        </button>
+        <button class="btn-cancel" (click)="closeAoMetaModal()" [disabled]="aoSaving">Cancel</button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>
+
+<!-- Edit location (name + address) -->
+<ion-modal [isOpen]="locationEditModalOpen" (didDismiss)="closeLocationEditModal()" [backdropDismiss]="!aoSaving">
+  <ng-template>
+    <div class="modal-inner" *ngIf="locationEditModalLocationId">
+      <div class="modal-header">
+        <h3>Edit location</h3>
+        <p class="modal-meta-id">Location ID {{ locationEditModalLocationId }}</p>
+      </div>
+
+      <div class="form-group">
+        <label>Location name</label>
+        <input type="text" [(ngModel)]="aoEditLocationName" placeholder="Display name">
+      </div>
+
+      <div class="form-group">
+        <label>Street</label>
+        <input type="text" [(ngModel)]="aoEditAddressStreet" placeholder="Street address">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>City</label>
+          <input type="text" [(ngModel)]="aoEditAddressCity" placeholder="Boise">
+        </div>
+        <div class="form-group">
+          <label>ZIP</label>
+          <input type="text" [(ngModel)]="aoEditAddressZip" placeholder="83701">
+        </div>
+      </div>
+
+      <div class="save-error" *ngIf="aoSaveError">{{ aoSaveError }}</div>
+
+      <div class="modal-buttons">
+        <button class="btn-save" (click)="saveLocationFromModal()" [disabled]="aoSaving">
+          {{ aoSaving ? 'Saving…' : 'Save' }}
+        </button>
+        <button class="btn-cancel" (click)="closeLocationEditModal()" [disabled]="aoSaving">Cancel</button>
       </div>
     </div>
   </ng-template>

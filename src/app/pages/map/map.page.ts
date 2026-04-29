@@ -1,5 +1,9 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {AlertController, ToastController} from '@ionic/angular';
+import {AlertController, PopoverController, ToastController} from '@ionic/angular';
+import {ActionsPopoverPageComponent} from 'src/app/components/actions-popover/actions-popover-page.component';
+import {
+  PopoverAction,
+} from 'src/app/components/actions-popover/actions-popover.component';
 import {
   BOISE_REGION_IDS,
   CreateOrUpdateEventRequest,
@@ -61,9 +65,15 @@ export interface GroupedAo {
   markerOptions?: google.maps.MarkerOptions;
 }
 
+/** Narrow shape for `/event` POST id resolution. Every `GroupedAo` is assignable. */
+type AoPayloadContext = Pick<GroupedAo, 'locationId'>&
+    Partial<Pick<GroupedAo, 'orgId'|'parentAoId'|'regionId'>>;
+
 export interface DayForm {
   enabled: boolean;
   name: string;
+  /** `/event` description — distinct from AO org description */
+  description: string;
   startTime: string;
   endTime: string;
   eventTypeId: number;
@@ -132,9 +142,6 @@ export class MapPage implements OnInit {
   private rawLocations: F3Location[] = [];
 
   // Tree inline edit state
-  editingLocationId: number|null = null;
-  locationEditName = '';
-  locationEditSaving = false;
   editingAoId: number|null = null;
   aoEditNameTree = '';
   aoEditNameSaving = false;
@@ -147,8 +154,12 @@ export class MapPage implements OnInit {
   newAoForm: NewAoForm = this.emptyNewAoForm();
   private pendingLatLng: google.maps.LatLngLiteral|null = null;
 
-  // AO detail inline editing
-  isEditingAo = false;
+  // AO / location edit modals (detail panel)
+  aoMetaModalOpen = false;
+  locationEditModalOpen = false;
+  /** Modal target when editing from sidebar or region tree */
+  locationEditModalLocationId: number|null = null;
+  locationEditTreeOrgId: number|null = null;
   aoEditLocationName = '';
   aoEditName = '';
   aoEditDescription = '';
@@ -182,6 +193,8 @@ export class MapPage implements OnInit {
 
   /** Coalesce rapid pin updates from parallel geocoder callbacks */
   private fitBoundsTimer?: number;
+  /** Invalidates running eased camera animations when a new target is chosen */
+  private cameraAnimationSeq = 0;
 
   private geocoder!: google.maps.Geocoder;
 
@@ -189,6 +202,7 @@ export class MapPage implements OnInit {
       private readonly f3Api: F3ApiService,
       private readonly alertController: AlertController,
       private readonly toastController: ToastController,
+      private readonly popoverController: PopoverController,
   ) {}
 
   async ngOnInit() {
@@ -265,7 +279,7 @@ export class MapPage implements OnInit {
       if (match) this.selectedAo = match;
       else {
         this.selectedAo = null;
-        this.isEditingAo = false;
+        this.closeDetailEditModals();
         this.closeModal();
       }
     }
@@ -450,23 +464,78 @@ export class MapPage implements OnInit {
     return {id: r0?.regionId ?? 0, name: r0?.regionName ?? ''};
   }
 
-  /** Region id for POST: prefer a Boise id on the event; never pick a random `regions[0]`. */
-  private regionIdForPayload(ev: F3Event|null|undefined, fallbackAo: GroupedAo): number {
+  /** Region id for POST: prefer Boise on the event; fall back to context; last resort default region. */
+  private regionIdForPayload(ev: F3Event|null|undefined, fallback: AoPayloadContext): number {
     const allowed = new Set<number>(Object.values(BOISE_REGION_IDS));
     if (ev?.regions?.length) {
       const hit = ev.regions.find(r => allowed.has(r.regionId));
       if (hit) return hit.regionId;
     }
-    return fallbackAo.regionId;
+    if (fallback.regionId && allowed.has(fallback.regionId)) return fallback.regionId;
+    return BOISE_REGION_IDS.cityOfTrees;
   }
 
-  private aoIdForPayload(ev: F3Event|null|undefined, ao: GroupedAo): number {
-    const parent = ev?.parents?.[0]?.parentId;
-    if (parent != null && parent > 0) return parent;
-    if (ev?.locationId) return ev.locationId;
-    // For freshly-created AOs, use the org ID (not locationId) as aoId
-    if (ao.orgId) return ao.orgId;
-    return ao.locationId;
+  /**
+   * aoId MUST be the AO org id — never `locationId`.
+   * Order: event parent → ctx org ids → org whose defaultLocationId is this location.
+   */
+  private aoIdForPayload(ev: F3Event|null|undefined, ctx: AoPayloadContext): number {
+    const fromEvent = ev?.parents?.[0]?.parentId;
+    if (fromEvent != null && fromEvent > 0) return fromEvent;
+
+    const fromAo = ctx.orgId ?? ctx.parentAoId;
+    if (fromAo != null && fromAo > 0) return fromAo;
+
+    const fromOrgAtLocation =
+        this.rawOrgs.find(o => o.defaultLocationId === ctx.locationId)?.id;
+    if (fromOrgAtLocation != null && fromOrgAtLocation > 0) return fromOrgAtLocation;
+
+    throw new Error(
+        'Cannot save workout: missing AO org id for this location. Try reopening the AO from the map.',
+    );
+  }
+
+  /** Prefer `event.locationId` when positive; skip `0` from bad API payloads (use ctx). */
+  private locationIdForPayload(ev: F3Event|null|undefined, ctx: AoPayloadContext): number {
+    const fromEv = ev?.locationId;
+    const lid = fromEv != null && fromEv > 0 ? fromEv : ctx.locationId;
+    if (!lid || lid <= 0) {
+      throw new Error('Cannot save workout: missing location id.');
+    }
+    return lid;
+  }
+
+  private eventIdsForMutation(ev: F3Event|null|undefined, ctx: AoPayloadContext): {
+    aoId: number;
+    regionId: number;
+    locationId: number;
+  } {
+    return {
+      aoId: this.aoIdForPayload(ev, ctx),
+      regionId: this.regionIdForPayload(ev, ctx),
+      locationId: this.locationIdForPayload(ev, ctx),
+    };
+  }
+
+  private payloadContextFromTreeLocation(loc: TreeLocation, sampleEv?: F3Event|null): AoPayloadContext {
+    const picked = sampleEv ? this.pickBoiseRegion([sampleEv]) : null;
+    const allowed = new Set<number>(Object.values(BOISE_REGION_IDS));
+    const regionId =
+      picked?.id && allowed.has(picked.id) ? picked.id : BOISE_REGION_IDS.cityOfTrees;
+    return {locationId: loc.locationId, regionId};
+  }
+
+  /** Tree AO flow: pin org ids to the `TreeAo` row; region from a sample raw event when present. */
+  private payloadContextFromTreeAo(
+      loc: TreeLocation,
+      treeAo: TreeAo,
+      sampleEv?: F3Event|null,
+      ): AoPayloadContext {
+    return {
+      ...this.payloadContextFromTreeLocation(loc, sampleEv),
+      orgId: treeAo.orgId,
+      parentAoId: treeAo.orgId,
+    };
   }
 
   // ── Region tree ──────────────────────────────────────────────────
@@ -594,7 +663,13 @@ export class MapPage implements OnInit {
       regionId: r.id,
       regionName: r.name,
       locations: Array.from(regionMap.get(r.id)?.values() ?? [])
-        .sort((a, b) => a.displayName.localeCompare(b.displayName)),
+        .sort((a, b) =>
+          this.treeLocationSortKey(a).localeCompare(
+            this.treeLocationSortKey(b),
+            undefined,
+            {sensitivity: 'base'},
+          ),
+        ),
       expanded: true,
     }));
   }
@@ -606,29 +681,72 @@ export class MapPage implements OnInit {
     if (match) {
       this.selectAo(match);
     } else if (loc.lat !== null && loc.lng !== null) {
-      this.mapCenter = {lat: loc.lat, lng: loc.lng};
+      this.animateCameraToPoint(loc.lat, loc.lng);
     }
   }
 
+  /** Expand / focus a tree location row without changing zoom — avoids fighting `fitBounds` zoom pulses. */
   panToLocation(loc: TreeLocation) {
     if (loc.lat !== null && loc.lng !== null) {
-      this.mapCenter = {lat: loc.lat, lng: loc.lng};
+      this.panMapPreserveZoom(loc.lat, loc.lng);
     }
   }
 
-  // ── Tree: rename location ────────────────────────────────────────
-
-  startEditLocationName(loc: TreeLocation, event: Event) {
-    event.stopPropagation();
-    this.editingLocationId = loc.locationId;
-    this.locationEditName = loc.displayName;
-    this.treeActionError = null;
+  /** Smooth pan only; preserves current zoom (for marker taps we skip camera entirely). */
+  private panMapPreserveZoom(lat: number, lng: number): void {
+    const gmap = this.mapComponent?.googleMap;
+    if (!gmap) return;
+    gmap.panTo({lat, lng});
+    google.maps.event.addListenerOnce(gmap, 'idle', () =>
+        this.syncMapCenterFromNativeMap(gmap));
   }
 
-  cancelEditLocation() {
-    this.editingLocationId = null;
-    this.locationEditName = '';
-    this.treeActionError = null;
+  /**
+   * Alphabetical sort key for region tree rows: the sole AO name when exactly one AO;
+   * otherwise location name (covers 0 or 2+ AOs at the pin).
+   */
+  private treeLocationSortKey(loc: TreeLocation): string {
+    if (loc.aos.length === 1) {
+      const aoName = loc.aos[0]?.name?.trim();
+      if (aoName) return aoName;
+    }
+    return loc.displayName?.trim() ?? '';
+  }
+
+  /**
+   * When a pin has exactly one AO, the tree lists that AO name instead of the location row label.
+   */
+  treeLocationHeaderLabel(loc: TreeLocation): string {
+    return this.treeLocationSortKey(loc) || '— unnamed —';
+  }
+
+  treeLocationHeaderIsUnnamed(loc: TreeLocation): boolean {
+    return !this.treeLocationSortKey(loc);
+  }
+
+  onTreeLocationRowClick(loc: TreeLocation): void {
+    if (loc.aos.length === 1) {
+      const ao = loc.aos[0];
+      if (ao) this.selectTreeAo(ao, loc);
+      return;
+    }
+    loc.expanded = !loc.expanded;
+    this.panToLocation(loc);
+  }
+
+  /**
+   * When the row shows a single AO, second line: location roster name if it differs from the AO title.
+   */
+  treeLocationSubtitleSingleAo(loc: TreeLocation): string {
+    if (loc.aos.length !== 1) return '';
+    const locName = loc.displayName?.trim() ?? '';
+    if (!locName) return '';
+    const aoName = loc.aos[0]?.name?.trim();
+    if (!aoName) return '';
+    if (locName.localeCompare(aoName, undefined, {sensitivity: 'base'}) === 0) {
+      return '';
+    }
+    return locName;
   }
 
   // ── Tree: rename AO ──────────────────────────────────────────────
@@ -683,35 +801,6 @@ export class MapPage implements OnInit {
     }
   }
 
-  async saveLocationName(loc: TreeLocation, event: Event) {
-    event.stopPropagation();
-    const name = this.locationEditName.trim();
-    if (!name) return;
-    this.locationEditSaving = true;
-    this.treeActionError = null;
-    try {
-      await this.f3Api.createLocation({
-        id: loc.locationId,
-        orgId: loc.orgId,
-        name,
-        isActive: true,
-      });
-      const L = this.rawLocations.find(l => l.id === loc.locationId);
-      if (L) L.locationName = name;
-      for (const ev of this.rawEvents) {
-        if (ev.locationId === loc.locationId) ev.locationName = name;
-      }
-      this.editingLocationId = null;
-      this.rebuildDerivedFromRaw(true);
-    } catch (e: any) {
-      this.treeActionError = e.message ?? 'Failed to rename location';
-    } finally {
-      this.locationEditSaving = false;
-    }
-  }
-
-  // ── Tree: delete location ────────────────────────────────────────
-
   async confirmDeleteLocation(loc: TreeLocation, event: Event) {
     event.stopPropagation();
     const eventsAtLoc = this.rawEvents.filter(e => e.locationId === loc.locationId);
@@ -722,7 +811,8 @@ export class MapPage implements OnInit {
     const lines: string[] = [];
     if (a > 0) lines.push(`${a} AO org${a !== 1 ? 's' : ''}`);
     if (n > 0) lines.push(`${n} workout event${n !== 1 ? 's' : ''}`);
-    const detail = lines.length ? `This will also deactivate ${lines.join(' and ')} associated with it. ` : '';
+    const detail =
+        lines.length ? `This will also deactivate ${lines.join(' and ')} associated with it. ` : '';
 
     const alert = await this.alertController.create({
       header: 'Delete location?',
@@ -745,11 +835,11 @@ export class MapPage implements OnInit {
     try {
       // 1. Deactivate all events at this location
       for (const ev of eventsAtLoc) {
+        const ctx = this.payloadContextFromTreeLocation(loc, ev);
+        const ids = this.eventIdsForMutation(ev, ctx);
         await this.f3Api.createOrUpdateEvent({
           id: ev.id,
-          aoId: ev.parents?.[0]?.parentId ?? loc.orgId,
-          regionId: ev.regions?.[0]?.regionId ?? Object.values(BOISE_REGION_IDS)[0],
-          locationId: ev.locationId,
+          ...ids,
           eventTypeIds: ev.eventTypes?.map(t => t.eventTypeId) ?? [1],
           name: ev.name,
           description: ev.description,
@@ -790,7 +880,7 @@ export class MapPage implements OnInit {
       this.rawLocations = this.rawLocations.filter(l => l.id !== lid);
       if (this.selectedAo?.locationId === lid) {
         this.selectedAo = null;
-        this.isEditingAo = false;
+        this.closeDetailEditModals();
         this.closeModal();
       }
       this.rebuildDerivedFromRaw(true);
@@ -839,11 +929,11 @@ export class MapPage implements OnInit {
       for (const ev of ao.events) {
         const rawEv = this.rawEvents.find(e => e.id === ev.id);
         if (!rawEv) continue;
+        const ctx = this.payloadContextFromTreeAo(loc, ao, rawEv);
+        const ids = this.eventIdsForMutation(rawEv, ctx);
         await this.f3Api.createOrUpdateEvent({
           id: rawEv.id,
-          aoId: ao.orgId,
-          regionId: rawEv.regions?.[0]?.regionId ?? Object.values(BOISE_REGION_IDS)[0],
-          locationId: rawEv.locationId,
+          ...ids,
           eventTypeIds: rawEv.eventTypes?.map(t => t.eventTypeId) ?? [1],
           name: rawEv.name,
           description: rawEv.description,
@@ -883,7 +973,7 @@ export class MapPage implements OnInit {
         const sid = this.selectedAo.orgId ?? this.selectedAo.parentAoId;
         if (this.selectedAo.locationId === lid && sid === orgIdRemoved) {
           this.selectedAo = null;
-          this.isEditingAo = false;
+          this.closeDetailEditModals();
           this.closeModal();
         }
       }
@@ -937,6 +1027,9 @@ export class MapPage implements OnInit {
   }
 
   private fitMapToPins(): void {
+    /** Drop any eased `animateCameraToPoint` frames before we fit/refit pins */
+    this.cameraAnimationSeq++;
+
     const gmap = this.mapComponent?.googleMap;
     if (!gmap) return;
 
@@ -950,8 +1043,7 @@ export class MapPage implements OnInit {
     const PAD = 56;
 
     if (coords.length === 1) {
-      gmap.setCenter(coords[0]);
-      gmap.setZoom(MapPage.SINGLE_AO_ZOOM);
+      this.animateCameraToPoint(coords[0].lat, coords[0].lng);
       return;
     }
 
@@ -964,7 +1056,88 @@ export class MapPage implements OnInit {
       if (z !== undefined && z > MapPage.MULTI_PIN_MAX_ZOOM) {
         gmap.setZoom(MapPage.MULTI_PIN_MAX_ZOOM);
       }
+      this.syncMapCenterFromNativeMap(gmap);
     });
+  }
+
+  /**
+   * Eased pan + zoom for overview → AO: `fitBounds` + `setZoom` on idle snaps abruptly;
+   * Google's pattern is many `moveCamera` frames (see move-camera-ease sample).
+   */
+  private animateCameraToPoint(lat: number, lng: number): void {
+    const gmap = this.mapComponent?.googleMap;
+    if (!gmap) return;
+
+    const start = gmap.getCenter();
+    const z0 = gmap.getZoom();
+    if (!start) return;
+
+    const fromLat = start.lat();
+    const fromLng = start.lng();
+    const fromZoom = z0 ?? MapPage.SINGLE_AO_ZOOM;
+    const endZoom = MapPage.SINGLE_AO_ZOOM;
+
+    const token = ++this.cameraAnimationSeq;
+    const duration = MapPage.AO_CAMERA_DURATION_MS;
+    const tStart = performance.now();
+
+    const move = (camera: google.maps.CameraOptions) => {
+      const gm = gmap as google.maps.Map&{
+        moveCamera?(camera: google.maps.CameraOptions): void;
+      };
+      if (typeof gm.moveCamera === 'function') {
+        gm.moveCamera(camera);
+      } else if (camera.center) {
+        const c = camera.center;
+        const lit = c instanceof google.maps.LatLng ?
+            c.toJSON() :
+            {lat: (c as google.maps.LatLngLiteral).lat, lng: (c as google.maps.LatLngLiteral).lng};
+        gmap.setCenter(lit);
+        if (camera.zoom !== undefined) {
+          gmap.setZoom(Math.round(camera.zoom));
+        }
+      }
+    };
+
+    const frame = (now: number) => {
+      if (token !== this.cameraAnimationSeq) return;
+      const u = Math.min(1, (now - tStart) / duration);
+      const e = MapPage.easeOutCubic(u);
+      const clat = fromLat + (lat - fromLat) * e;
+      const clng = fromLng + (lng - fromLng) * e;
+      const zoom = fromZoom + (endZoom - fromZoom) * e;
+      move({
+        center: {lat: clat, lng: clng},
+        zoom,
+        tilt: 0,
+        heading: gmap.getHeading?.() ?? 0,
+      });
+      if (u < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        if (token !== this.cameraAnimationSeq) return;
+        move({
+          center: {lat, lng},
+          zoom: endZoom,
+          tilt: 0,
+          heading: gmap.getHeading?.() ?? 0,
+        });
+        this.syncMapCenterFromNativeMap(gmap);
+      }
+    };
+    requestAnimationFrame(frame);
+  }
+
+  /** AO selection from overview — slower than default so zoom-in reads as deliberate (Back still uses native `fitBounds`). */
+  private static readonly AO_CAMERA_DURATION_MS = 1450;
+
+  private static easeOutCubic(t: number): number {
+    return 1 - (1 - t) ** 3;
+  }
+
+  private syncMapCenterFromNativeMap(gmap: google.maps.Map): void {
+    const c = gmap.getCenter();
+    if (c) this.mapCenter = {lat: c.lat(), lng: c.lng()};
   }
 
   private static readonly SINGLE_AO_ZOOM = 14;
@@ -1173,53 +1346,161 @@ export class MapPage implements OnInit {
     }
   }
 
+  /** Marker on the map — select detail only (camera stays where the user already panned/zoomed). */
   onMarkerClick(ao: GroupedAo) {
-    this.selectedAo = ao;
-    this.isEditingAo = false;
-    this.aoSaveError = null;
-    this.closeModal();
+    this.applyAoSelection(ao);
   }
 
+  /** Region-overview / tree: select AO and fly the camera to it. */
   selectAo(ao: GroupedAo) {
-    this.onMarkerClick(ao);
+    this.applyAoSelection(ao);
     if (ao.position) {
-      this.mapCenter = {lat: ao.position.lat, lng: ao.position.lng};
+      this.animateCameraToPoint(ao.position.lat, ao.position.lng);
     }
+  }
+
+  private applyAoSelection(ao: GroupedAo): void {
+    this.selectedAo = ao;
+    this.closeDetailEditModals();
+    this.aoSaveError = null;
+    this.closeModal();
   }
 
   clearSelection() {
     this.selectedAo = null;
-    this.isEditingAo = false;
+    this.closeDetailEditModals();
+    this.aoSaveError = null;
     this.closeModal();
+    window.clearTimeout(this.fitBoundsTimer);
+    this.fitBoundsTimer = undefined;
+    this.fitMapToPins();
   }
 
-  // ── AO detail editing ─────────────────────────────────────────────
+  // ── AO detail: modals & display helpers ──────────────────────────
 
-  startAoEdit() {
-    const sel = this.selectedAo;
-    if (!sel) return;
-    const loc = this.rawLocations.find(l => l.id === sel.locationId);
-    const firstEv = sel.days.map(d => d.event).find((e): e is F3Event => !!e);
+  private closeDetailEditModals(): void {
+    this.aoMetaModalOpen = false;
+    this.locationEditModalOpen = false;
+    this.locationEditModalLocationId = null;
+    this.locationEditTreeOrgId = null;
+    this.aoSaveError = null;
+  }
+
+  /** Prefer org roster name when we have an AO org id (event rows can mix workout/location naming). */
+  detailPanelAoTitle(ao: GroupedAo): string {
+    const oid = ao.orgId ?? ao.parentAoId;
+    if (oid) {
+      const o = this.rawOrgs.find(x => x.id === oid);
+      if (o?.name?.trim()) return o.name.trim();
+    }
+    return ao.name;
+  }
+
+  /**
+   * Sidebar "About" text: AO org `/org` description, not `GroupedAo.description`
+   * (that field is seeded from the first *event* workout row and can diverge).
+   */
+  detailPanelAoAbout(ao: GroupedAo): string {
+    const oid = ao.orgId ?? ao.parentAoId;
+    const org = oid ? this.rawOrgs.find(x => x.id === oid) : undefined;
+    return (org?.description ?? ao.description ?? '').trim();
+  }
+
+  /** Location name shown above the address lines. */
+  detailPanelLocationLabel(ao: GroupedAo): string {
+    const loc = this.rawLocations.find(l => l.id === ao.locationId);
+    const firstEv = ao.days.map(d => d.event).find((e): e is F3Event => !!e);
+    const n = (loc?.locationName ?? firstEv?.locationName ?? '').trim();
+    if (n) return n;
+    return this.detailPanelAoTitle(ao);
+  }
+
+  private populateLocationFormForLocationId(locationId: number): void {
+    const loc = this.rawLocations.find(l => l.id === locationId);
+    const eventsHere = this.rawEvents.filter(e => e.locationId === locationId);
+    const firstEv = eventsHere[0];
     this.aoEditLocationName =
         (loc?.locationName ?? firstEv?.locationName ?? '').trim();
-    this.aoEditName = sel.name;
-    this.aoEditDescription = sel.description;
-    this.aoEditAddressStreet = sel.addressStreet ?? '';
-    this.aoEditAddressCity = sel.addressCity ?? '';
-    this.aoEditAddressZip = sel.addressZip ?? '';
-    this.aoSaveError = null;
-    this.isEditingAo = true;
+    this.aoEditAddressStreet = loc?.addressStreet ?? firstEv?.locationAddress ?? '';
+    this.aoEditAddressCity = loc?.addressCity ?? firstEv?.locationCity ?? '';
+    this.aoEditAddressZip = loc?.addressZip ?? firstEv?.locationZip ?? '';
   }
 
-  cancelAoEdit() {
-    this.isEditingAo = false;
+  async openAoDetailMenu(ev: Event): Promise<void> {
+    ev.preventDefault();
+    ev.stopPropagation();
+    const actions: PopoverAction[] = [
+      {
+        label: 'Delete AO',
+        icon: 'trash-outline',
+        onClick: () => {
+          void this.confirmDeleteAo();
+        },
+      },
+    ];
+    const popover = await this.popoverController.create({
+      component: ActionsPopoverPageComponent,
+      componentProps: {actions},
+      event: ev,
+      translucent: true,
+      showBackdrop: true,
+    });
+    await popover.present();
+    const {data} = await popover.onDidDismiss<PopoverAction>();
+    if (data?.onClick) data.onClick();
+  }
+
+  openAoMetaModal(): void {
+    const sel = this.selectedAo;
+    if (!sel) return;
+    const oid = sel.orgId ?? sel.parentAoId;
+    const org = oid ? this.rawOrgs.find(o => o.id === oid) : undefined;
+    this.aoEditName = (org?.name ?? this.detailPanelAoTitle(sel)).trim();
+    this.aoEditDescription = this.detailPanelAoAbout(sel);
+    this.aoSaveError = null;
+    this.aoMetaModalOpen = true;
+  }
+
+  closeAoMetaModal(): void {
+    this.aoMetaModalOpen = false;
     this.aoSaveError = null;
   }
 
-  async saveAoDetails() {
+  openLocationEditModal(): void {
+    const sel = this.selectedAo;
+    if (!sel?.locationId) return;
+    this.locationEditModalLocationId = sel.locationId;
+    this.locationEditTreeOrgId = null;
+    this.populateLocationFormForLocationId(sel.locationId);
+    this.aoSaveError = null;
+    this.locationEditModalOpen = true;
+  }
+
+  /** Region tree pencil — same form as AO detail “location name” edit. */
+  openLocationEditModalFromTree(loc: TreeLocation, event?: Event): void {
+    event?.stopPropagation?.();
+    this.locationEditModalLocationId = loc.locationId;
+    this.locationEditTreeOrgId = loc.orgId;
+    this.populateLocationFormForLocationId(loc.locationId);
+    this.aoSaveError = null;
+    this.locationEditModalOpen = true;
+  }
+
+  closeLocationEditModal(): void {
+    this.locationEditModalOpen = false;
+    this.locationEditModalLocationId = null;
+    this.locationEditTreeOrgId = null;
+    this.aoSaveError = null;
+  }
+
+  async saveAoMetaFromModal(): Promise<void> {
     if (!this.selectedAo) return;
     const ao = this.selectedAo;
     const orgId = ao.orgId ?? ao.parentAoId;
+    if (!orgId) {
+      this.aoSaveError = 'No AO org id is linked to this pin.';
+      return;
+    }
     const name = this.aoEditName.trim();
     if (!name) return;
 
@@ -1227,86 +1508,119 @@ export class MapPage implements OnInit {
     this.aoSaveError = null;
 
     try {
-      // Update the AO org (name + description)
-      if (orgId) {
-        await this.f3Api.createOrg({
-          id: orgId,
-          parentId: ao.regionId,
-          name,
-          description: this.aoEditDescription.trim(),
-          isActive: true,
-          orgType: 'ao',
-          website: F3_REGION_WEBSITE_URL,
-          twitter: '',
-          facebook: '',
-          instagram: '',
-        });
+      await this.f3Api.createOrg({
+        id: orgId,
+        parentId: ao.regionId,
+        name,
+        description: this.aoEditDescription.trim(),
+        isActive: true,
+        orgType: 'ao',
+        website: F3_REGION_WEBSITE_URL,
+        twitter: '',
+        facebook: '',
+        instagram: '',
+      });
+
+      const o = this.rawOrgs.find(r => r.id === orgId);
+      if (o) {
+        o.name = name;
+        o.description = this.aoEditDescription.trim();
+      }
+      for (const ev of this.rawEvents) {
+        const ps = ev.parents;
+        if (ps?.length && ps[0].parentId === orgId) ps[0] = {...ps[0], parentName: name};
       }
 
-      const locRecord = ao.locationId ? this.rawLocations.find(l => l.id === ao.locationId) : undefined;
-      const newLocName =
-          this.aoEditLocationName.trim() || locRecord?.locationName?.trim() || name;
-      const street = this.aoEditAddressStreet.trim();
-      const city = this.aoEditAddressCity.trim();
-      const zip = this.aoEditAddressZip.trim();
-      const locOrgId = locRecord
-        ? (this.rawOrgs.find(o => o.defaultLocationId === ao.locationId)?.id ?? locRecord.regionId)
-        : (orgId ?? ao.locationId!);
+      this.rebuildDerivedFromRaw(true);
+      this.closeAoMetaModal();
+    } catch (e: any) {
+      this.aoSaveError = e.message ?? 'Failed to save changes';
+    } finally {
+      this.aoSaving = false;
+    }
+  }
 
-      const locDirty = !!ao.locationId && (!locRecord ||
-        newLocName !== (locRecord.locationName ?? '').trim() ||
-        street !== (locRecord.addressStreet ?? '').trim() ||
-        city !== (locRecord.addressCity ?? '').trim() ||
-        zip !== (locRecord.addressZip ?? '').trim());
+  async saveLocationFromModal(): Promise<void> {
+    const locationId =
+        this.locationEditModalLocationId ?? this.selectedAo?.locationId ?? null;
+    if (!locationId || locationId <= 0) {
+      this.closeLocationEditModal();
+      return;
+    }
 
-      if (locDirty && ao.locationId) {
-        await this.f3Api.createLocation({
-          id: ao.locationId,
-          orgId: locOrgId,
-          name: newLocName || `Location ${ao.locationId}`,
-          isActive: true,
-          ...(street ? {addressStreet: street} : {}),
-          ...(city   ? {addressCity: city}   : {}),
-          addressState: 'ID',
-          ...(zip    ? {addressZip: zip}     : {}),
-          addressCountry: 'US',
-        });
+    const ao = this.selectedAo;
+    const locRecord = this.rawLocations.find(l => l.id === locationId);
+
+    const nameFallback =
+        (ao ? this.detailPanelAoTitle(ao) : locRecord?.locationName?.trim()) || '';
+    const newLocName =
+        this.aoEditLocationName.trim() ||
+        locRecord?.locationName?.trim() ||
+        nameFallback ||
+        `Location ${locationId}`;
+
+    const street = this.aoEditAddressStreet.trim();
+    const city = this.aoEditAddressCity.trim();
+    const zip = this.aoEditAddressZip.trim();
+
+    const aoOrgFallback = ao ? (ao.orgId ?? ao.parentAoId) : undefined;
+    let locOrgId: number;
+    if (locRecord) {
+      locOrgId = this.rawOrgs.find(o => o.defaultLocationId === locationId)?.id ??
+          locRecord.regionId;
+    } else {
+      locOrgId = (this.locationEditTreeOrgId && this.locationEditTreeOrgId > 0)
+        ? this.locationEditTreeOrgId
+        : (aoOrgFallback && aoOrgFallback > 0 ? aoOrgFallback : locationId);
+    }
+
+    const locDirty = !locRecord ||
+      newLocName !== (locRecord.locationName ?? '').trim() ||
+      street !== (locRecord.addressStreet ?? '').trim() ||
+      city !== (locRecord.addressCity ?? '').trim() ||
+      zip !== (locRecord.addressZip ?? '').trim();
+
+    if (!locDirty) {
+      this.closeLocationEditModal();
+      return;
+    }
+
+    this.aoSaving = true;
+    this.aoSaveError = null;
+
+    try {
+      await this.f3Api.createLocation({
+        id: locationId,
+        orgId: locOrgId,
+        name: newLocName || `Location ${locationId}`,
+        isActive: true,
+        ...(street ? {addressStreet: street} : {}),
+        ...(city   ? {addressCity: city}   : {}),
+        addressState: 'ID',
+        ...(zip    ? {addressZip: zip}     : {}),
+        addressCountry: 'US',
+      });
+
+      const L = this.rawLocations.find(l => l.id === locationId);
+      if (L) {
+        L.locationName = newLocName || L.locationName;
+        if (street) L.addressStreet = street;
+        if (city) L.addressCity = city;
+        if (zip) L.addressZip = zip;
       }
-
-      if (orgId) {
-        const o = this.rawOrgs.find(r => r.id === orgId);
-        if (o) {
-          o.name = name;
-          o.description = this.aoEditDescription.trim();
-        }
-        for (const ev of this.rawEvents) {
-          const ps = ev.parents;
-          if (ps?.length && ps[0].parentId === orgId) ps[0] = {...ps[0], parentName: name};
-        }
-      }
-
-      if (locDirty && ao.locationId) {
-        const L = this.rawLocations.find(l => l.id === ao.locationId);
-        if (L) {
-          L.locationName = newLocName || L.locationName;
-          if (street) L.addressStreet = street;
-          if (city) L.addressCity = city;
-          if (zip) L.addressZip = zip;
-        }
-        for (const ev of this.rawEvents) {
-          if (ev.locationId === ao.locationId) {
-            if (newLocName) ev.locationName = newLocName;
-            if (street) ev.locationAddress = street;
-            if (city) ev.locationCity = city;
-            if (zip) ev.locationZip = zip;
-          }
+      for (const ev of this.rawEvents) {
+        if (ev.locationId === locationId) {
+          if (newLocName) ev.locationName = newLocName;
+          if (street) ev.locationAddress = street;
+          if (city) ev.locationCity = city;
+          if (zip) ev.locationZip = zip;
         }
       }
 
       this.rebuildDerivedFromRaw(true);
-      this.isEditingAo = false;
+      this.closeLocationEditModal();
     } catch (e: any) {
-      this.aoSaveError = e.message ?? 'Failed to save changes';
+      this.aoSaveError = e.message ?? 'Failed to save location';
     } finally {
       this.aoSaving = false;
     }
@@ -1353,9 +1667,7 @@ export class MapPage implements OnInit {
         if (!ev) continue;
         await this.f3Api.createOrUpdateEvent({
           id: ev.id,
-          aoId: this.aoIdForPayload(ev, ao),
-          regionId: this.regionIdForPayload(ev, ao),
-          locationId: ev.locationId ?? ao.locationId,
+          ...this.eventIdsForMutation(ev, ao),
           eventTypeIds: ev.eventTypes?.map(t => t.eventTypeId) ?? [1],
           name: ev.name,
           description: ev.description,
@@ -1399,7 +1711,7 @@ export class MapPage implements OnInit {
       this.rawOrgs = this.rawOrgs.filter(o => o.defaultLocationId !== lid);
       this.rawLocations = this.rawLocations.filter(l => l.id !== lid);
       this.selectedAo = null;
-      this.isEditingAo = false;
+      this.closeDetailEditModals();
       this.closeModal();
       this.rebuildDerivedFromRaw(true);
 
@@ -1423,17 +1735,24 @@ export class MapPage implements OnInit {
     this.editingDay = day;
     this.saveError = null;
     this.modalOpen = true;
+    const ao = this.selectedAo;
     if (day.event) {
-      const tid = day.event.eventTypes?.[0]?.eventTypeId;
+      const ev = day.event;
+      const tid = ev.eventTypes?.[0]?.eventTypeId;
       this.dayForm = {
         enabled: true,
-        name: day.event.name,
-        startTime: this.apiTimeToInput(day.event.startTime),
-        endTime: this.apiTimeToInput(day.event.endTime),
+        name: ev.name,
+        description: ev.description ?? '',
+        startTime: this.apiTimeToInput(ev.startTime),
+        endTime: this.apiTimeToInput(ev.endTime),
         eventTypeId: tid != null ? Number(tid) : 1,
       };
     } else {
-      this.dayForm = {...this.emptyForm(), name: this.selectedAo?.name ?? ''};
+      this.dayForm = {
+        ...this.emptyForm(),
+        name: ao ? this.detailPanelAoTitle(ao) : '',
+        description: ao ? this.detailPanelAoAbout(ao) : '',
+      };
     }
   }
 
@@ -1455,9 +1774,7 @@ export class MapPage implements OnInit {
     try {
       await this.f3Api.createOrUpdateEvent({
         id: ev.id,
-        aoId: this.aoIdForPayload(ev, ao),
-        regionId: this.regionIdForPayload(ev, ao),
-        locationId: ev.locationId ?? ao.locationId,
+        ...this.eventIdsForMutation(ev, ao),
         eventTypeIds: ev.eventTypes?.map(t => t.eventTypeId) ?? [1],
         name: ev.name,
         description: ev.description,
@@ -1490,14 +1807,17 @@ export class MapPage implements OnInit {
 
     try {
       const ev = day.event;
+      const ids = this.eventIdsForMutation(ev, ao);
+      const aoPayloadId = ids.aoId;
+      const lid = ids.locationId;
       const body: CreateOrUpdateEventRequest = {
         ...(ev?.id ? {id: ev.id} : {}),
-        aoId: this.aoIdForPayload(ev, ao),
-        regionId: this.regionIdForPayload(ev, ao),
-        locationId: ev?.locationId ?? ao.locationId,
+        aoId: ids.aoId,
+        regionId: ids.regionId,
+        locationId: ids.locationId,
         eventTypeIds: [Number(this.dayForm.eventTypeId)],
         name: this.dayForm.name.trim(),
-        description: ev?.description ?? ao.description,
+        description: this.dayForm.description.trim(),
         isActive: true,
         isPrivate: false,
         highlight: false,
@@ -1508,7 +1828,8 @@ export class MapPage implements OnInit {
       };
 
       const {event: saved} = await this.f3Api.createOrUpdateEvent(body);
-      const merged = this.mergeEventAfterSave(saved, Number(this.dayForm.eventTypeId));
+      let merged = this.mergeEventAfterSave(saved, Number(this.dayForm.eventTypeId));
+      merged = this.normalizeEventAfterSave(merged, aoPayloadId, ao.name, lid);
       const idx = merged.id ? this.rawEvents.findIndex(e => e.id === merged.id) : -1;
       if (idx >= 0) this.rawEvents[idx] = merged;
       else this.rawEvents.push(merged);
@@ -1525,7 +1846,14 @@ export class MapPage implements OnInit {
   // ── Helpers ──────────────────────────────────────────────────────
 
   private emptyForm(): DayForm {
-    return {enabled: false, name: '', startTime: '05:15', endTime: '06:00', eventTypeId: 1};
+    return {
+      enabled: false,
+      name: '',
+      description: '',
+      startTime: '05:15',
+      endTime: '06:00',
+      eventTypeId: 1,
+    };
   }
 
   private emptyNewAoForm(): NewAoForm {
@@ -1557,6 +1885,28 @@ export class MapPage implements OnInit {
     };
   }
 
+  /**
+   * API sometimes echoes `parents[0].parentId: 0`; keep local model aligned with the
+   * org + location we POSTed so merges / tree never treat the workout as orphan.
+   */
+  private normalizeEventAfterSave(
+      ev: F3Event,
+      aoId: number,
+      aoDisplayName: string,
+      locationId: number,
+      ): F3Event {
+    let out: F3Event = {...ev};
+    if (!out.locationId || out.locationId <= 0) out = {...out, locationId};
+    const pid = out.parents?.[0]?.parentId;
+    if (pid == null || pid <= 0) {
+      out = {
+        ...out,
+        parents: [{parentId: aoId, parentName: aoDisplayName}],
+      };
+    }
+    return out;
+  }
+
   private apiTimeToInput(time: string): string {
     const p = time.padStart(4, '0');
     return `${p.slice(0, 2)}:${p.slice(2)}`;
@@ -1576,5 +1926,14 @@ export class MapPage implements OnInit {
     const h = parseInt(p.slice(0, 2), 10);
     const mins = p.slice(2);
     return `${h % 12 || 12}:${mins} ${h >= 12 ? 'PM' : 'AM'}`;
+  }
+
+  /** Workout type label(s) for schedule row (from `/event` `eventTypes`). */
+  dayEventTypeLine(ev: F3Event): string {
+    if (!ev.eventTypes?.length) return '';
+    return ev.eventTypes
+      .map(t => t.eventTypeName)
+        .filter((n): n is string => !!n && n.trim().length > 0)
+        .join(' · ');
   }
 }

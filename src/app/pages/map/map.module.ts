@@ -4,6 +4,7 @@ import {FormsModule} from '@angular/forms';
 import {GoogleMapsModule} from '@angular/google-maps';
 import {IonicModule} from '@ionic/angular';
 
+import {ComponentsModule} from '../../components/components.module';
 import {MapPageRoutingModule} from './map-routing.module';
 import {MapPage} from './map.page';
 
@@ -13,6 +14,7 @@ import {MapPage} from './map.page';
     FormsModule,
     IonicModule,
     GoogleMapsModule,
+    ComponentsModule,
     MapPageRoutingModule,
   ],
   declarations: [MapPage],
