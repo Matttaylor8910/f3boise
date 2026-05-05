@@ -42,6 +42,20 @@
         <ng-container *ngIf="!selectedAo">
           <h2>Region Overview</h2>
           <p>{{ aos.length }} active locations across {{ activeRegionsBundle.length }} region{{ activeRegionsBundle.length !== 1 ? 's' : '' }}</p>
+          <p class="sidebar-summary-warn" *ngIf="aosMissingMapCoordsCount > 0">
+            <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
+            <span>
+              {{ aosMissingMapCoordsCount }} {{ aosMissingMapCoordsCount === 1 ? 'AO has' : 'AOs have' }}
+              no map coordinates — see highlighted rows below.
+            </span>
+          </p>
+          <p class="sidebar-summary-warn" *ngIf="aosNoWorkoutsCount > 0">
+            <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
+            <span>
+              {{ aosNoWorkoutsCount }} {{ aosNoWorkoutsCount === 1 ? 'AO has' : 'AOs have' }}
+              no scheduled workouts — open each AO and add weekly events.
+            </span>
+          </p>
         </ng-container>
         <ng-container *ngIf="selectedAo">
           <div class="ao-panel-header">
@@ -142,6 +156,7 @@
                 <!-- Single AO: compact row → opens AO detail; location name as subtitle -->
                 <div *ngIf="loc.aos.length === 1"
                      class="tree-location-header tree-location-header--single-ao"
+                     [class.tree-location-header--no-coords]="treeLocationMissingMapCoords(loc)"
                      (click)="onTreeLocationRowClick(loc)">
                   <span class="tree-loc-chevron-spacer" aria-hidden="true"></span>
                   <div class="tree-location-info">
@@ -162,6 +177,15 @@
                         [class.ao-dot--closed]="d.closed"
                         [title]="d.displayDate + (d.closed ? ' · ' + (d.text || 'Closed') : '')">
                       </span>
+                    </div>
+                    <div class="tree-loc-no-coords" *ngIf="treeLocationMissingMapCoords(loc)">
+                      <ion-icon name="location-outline"></ion-icon>
+                      <span>No lat/lng on this location — not shown on the map until coordinates are set.</span>
+                    </div>
+                    <div class="tree-loc-no-workouts"
+                         *ngIf="loc.aos[0]?.events?.length === 0">
+                      <ion-icon name="warning-outline"></ion-icon>
+                      <span>No workouts on file — open this AO and add weekly events.</span>
                     </div>
                   </div>
                   <div class="tree-loc-actions"
@@ -187,6 +211,7 @@
                 <!-- 0 or 2+ AOs: expandable row -->
                 <div *ngIf="loc.aos.length !== 1"
                      class="tree-location-header"
+                     [class.tree-location-header--no-coords]="treeLocationMissingMapCoords(loc)"
                      (click)="onTreeLocationRowClick(loc)">
                   <ion-icon [name]="loc.expanded ? 'chevron-down-outline' : 'chevron-forward-outline'" class="tree-chevron tree-chevron--sm"></ion-icon>
                   <div class="tree-location-info">
@@ -195,6 +220,10 @@
                       {{ treeLocationHeaderLabel(loc) }}
                     </span>
                     <span class="tree-location-addr" *ngIf="loc.address">{{ loc.address }}</span>
+                    <div class="tree-loc-no-coords" *ngIf="treeLocationMissingMapCoords(loc)">
+                      <ion-icon name="location-outline"></ion-icon>
+                      <span>No lat/lng — AOs below won’t appear on the map until coordinates are set.</span>
+                    </div>
                   </div>
                   <span class="tree-loc-badge"
                         [class.warn]="loc.aos.length === 0"
@@ -226,6 +255,7 @@
                   <div class="tree-ao"
                        *ngFor="let ao of loc.aos"
                        [class.no-events]="ao.events.length === 0"
+                       [class.tree-ao--no-map-pin]="treeLocationMissingMapCoords(loc)"
                        (click)="selectTreeAo(ao, loc)">
                     <div class="tree-ao-header">
                       <span class="tree-ao-name">{{ ao.name }}</span>
@@ -279,8 +309,9 @@
                         <span class="tree-event-type" *ngIf="ev.eventTypeName">{{ ev.eventTypeName }}</span>
                       </div>
                     </div>
-                    <div class="tree-no-events" *ngIf="ao.events.length === 0">
-                      <ion-icon name="warning-outline"></ion-icon> No events
+                    <div class="tree-loc-no-workouts" *ngIf="ao.events.length === 0">
+                      <ion-icon name="warning-outline"></ion-icon>
+                      <span>No workouts on file — open this AO and add weekly events.</span>
                     </div>
                     <div class="ao-dot-row" *ngIf="ao.dots?.length">
                       <span

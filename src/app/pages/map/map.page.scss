@@ -42,6 +42,36 @@ ion-content {
   p  { font-size: 12px; color: #888; margin: 0; }
 }
 
+.sidebar-summary-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 0;
+  padding: 9px 11px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 17px;
+    color: #d97706;
+  }
+}
+
+/** Wins over `.sidebar-header p { margin: 0 }` — breathing room above the banner */
+.sidebar-header .sidebar-summary-warn {
+  margin-top: 14px;
+}
+
+.sidebar-header .sidebar-summary-warn + .sidebar-summary-warn {
+  margin-top: 8px;
+}
+
 /** Selected AO: title + region in shaded header; overflow menu top-right */
 .ao-panel-header {
   display: flex;
@@ -721,6 +751,15 @@ ion-modal {
 
   &:hover { background: #f9fbff; }
 
+  &.tree-location-header--no-coords {
+    background: #fffbf5;
+    box-shadow: inset 3px 0 0 #f59e0b;
+
+    &:hover {
+      background: #fff5e6;
+    }
+  }
+
   &.tree-location-header--single-ao {
     align-items: flex-start;
 
@@ -836,6 +875,20 @@ ion-modal {
     background: #fff8f0;
     &:hover { background: #fff0e0; }
   }
+
+  &.tree-ao--no-map-pin {
+    box-shadow: inset 3px 0 0 #f59e0b;
+    background: #fffbf8;
+
+    &:hover {
+      background: #fff5ed;
+    }
+
+    &.no-events {
+      background: #fff5eb;
+      &:hover { background: #ffefd9; }
+    }
+  }
 }
 
 .tree-ao-header {
@@ -887,22 +940,42 @@ ion-modal {
   font-size: 10px;
 }
 
-.tree-no-events,
+.tree-loc-no-coords,
+.tree-loc-no-workouts {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 5px 7px;
+  font-size: 10px;
+  line-height: 1.35;
+  color: #b45309;
+  background: #fffbeb;
+  border-radius: 4px;
+  border: 1px solid #fde68a;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 13px;
+    margin-top: 1px;
+    color: #d97706;
+  }
+}
+
 .tree-ao-empty {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
-  color: #f57c00;
-  margin-top: 2px;
-
-  ion-icon { font-size: 12px; }
-}
-
-.tree-ao-empty {
   padding: 8px 16px 8px 40px;
+  margin-top: 2px;
   font-size: 12px;
   font-weight: 500;
+  color: #f57c00;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 12px;
+  }
 }
 
 // ── Tree action buttons ───────────────────────────────────────────

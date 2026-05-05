@@ -176,6 +176,12 @@ export class MapPage implements OnInit, OnDestroy {
   loading = true;
   error: string|null = null;
   aos: GroupedAo[] = [];
+  /**
+   * Synced in {@link rebuildDerivedFromRaw} — shown in Region Overview header
+   */
+  aosMissingMapCoordsCount = 0;
+  /** AOs with no weekly event rows (pins use the “no workouts” marker style) */
+  aosNoWorkoutsCount = 0;
   selectedAo: GroupedAo|null = null;
 
   // Day editing state
@@ -301,12 +307,10 @@ export class MapPage implements OnInit, OnDestroy {
 
   @ViewChild('mapRef') private readonly mapComponent?: GoogleMap;
 
-  /** Coalesce rapid pin updates from parallel geocoder callbacks */
+  /** Coalesce rapid pin updates */
   private fitBoundsTimer?: number;
   /** Invalidates running eased camera animations when a new target is chosen */
   private cameraAnimationSeq = 0;
-
-  private geocoder!: google.maps.Geocoder;
 
   constructor(
       private readonly f3Api: F3ApiService,
@@ -319,7 +323,6 @@ export class MapPage implements OnInit, OnDestroy {
   ) {}
 
   async ngOnInit() {
-    this.geocoder = new google.maps.Geocoder();
     this.permSub = this.userPermissions.mapPermissions$.subscribe(p => {
       this.permissions = p;
       this.syncPermissionDerivedViews();
@@ -585,6 +588,10 @@ export class MapPage implements OnInit, OnDestroy {
     const sel = this.selectedAo;
 
     this.aos = this.mergeAll(this.rawEvents, this.rawOrgs, this.rawLocations);
+    this.aosMissingMapCoordsCount =
+        this.aos.filter(a => a.position == null).length;
+    this.aosNoWorkoutsCount =
+        this.aos.filter(a => a.days.filter(d => d.event).length === 0).length;
     this.regionTree =
         this.buildRegionTree(this.rawEvents, this.rawOrgs, this.rawLocations);
     if (snap) this.restoreTreeExpansion(snap, this.regionTree);
@@ -601,7 +608,6 @@ export class MapPage implements OnInit, OnDestroy {
     }
 
     this.syncPermissionDerivedViews();
-    this.geocodeAll();
     this.scheduleFitMapToPins();
     if (this.qLineupData.length) this.annotateTreeWithDots();
   }
@@ -652,9 +658,8 @@ export class MapPage implements OnInit, OnDestroy {
       }
 
       const aoName = first.locationName || first.name;
-      // Prefer structured address for maps; prose-only location strings (e.g.
-      // "meet near Gem Island…") confuse Geocoder — "Gem Island" can resolve
-      // outside Idaho.
+      // Prefer structured address for display; map pins require lat/lng from
+      // the Locations API (no client-side geocoding).
       const structuredAddress = [
         first.locationAddress,
         first.locationCity,
@@ -1256,6 +1261,16 @@ export class MapPage implements OnInit, OnDestroy {
   }
 
   /**
+   * True when this tree row’s location has no usable lat/lng (no map pin).
+   */
+  treeLocationMissingMapCoords(loc: TreeLocation): boolean {
+    const {lat, lng} = loc;
+    if (lat == null || lng == null) return true;
+    if (lat === 0 && lng === 0) return true;
+    return false;
+  }
+
+  /**
    * When the row shows a single AO, second line: location roster name if it
    * differs from the AO title.
    */
@@ -1529,34 +1544,6 @@ export class MapPage implements OnInit, OnDestroy {
     } catch (e: any) {
       this.treeActionError = e.message ?? 'Failed to delete AO';
     }
-  }
-
-  // ── Geocoding ────────────────────────────────────────────────────
-
-  private geocodeAll() {
-    for (const ao of this.aos) {
-      if (ao.position)
-        continue;  // Locations API coords or newly created AO coords
-      if (ao.address) this.geocodeAo(ao);
-    }
-  }
-
-  private geocodeAo(ao: GroupedAo) {
-    this.geocoder.geocode(
-        {address: ao.address + ', Idaho, USA'},
-        (
-            results: google.maps.GeocoderResult[]|null,
-            status: string,
-            ) => {
-          if (status === 'OK' && results?.length) {
-            const loc = results[0].geometry.location;
-            ao.position = {lat: loc.lat(), lng: loc.lng()};
-            ao.markerOptions = this.buildMarkerOptions(ao);
-            // Trigger change detection by reassigning the array reference
-            this.aos = [...this.aos];
-            this.scheduleFitMapToPins();
-          }
-        });
   }
 
   /**
