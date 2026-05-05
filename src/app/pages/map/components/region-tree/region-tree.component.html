@@ -16,14 +16,14 @@
     </div>
     <div class="region-explorer-empty" *ngIf="!exploredNationRegions.length">
       <p class="region-explorer-empty-text">
-        No regions are selected. Add regions from search above, or load the Boise home metros.
+        No regions are selected. Add regions from search above, or load all Boise regions.
       </p>
       <button
         type="button"
         class="region-explorer-empty-cta"
         (click)="clearExplore.emit()"
         [disabled]="loading">
-        Home metros (Boise)
+        All Boise regions
       </button>
     </div>
     <div class="region-explorer-added" *ngIf="exploredNationRegions.length">
@@ -50,7 +50,7 @@
           class="region-explorer-clear-all"
           (click)="clearExplore.emit()"
           [disabled]="loading">
-          Home metros
+          All Boise regions
         </button>
         <button
           type="button"
