@@ -309,6 +309,9 @@ export class MapPage implements OnInit, OnDestroy {
     return false;
   }
 
+  /** Mobile bottom-sheet state — ignored on desktop via CSS only. */
+  mobileSidebarExpanded = true;
+
   /** Current user's effective permissions — updated reactively. */
   permissions: MapPermissions|null = null;
   private permSub?: Subscription;
@@ -2140,6 +2143,7 @@ export class MapPage implements OnInit, OnDestroy {
   private applyAoSelection(ao: GroupedAo): void {
     this.resetPrevClosedAoMarker();
     this.selectedAo = ao;
+    this.mobileSidebarExpanded = true;
     this.selectedAoClosures = [];
     this.selectedAoNextDateClosed = false;
     this.closeDetailEditModals();

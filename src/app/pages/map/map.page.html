@@ -38,7 +38,27 @@
     </div>
 
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" [class.sidebar--mobile-expanded]="mobileSidebarExpanded">
+      <!-- Mobile drag-handle / toggle strip -->
+      <button
+        type="button"
+        class="mob-handle"
+        (click)="mobileSidebarExpanded = !mobileSidebarExpanded"
+        [attr.aria-expanded]="mobileSidebarExpanded"
+        aria-label="Toggle region list">
+        <span class="mob-handle-pill" aria-hidden="true"></span>
+        <span class="mob-handle-label">
+          <ng-container *ngIf="!selectedAo">
+            {{ activeRegionsBundle.length ? (aos.length + ' location' + (aos.length !== 1 ? 's' : '')) : 'Select regions' }}
+          </ng-container>
+          <ng-container *ngIf="selectedAo">{{ detailPanelAoTitle(selectedAo) }}</ng-container>
+        </span>
+        <ion-icon
+          [name]="mobileSidebarExpanded ? 'chevron-down-outline' : 'chevron-up-outline'"
+          class="mob-handle-chevron"
+          aria-hidden="true">
+        </ion-icon>
+      </button>
       <div class="sidebar-header">
         <ng-container *ngIf="!selectedAo">
           <h2>Region Overview</h2>
