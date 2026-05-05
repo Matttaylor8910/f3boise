@@ -8,7 +8,6 @@
 import {Injectable} from '@angular/core';
 import {Observable, of} from 'rxjs';
 import {distinctUntilChanged, filter, map, switchMap} from 'rxjs/operators';
-
 import {BOISE_REGION_IDS} from 'src/app/services/f3-api.service';
 
 import {AuthService} from './auth.service';
@@ -17,8 +16,8 @@ import {UserProfile, UserProfilesService} from './user-profiles.service';
 // ── Role string helpers ────────────────────────────────────────────────────
 
 export const BOISE_REGIONS: ReadonlyArray<{id: number; name: string}> = [
-  {id: BOISE_REGION_IDS.cityOfTrees, name: 'City of Trees'},
   {id: BOISE_REGION_IDS.canyon, name: 'Canyon'},
+  {id: BOISE_REGION_IDS.cityOfTrees, name: 'City of Trees'},
   {id: BOISE_REGION_IDS.highDesert, name: 'High Desert'},
   {id: BOISE_REGION_IDS.settlers, name: 'Settlers'},
 ];
@@ -32,23 +31,20 @@ export function makeAoqRole(orgId: number): string {
 }
 
 export function parseNantanRegionIds(roles: string[]): number[] {
-  return roles
-      .filter(r => r.startsWith('nantan:'))
+  return roles.filter(r => r.startsWith('nantan:'))
       .map(r => parseInt(r.split(':')[1], 10))
       .filter(n => !isNaN(n));
 }
 
 export function parseAoqOrgIds(roles: string[]): number[] {
-  return roles
-      .filter(r => r.startsWith('aoq:'))
+  return roles.filter(r => r.startsWith('aoq:'))
       .map(r => parseInt(r.split(':')[1], 10))
       .filter(n => !isNaN(n));
 }
 
 /** True when roles include admin, Nantan, or AOQ — can open Admin (/admin). */
 export function rolesGrantAdminAccess(roles: string[]): boolean {
-  return roles.includes('admin') ||
-      roles.some(r => r.startsWith('nantan:')) ||
+  return roles.includes('admin') || roles.some(r => r.startsWith('nantan:')) ||
       roles.some(r => r.startsWith('aoq:'));
 }
 
@@ -108,8 +104,12 @@ const NO_ACCESS: MapPermissions = {
   canDeleteDay: () => false,
 };
 
-/** Map edit powers come only from Firestore `roles` — never from bootstrap emails.
- * `/map` is public; without roles the map page is read-only. AdminGuard handles `/admin`. */
+/**
+ * Map edit powers come only from Firestore `roles` — never from bootstrap
+ * emails.
+ * `/map` is public; without roles the map page is read-only. AdminGuard handles
+ * `/admin`.
+ */
 function permissionsFromProfile(profile: UserProfile|null): MapPermissions {
   const roles = profile?.roles ?? [];
   const isAdmin = roles.includes('admin');
@@ -176,8 +176,10 @@ export class UserPermissionsService {
       private readonly profiles: UserProfilesService,
   ) {}
 
-  /** Live permissions for the currently signed-in user. Emits NO_ACCESS when
-   *  signed out, or when profile hasn't loaded yet. */
+  /**
+   * Live permissions for the currently signed-in user. Emits NO_ACCESS when
+   *  signed out, or when profile hasn't loaded yet.
+   */
   readonly mapPermissions$: Observable<MapPermissions> =
       this.auth.authState$.pipe(
           switchMap(user => {

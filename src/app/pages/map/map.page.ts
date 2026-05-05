@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
 import {GoogleMap} from '@angular/google-maps';
+import {ActivatedRoute, Router} from '@angular/router';
 import {AlertController, PopoverController, ToastController} from '@ionic/angular';
 import * as moment from 'moment';
 import {Subscription} from 'rxjs';
@@ -253,11 +253,12 @@ export class MapPage implements OnInit, OnDestroy {
   readonly eventTypes = EVENT_TYPES;
 
   /**
-   * Boise-area bundle (display order matches “Home metros” / {@link resetHomeMetrosExplore}).
+   * Boise-area bundle (display order matches “Home metros” / {@link
+   * resetHomeMetrosExplore}).
    */
   readonly metroRegions: ReadonlyArray<{id: number; name: string}> = [
-    {id: BOISE_REGION_IDS.cityOfTrees, name: 'City of Trees'},
     {id: BOISE_REGION_IDS.canyon, name: 'Canyon'},
+    {id: BOISE_REGION_IDS.cityOfTrees, name: 'City of Trees'},
     {id: BOISE_REGION_IDS.highDesert, name: 'High Desert'},
     {id: BOISE_REGION_IDS.settlers, name: 'Settlers'},
   ];
@@ -283,7 +284,10 @@ export class MapPage implements OnInit, OnDestroy {
   regionSearchLoading = false;
   private regionSearchTimer?: number;
 
-  /** Hits from {@link regionSearchResults} minus regions already on the chips row. */
+  /**
+   * Hits from {@link regionSearchResults} minus regions already on the chips
+   * row.
+   */
   get regionSearchResultsFiltered(): F3Org[] {
     if (!this.exploredNationRegions.length) {
       return this.regionSearchResults;
@@ -399,7 +403,9 @@ export class MapPage implements OnInit, OnDestroy {
     return ids;
   }
 
-  /** Apply `regions` query param before first load, else default metro chips. */
+  /**
+   * Apply `regions` query param before first load, else default metro chips.
+   */
   private hydrateExploredRegionsFromRoute(): void {
     const map = this.route.snapshot.queryParamMap;
     if (map.has(REGIONS_QUERY_PARAM)) {
@@ -469,10 +475,11 @@ export class MapPage implements OnInit, OnDestroy {
       }
     }
 
-    this.exploredNationRegions = idOrder.map(id => ({
-      id,
-      name: nameById.get(id) ?? `Region ${id}`,
-    }));
+    this.exploredNationRegions =
+        idOrder.map(id => ({
+                      id,
+                      name: nameById.get(id) ?? `Region ${id}`,
+                    }));
   }
 
   /** Keep the address bar shareable whenever chips change (clear vs list). */
@@ -656,20 +663,17 @@ export class MapPage implements OnInit, OnDestroy {
         }
         loc.permEditLocation = loc.locationId > 0 &&
             this.canEditSharedLocationRecord(loc.regionId, loc.locationId);
-        loc.permDeleteLocation =
-            loc.locationId > 0 &&
+        loc.permDeleteLocation = loc.locationId > 0 &&
             this.mapEditsAllowedInRegion(loc.regionId) &&
             p.canDeleteAo({regionId: loc.regionId});
         for (const ao of loc.aos) {
           ao.permRenameAo =
-              this.mapEditsAllowedInRegion(loc.regionId) &&
-              p.canEditAo({
+              this.mapEditsAllowedInRegion(loc.regionId) && p.canEditAo({
                 regionId: loc.regionId,
                 orgId: ao.orgId,
                 parentAoId: ao.orgId,
               });
-          ao.permDeleteAo =
-              this.mapEditsAllowedInRegion(loc.regionId) &&
+          ao.permDeleteAo = this.mapEditsAllowedInRegion(loc.regionId) &&
               p.canDeleteAo({regionId: loc.regionId});
         }
       }
@@ -688,22 +692,18 @@ export class MapPage implements OnInit, OnDestroy {
       return;
     }
     this.detailEditAoTitle =
-        this.mapEditsAllowedInRegion(ao.regionId) &&
-        p.canEditAo({
+        this.mapEditsAllowedInRegion(ao.regionId) && p.canEditAo({
           regionId: ao.regionId,
           orgId: ao.orgId,
           parentAoId: ao.parentAoId,
         });
-    this.detailDeleteAo =
-        this.mapEditsAllowedInRegion(ao.regionId) &&
+    this.detailDeleteAo = this.mapEditsAllowedInRegion(ao.regionId) &&
         p.canDeleteAo({regionId: ao.regionId});
     const locOk = ao.locationId > 0;
     this.detailEditLocation =
         locOk && this.canEditSharedLocationRecord(ao.regionId, ao.locationId);
     this.detailEditSchedule =
-        locOk &&
-        this.mapEditsAllowedInRegion(ao.regionId) &&
-        p.canEditDay({
+        locOk && this.mapEditsAllowedInRegion(ao.regionId) && p.canEditDay({
           regionId: ao.regionId,
           orgId: ao.orgId,
           parentAoId: ao.parentAoId,
@@ -1413,15 +1413,14 @@ export class MapPage implements OnInit, OnDestroy {
         r => ({
           regionId: r.id,
           regionName: r.name,
-          locations:
-              Array.from(regionMap.get(r.id)?.values() ?? [])
-                  .sort(
-                      (a, b) => treeLocationSortKey(a).localeCompare(
-                          treeLocationSortKey(b),
-                          undefined,
-                          {sensitivity: 'base'},
-                          ),
-                      ),
+          locations: Array.from(regionMap.get(r.id)?.values() ?? [])
+                         .sort(
+                             (a, b) => treeLocationSortKey(a).localeCompare(
+                                 treeLocationSortKey(b),
+                                 undefined,
+                                 {sensitivity: 'base'},
+                                 ),
+                             ),
           expanded: true,
         }));
   }
@@ -3006,5 +3005,4 @@ export class MapPage implements OnInit, OnDestroy {
     const [h = '0', m = '0'] = time.trim().split(':');
     return `${h.padStart(2, '0')}${m.padStart(2, '0')}`;
   }
-
 }
