@@ -599,9 +599,18 @@ export class MapPage implements OnInit, OnDestroy {
   // ── Permission-derived view fields (synced; avoid getters/functions in
   // templates)
 
+  /**
+   * Exploring non-Boise regions is view-only; edits apply only to the four
+   * {@link metroRegions} IDs.
+   */
+  private mapEditsAllowedInRegion(regionId: number): boolean {
+    return this.metroRegions.some(r => r.id === regionId);
+  }
+
   /** Shared location row — requires edit rights on every AO org at this pin. */
   private canEditSharedLocationRecord(regionId: number, locationId: number):
       boolean {
+    if (!this.mapEditsAllowedInRegion(regionId)) return false;
     const p = this.permissions;
     if (!p) return false;
     const orgIds = this.orgIdsAtLocation(locationId);
@@ -645,14 +654,20 @@ export class MapPage implements OnInit, OnDestroy {
         loc.permEditLocation = loc.locationId > 0 &&
             this.canEditSharedLocationRecord(loc.regionId, loc.locationId);
         loc.permDeleteLocation =
-            loc.locationId > 0 && p.canDeleteAo({regionId: loc.regionId});
+            loc.locationId > 0 &&
+            this.mapEditsAllowedInRegion(loc.regionId) &&
+            p.canDeleteAo({regionId: loc.regionId});
         for (const ao of loc.aos) {
-          ao.permRenameAo = p.canEditAo({
-            regionId: loc.regionId,
-            orgId: ao.orgId,
-            parentAoId: ao.orgId,
-          });
-          ao.permDeleteAo = p.canDeleteAo({regionId: loc.regionId});
+          ao.permRenameAo =
+              this.mapEditsAllowedInRegion(loc.regionId) &&
+              p.canEditAo({
+                regionId: loc.regionId,
+                orgId: ao.orgId,
+                parentAoId: ao.orgId,
+              });
+          ao.permDeleteAo =
+              this.mapEditsAllowedInRegion(loc.regionId) &&
+              p.canDeleteAo({regionId: loc.regionId});
         }
       }
     }
@@ -669,20 +684,27 @@ export class MapPage implements OnInit, OnDestroy {
       this.detailShowOverflowMenu = false;
       return;
     }
-    this.detailEditAoTitle = p.canEditAo({
-      regionId: ao.regionId,
-      orgId: ao.orgId,
-      parentAoId: ao.parentAoId,
-    });
-    this.detailDeleteAo = p.canDeleteAo({regionId: ao.regionId});
+    this.detailEditAoTitle =
+        this.mapEditsAllowedInRegion(ao.regionId) &&
+        p.canEditAo({
+          regionId: ao.regionId,
+          orgId: ao.orgId,
+          parentAoId: ao.parentAoId,
+        });
+    this.detailDeleteAo =
+        this.mapEditsAllowedInRegion(ao.regionId) &&
+        p.canDeleteAo({regionId: ao.regionId});
     const locOk = ao.locationId > 0;
     this.detailEditLocation =
         locOk && this.canEditSharedLocationRecord(ao.regionId, ao.locationId);
-    this.detailEditSchedule = locOk && p.canEditDay({
-      regionId: ao.regionId,
-      orgId: ao.orgId,
-      parentAoId: ao.parentAoId,
-    });
+    this.detailEditSchedule =
+        locOk &&
+        this.mapEditsAllowedInRegion(ao.regionId) &&
+        p.canEditDay({
+          regionId: ao.regionId,
+          orgId: ao.orgId,
+          parentAoId: ao.parentAoId,
+        });
     this.detailShowOverflowMenu = this.detailEditAoTitle ||
         this.detailEditLocation || this.detailDeleteAo;
   }
@@ -701,7 +723,9 @@ export class MapPage implements OnInit, OnDestroy {
       return;
     }
     const allowed = new Set(p.creatableRegionIds);
-    this.newAoRegionOptions = this.activeRegionsBundle.filter(r => allowed.has(r.id));
+    this.newAoRegionOptions = this.activeRegionsBundle.filter(
+        r => allowed.has(r.id) && this.mapEditsAllowedInRegion(r.id),
+    );
   }
 
   // ── Legacy bridge removed — templates bind detail* and Tree*.perm* fields
@@ -1992,6 +2016,11 @@ export class MapPage implements OnInit, OnDestroy {
       this.createAoError = 'Choose a region you are allowed to create AOs in.';
       return;
     }
+    if (!this.mapEditsAllowedInRegion(this.newAoForm.regionId)) {
+      this.createAoError =
+          'New AOs from the map are limited to Boise metro regions.';
+      return;
+    }
     this.creatingAo = true;
     this.createAoError = null;
 
@@ -2521,6 +2550,7 @@ export class MapPage implements OnInit, OnDestroy {
   async saveAoMetaFromModal(): Promise<void> {
     if (!this.selectedAo || !this.detailEditAoTitle) return;
     const ao = this.selectedAo;
+    if (!this.mapEditsAllowedInRegion(ao.regionId)) return;
     const orgId = ao.orgId ?? ao.parentAoId;
     if (!orgId) {
       this.aoSaveError = 'No AO org id is linked to this pin.';
@@ -2806,6 +2836,7 @@ export class MapPage implements OnInit, OnDestroy {
 
   async deleteDay() {
     if (!this.selectedAo || !this.editingDay?.event) return;
+    if (!this.mapEditsAllowedInRegion(this.selectedAo.regionId)) return;
     this.deleting = true;
     this.saveError = null;
 
@@ -2841,6 +2872,7 @@ export class MapPage implements OnInit, OnDestroy {
 
   async saveDay() {
     if (!this.selectedAo || !this.editingDay) return;
+    if (!this.mapEditsAllowedInRegion(this.selectedAo.regionId)) return;
     this.saving = true;
     this.saveError = null;
 

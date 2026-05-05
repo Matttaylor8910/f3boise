@@ -347,9 +347,30 @@ export class AdminPage implements OnInit, OnDestroy {
           };
         });
 
-    this.profileRows = [...fromProfiles, ...fromPending].sort((a, b) =>
-        a.displayName.localeCompare(
-            b.displayName, undefined, {sensitivity: 'base'}));
+    this.profileRows = [...fromProfiles, ...fromPending].sort(
+        (a, b) => this.compareProfileRowsByRoleThenName(a, b));
+  }
+
+  /**
+   * Users table order: Admin → Nantan → AOQ → no elevated role; within a tier,
+   * {@link ProfileRowVm.displayName} only (not region/AO labels).
+   */
+  private compareProfileRowsByRoleThenName(a: ProfileRowVm, b: ProfileRowVm):
+      number {
+    const ta = this.profileRowRoleSortTier(a);
+    const tb = this.profileRowRoleSortTier(b);
+    if (ta !== tb) return ta - tb;
+    return a.displayName.localeCompare(
+        b.displayName, undefined, {sensitivity: 'base'});
+  }
+
+  /** Lower sorts first: 0 = admin, 1 = nantan, 2 = aoq, 3 = other/none. */
+  private profileRowRoleSortTier(row: ProfileRowVm): number {
+    const roles = row.profile?.roles ?? row.pendingAssignment?.roles ?? [];
+    if (roles.includes('admin')) return 0;
+    if (roles.some(r => r.startsWith('nantan:'))) return 1;
+    if (roles.some(r => r.startsWith('aoq:'))) return 2;
+    return 3;
   }
 
   private rebuildOrgChartVm(): void {
