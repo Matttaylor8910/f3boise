@@ -50,31 +50,83 @@
   }
 }
 
-.region-explorer-pill {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+.region-explorer-added {
   margin-top: 10px;
-  padding: 8px 10px;
+  padding: 10px 10px 10px;
   background: #e8f4fd;
   border: 1px solid #bbdefb;
   border-radius: 6px;
-  font-size: 12px;
+}
+
+.region-explorer-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.region-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 4px 4px 4px 8px;
+  background: white;
+  border: 1px solid #90caf9;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 600;
   color: #1565c0;
 }
 
-.region-explorer-pill-id {
+.region-chip-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.region-chip-id {
   font-weight: 400;
   color: #5c6bc0;
   font-family: ui-monospace, monospace;
-  font-size: 11px;
+  font-size: 10px;
 }
 
-.region-explorer-clear {
+.region-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  padding: 4px 10px;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 16px;
+  }
+
+  &:hover:not(:disabled) {
+    background: #ffebee;
+    color: #c62828;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.region-explorer-clear-all {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 6px 10px;
   border: 1px solid #90caf9;
   border-radius: 4px;
   background: white;

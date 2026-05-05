@@ -22,6 +22,31 @@ ion-content {
   position: relative;
 }
 
+/** Floating "Updating workouts…" pill while the map refreshes a region change. */
+.map-refresh-pill {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 10px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #d8dee6;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2937;
+
+  ion-spinner {
+    width: 14px;
+    height: 14px;
+    color: #1565c0;
+  }
+}
+
 // ── Sidebar shell ─────────────────────────────────────────────────
 .sidebar {
   width: 380px;
@@ -38,38 +63,18 @@ ion-content {
   border-bottom: 1px solid #e0e0e0;
   background: #f9f9f9;
 
-  h2 { font-size: 17px; font-weight: 700; color: #222; margin: 0 0 3px; }
-  p  { font-size: 12px; color: #888; margin: 0; }
-}
-
-.sidebar-summary-warn {
-  display: flex;
-  align-items: flex-start;
-  gap: 7px;
-  margin: 0;
-  padding: 9px 11px;
-  font-size: 12px;
-  line-height: 1.4;
-  color: #92400e;
-  background: #fffbeb;
-  border: 1px solid #fcd34d;
-  border-radius: 8px;
-
-  ion-icon {
-    flex-shrink: 0;
-    margin-top: 1px;
+  h2 {
     font-size: 17px;
-    color: #d97706;
+    font-weight: 700;
+    color: #222;
+    margin: 0 0 3px;
   }
-}
 
-/** Wins over `.sidebar-header p { margin: 0 }` — breathing room above the banner */
-.sidebar-header .sidebar-summary-warn {
-  margin-top: 14px;
-}
-
-.sidebar-header .sidebar-summary-warn + .sidebar-summary-warn {
-  margin-top: 8px;
+  > p {
+    font-size: 12px;
+    color: #888;
+    margin: 0;
+  }
 }
 
 /** Selected AO: title + region in shaded header; overflow menu top-right */

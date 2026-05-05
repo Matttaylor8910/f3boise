@@ -28,9 +28,12 @@ export class MapRegionTreeComponent {
   @Input() searchQuery = '';
   @Input() searchResults: F3Org[] = [];
   @Input() searchLoading = false;
-  /** When set, a "Home metros" pill is shown to clear the focus. */
-  @Input() focusedNationRegion: {id: number; name: string}|null = null;
-  /** Disables search-result and "Home metros" buttons during reload. */
+  /**
+   * Regions the user chose from search. When non-empty, the parent loads **only**
+   * these (home metros are not included). Chips with remove + “Home metros”.
+   */
+  @Input() exploredNationRegions: Array<{id: number; name: string}> = [];
+  /** Disables search-clear actions during reload. */
   @Input() loading = false;
 
   // ── Inline AO rename ─────────────────────────────────────────────
@@ -51,10 +54,12 @@ export class MapRegionTreeComponent {
   /** Two-way binding companion for {@link editingAoName}. */
   @Output() editingAoNameChange = new EventEmitter<string>();
 
-  /** User picked a Nation region from the search results. */
+  /** User picked a Nation region from the search results (parent appends). */
   @Output() exploreRegion = new EventEmitter<F3Org>();
-  /** User cleared the focused Nation region (back to home metros). */
+  /** Clear every appended region and return to home metros only. */
   @Output() clearExplore = new EventEmitter<void>();
+  /** Remove one appended region by id. */
+  @Output() removeExploredRegion = new EventEmitter<number>();
 
   /** User clicked a single-AO row or a tree AO row. */
   @Output() aoSelected =

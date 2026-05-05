@@ -175,15 +175,17 @@ interface OrphanOrgPlacement {
   styleUrls: ['map.page.scss'],
 })
 export class MapPage implements OnInit, OnDestroy {
-  loading = true;
+  /**
+   * True only until the first {@link loadData} completes — gates the full-page
+   * spinner. Subsequent region changes refresh in the background.
+   */
+  initialLoading = true;
+  /** A region-change refresh is in flight (map stays mounted; pill shown). */
+  refreshing = false;
+  /** Monotonic counter so stale `loadData` responses are discarded. */
+  private loadDataSeq = 0;
   error: string|null = null;
   aos: GroupedAo[] = [];
-  /**
-   * Synced in {@link rebuildDerivedFromRaw} — shown in Region Overview header
-   */
-  aosMissingMapCoordsCount = 0;
-  /** AOs with no weekly event rows (pins use the “no workouts” marker style) */
-  aosNoWorkoutsCount = 0;
   selectedAo: GroupedAo|null = null;
 
   // Day editing state
@@ -247,9 +249,8 @@ export class MapPage implements OnInit, OnDestroy {
   readonly eventTypes = EVENT_TYPES;
 
   /**
-   * Home metro regions loaded together when not exploring elsewhere.
-   * Add/remove IDs here — {@link focusedNationRegion} overrides to a single
-   * Nation region for audits.
+   * Default region bundle when the user has not picked any regions from search
+   * ({@link exploredNationRegions} empty).
    */
   readonly metroRegions: ReadonlyArray<{id: number; name: string}> = [
     {id: BOISE_REGION_IDS.cityOfTrees, name: 'City of Trees'},
@@ -259,14 +260,15 @@ export class MapPage implements OnInit, OnDestroy {
   ];
 
   /**
-   * Single region from nationwide search — when set, map data loads only this
-   * region id.
+   * Regions chosen from nationwide search. When non-empty, the map loads
+   * **only** these (home metros are omitted). When empty, {@link metroRegions}
+   * is used. Cleared per-chip or all at once via {@link clearNationRegionExplore}.
    */
-  focusedNationRegion: {id: number; name: string}|null = null;
+  exploredNationRegions: Array<{id: number; name: string}> = [];
 
   /**
-   * Drives API filters + tree sections — {@link metroRegions} or one explored
-   * region
+   * Drives API filters + tree sections — either {@link metroRegions} (default)
+   * or solely {@link exploredNationRegions} when the user has made selections.
    */
   activeRegionsBundle: ReadonlyArray<{id: number; name: string}> = [];
 
@@ -276,6 +278,15 @@ export class MapPage implements OnInit, OnDestroy {
   regionSearchResults: F3Org[] = [];
   regionSearchLoading = false;
   private regionSearchTimer?: number;
+
+  /** Hits from {@link regionSearchResults} minus regions already on the chips row. */
+  get regionSearchResultsFiltered(): F3Org[] {
+    if (!this.exploredNationRegions.length) {
+      return this.regionSearchResults;
+    }
+    const selected = new Set(this.exploredNationRegions.map(r => r.id));
+    return this.regionSearchResults.filter(o => !selected.has(o.id));
+  }
 
   /** Current user's effective permissions — updated reactively. */
   permissions: MapPermissions|null = null;
@@ -339,8 +350,8 @@ export class MapPage implements OnInit, OnDestroy {
   }
 
   private syncActiveRegionsBundle(): void {
-    this.activeRegionsBundle = this.focusedNationRegion ?
-        [this.focusedNationRegion] :
+    this.activeRegionsBundle = this.exploredNationRegions.length ?
+        [...this.exploredNationRegions] :
         [...this.metroRegions];
   }
 
@@ -382,28 +393,50 @@ export class MapPage implements OnInit, OnDestroy {
     }
   }
 
-  /** Load map + tree for one Nation region (auditing data quality). */
+  /** Add a Nation region from manual search (replaces default home bundle). */
   async exploreNationRegion(org: F3Org): Promise<void> {
-    const name = org.name?.trim() || `Region ${org.id}`;
-    this.focusedNationRegion = {id: org.id, name};
+    const id = org.id;
+    const name = org.name?.trim() || `Region ${id}`;
+    const already = this.exploredNationRegions.some(r => r.id === id);
+    if (!already) {
+      this.exploredNationRegions = [...this.exploredNationRegions, {id, name}];
+      this.syncActiveRegionsBundle();
+      this.selectedAo = null;
+      this.closeDetailEditModals();
+      this.closeModal();
+      this.refreshNewAoRegionOptions();
+      await this.loadData();
+    }
     this.regionSearchResults = [];
-    this.regionSearchQuery = '';
+    const q = this.regionSearchQuery.trim();
+    if (q.length >= 2) {
+      void this.runNationRegionSearch(q);
+    }
+  }
+
+  /** Remove one appended region; reload if the list changed. */
+  async removeExploredNationRegion(regionId: number): Promise<void> {
+    const next = this.exploredNationRegions.filter(r => r.id !== regionId);
+    if (next.length === this.exploredNationRegions.length) return;
+    this.exploredNationRegions = next;
     this.syncActiveRegionsBundle();
     this.selectedAo = null;
     this.closeDetailEditModals();
     this.closeModal();
+    this.refreshNewAoRegionOptions();
     await this.loadData();
   }
 
-  /** Restore home metro bundle */
+  /** Clear all manual region picks and restore the default home bundle. */
   async clearNationRegionExplore(): Promise<void> {
-    if (!this.focusedNationRegion) return;
-    this.focusedNationRegion = null;
+    if (!this.exploredNationRegions.length) return;
+    this.exploredNationRegions = [];
     this.regionSearchResults = [];
     this.syncActiveRegionsBundle();
     this.selectedAo = null;
     this.closeDetailEditModals();
     this.closeModal();
+    this.refreshNewAoRegionOptions();
     await this.loadData();
   }
 
@@ -512,18 +545,21 @@ export class MapPage implements OnInit, OnDestroy {
       return;
     }
     const allowed = new Set(p.creatableRegionIds);
-    this.newAoRegionOptions = this.metroRegions.filter(r => allowed.has(r.id));
+    this.newAoRegionOptions = this.activeRegionsBundle.filter(r => allowed.has(r.id));
   }
 
   // ── Legacy bridge removed — templates bind detail* and Tree*.perm* fields
   // only.
 
   /**
-   * Full fetch — only on startup (or explicit refresh). Mutations patch `raw*`
-   * and call `rebuildDerivedFromRaw`.
+   * Full fetch — runs on startup and on region-bundle changes. Map stays
+   * mounted across reloads (only the first call shows the full-page spinner);
+   * concurrent calls are protected by {@link loadDataSeq} so a slow first
+   * response can't overwrite a fast follow-up.
    */
   private async loadData() {
-    this.loading = true;
+    const seq = ++this.loadDataSeq;
+    this.refreshing = true;
     this.error = null;
     try {
       const regionIds = this.activeRegionsBundle.map(r => r.id);
@@ -540,6 +576,7 @@ export class MapPage implements OnInit, OnDestroy {
         // for pin placement.
         this.f3Api.listLocations({onlyMine: true, pageSize: 500}),
       ]);
+      if (seq !== this.loadDataSeq) return;
 
       const locations =
           this.mergeLocationsById(regionalLocs.locations, mineLocs.locations);
@@ -549,11 +586,14 @@ export class MapPage implements OnInit, OnDestroy {
       this.rawLocations = locations;
 
       this.rebuildDerivedFromRaw(false);
-      this.loading = false;
+      this.refreshing = false;
+      this.initialLoading = false;
       void this.fetchQLineupForTree();
     } catch (e: any) {
+      if (seq !== this.loadDataSeq) return;
       this.error = e.message ?? 'Failed to load events';
-      this.loading = false;
+      this.refreshing = false;
+      this.initialLoading = false;
     }
   }
 
@@ -590,10 +630,6 @@ export class MapPage implements OnInit, OnDestroy {
     const sel = this.selectedAo;
 
     this.aos = this.mergeAll(this.rawEvents, this.rawOrgs, this.rawLocations);
-    this.aosMissingMapCoordsCount =
-        this.aos.filter(a => a.position == null).length;
-    this.aosNoWorkoutsCount =
-        this.aos.filter(a => a.days.filter(d => d.event).length === 0).length;
     this.regionTree =
         this.buildRegionTree(this.rawEvents, this.rawOrgs, this.rawLocations);
     if (snap) this.restoreTreeExpansion(snap, this.regionTree);
@@ -2694,8 +2730,8 @@ export class MapPage implements OnInit, OnDestroy {
   private emptyNewAoForm(): NewAoForm {
     return {
       name: '',
-      regionId: this.metroRegions?.[0]?.id ??
-          this.activeRegionsBundle?.[0]?.id ?? BOISE_REGION_IDS.cityOfTrees,
+      regionId: this.activeRegionsBundle?.[0]?.id ??
+          this.metroRegions?.[0]?.id ?? BOISE_REGION_IDS.cityOfTrees,
       addressStreet: '',
       addressCity: 'Boise',
       addressState: 'ID',

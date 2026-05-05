@@ -6,7 +6,7 @@
 
 <ion-content [scrollY]="false">
 
-  <div *ngIf="loading" class="loading-overlay">
+  <div *ngIf="initialLoading" class="loading-overlay">
     <ion-spinner name="crescent"></ion-spinner>
     <p>Loading workouts…</p>
   </div>
@@ -16,23 +16,30 @@
     <p>{{ error }}</p>
   </div>
 
-  <div class="map-layout" *ngIf="!loading && !error">
+  <div class="map-layout" *ngIf="!initialLoading && !error">
 
     <!-- Google Map -->
     <div class="map-section">
+      <div class="map-refresh-pill" *ngIf="refreshing" role="status" aria-live="polite">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Updating workouts…</span>
+      </div>
       <google-map #mapRef
                   width="100%" height="100%"
                   [center]="mapCenter"
                   [options]="mapOptions"
                   (mapInitialized)="scheduleFitMapToPins()"
                   (mapClick)="onMapClick($event)">
-        <map-marker
-          *ngFor="let ao of aos"
-          [position]="ao.position!"
-          [options]="ao.markerOptions!"
-          (mapClick)="onMarkerClick(ao)"
-          [hidden]="!ao.position">
-        </map-marker>
+        <!-- Only mount markers with coords: MapMarker defaults missing position
+             to Googleplex (37.42, -122.08) — shows as a stray Bay Area pin. -->
+        <ng-container *ngFor="let ao of aos">
+          <map-marker
+            *ngIf="ao.position"
+            [position]="ao.position"
+            [options]="ao.markerOptions!"
+            (mapClick)="onMarkerClick(ao)">
+          </map-marker>
+        </ng-container>
       </google-map>
     </div>
 
@@ -42,20 +49,6 @@
         <ng-container *ngIf="!selectedAo">
           <h2>Region Overview</h2>
           <p>{{ aos.length }} active locations across {{ activeRegionsBundle.length }} region{{ activeRegionsBundle.length !== 1 ? 's' : '' }}</p>
-          <p class="sidebar-summary-warn" *ngIf="aosMissingMapCoordsCount > 0">
-            <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
-            <span>
-              {{ aosMissingMapCoordsCount }} {{ aosMissingMapCoordsCount === 1 ? 'AO has' : 'AOs have' }}
-              no map coordinates — see highlighted rows below.
-            </span>
-          </p>
-          <p class="sidebar-summary-warn" *ngIf="aosNoWorkoutsCount > 0">
-            <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
-            <span>
-              {{ aosNoWorkoutsCount }} {{ aosNoWorkoutsCount === 1 ? 'AO has' : 'AOs have' }}
-              no scheduled workouts — open each AO and add weekly events.
-            </span>
-          </p>
         </ng-container>
         <ng-container *ngIf="selectedAo">
           <div class="ao-panel-header">
@@ -98,16 +91,17 @@
           [regions]="regionTree"
           [error]="treeActionError"
           [(searchQuery)]="regionSearchQuery"
-          [searchResults]="regionSearchResults"
+          [searchResults]="regionSearchResultsFiltered"
           [searchLoading]="regionSearchLoading"
-          [focusedNationRegion]="focusedNationRegion"
-          [loading]="loading"
+          [exploredNationRegions]="exploredNationRegions"
+          [loading]="refreshing || initialLoading"
           [editingAoId]="editingAoId"
           [(editingAoName)]="aoEditNameTree"
           [editingAoSaving]="aoEditNameSaving"
           (searchInput)="onRegionSearchInput($event)"
           (exploreRegion)="exploreNationRegion($event)"
           (clearExplore)="clearNationRegionExplore()"
+          (removeExploredRegion)="removeExploredNationRegion($event)"
           (aoSelected)="selectTreeAo($event.ao, $event.loc)"
           (locationFocused)="panToLocation($event)"
           (editLocation)="openLocationEditModalFromTree($event.loc, $event.event)"

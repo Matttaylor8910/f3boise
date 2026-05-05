@@ -14,14 +14,26 @@
     <div class="region-explorer-loading" *ngIf="searchLoading">
       <ion-spinner name="crescent"></ion-spinner>
     </div>
-    <div class="region-explorer-pill" *ngIf="focusedNationRegion">
-      <span class="region-explorer-pill-text">
-        Exploring <strong>{{ focusedNationRegion.name }}</strong>
-        <span class="region-explorer-pill-id"> · id {{ focusedNationRegion.id }}</span>
-      </span>
+    <div class="region-explorer-added" *ngIf="exploredNationRegions.length">
+      <div class="region-explorer-chips" role="list" aria-label="Added regions">
+        <div class="region-chip" *ngFor="let r of exploredNationRegions" role="listitem">
+          <span class="region-chip-label">
+            {{ r.name }}<span class="region-chip-id"> · id {{ r.id }}</span>
+          </span>
+          <button
+            type="button"
+            class="region-chip-remove"
+            (click)="removeExploredRegion.emit(r.id)"
+            [disabled]="loading"
+            [title]="'Remove ' + r.name"
+            [attr.aria-label]="'Remove ' + r.name">
+            <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+      </div>
       <button
         type="button"
-        class="region-explorer-clear"
+        class="region-explorer-clear-all"
         (click)="clearExplore.emit()"
         [disabled]="loading">
         Home metros
