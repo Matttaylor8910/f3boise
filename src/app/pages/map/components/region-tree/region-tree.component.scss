@@ -1,3 +1,7 @@
+:host {
+  display: block;
+}
+
 .region-explorer {
   padding: 12px 16px 10px;
   border-bottom: 1px solid #e8e8e8;
@@ -71,14 +75,13 @@
 .region-explorer-clear {
   flex-shrink: 0;
   padding: 4px 10px;
-  border: none;
+  border: 1px solid #90caf9;
   border-radius: 4px;
   background: white;
   color: #1565c0;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  border: 1px solid #90caf9;
 
   &:hover:not(:disabled) {
     background: #e3f2fd;
@@ -273,6 +276,8 @@
   &.multi { background: #e3f2fd; color: #1565c0; }
 }
 
+// ── Schedule dots (overview tree) ────────────────────────────────
+
 .ao-dot-row {
   display: flex;
   flex-wrap: wrap;
@@ -425,6 +430,8 @@
   }
 }
 
+// ── Tree action buttons ───────────────────────────────────────────
+
 .tree-loc-actions {
   display: flex;
   gap: 2px;
@@ -472,6 +479,8 @@
   margin-top: 4px;
   padding-left: 0;
 }
+
+// ── Tree inline rename ────────────────────────────────────────────
 
 .tree-location-rename {
   display: flex;

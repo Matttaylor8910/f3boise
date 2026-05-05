@@ -1,0 +1,238 @@
+<div class="region-tree">
+
+  <div class="region-explorer">
+    <label class="region-explorer-label" for="nationRegionSearch">Nationwide regions</label>
+    <input
+      id="nationRegionSearch"
+      type="search"
+      class="region-explorer-input"
+      [ngModel]="searchQuery"
+      (ngModelChange)="onSearchInput($event)"
+      placeholder="Search any F3 region (e.g. Denver, Everett)…"
+      autocomplete="off"
+    />
+    <div class="region-explorer-loading" *ngIf="searchLoading">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+    <div class="region-explorer-pill" *ngIf="focusedNationRegion">
+      <span class="region-explorer-pill-text">
+        Exploring <strong>{{ focusedNationRegion.name }}</strong>
+        <span class="region-explorer-pill-id"> · id {{ focusedNationRegion.id }}</span>
+      </span>
+      <button
+        type="button"
+        class="region-explorer-clear"
+        (click)="clearExplore.emit()"
+        [disabled]="loading">
+        Home metros
+      </button>
+    </div>
+    <div class="region-search-results" *ngIf="searchResults.length">
+      <button
+        type="button"
+        class="region-search-hit"
+        *ngFor="let r of searchResults"
+        (click)="exploreRegion.emit(r)"
+        [disabled]="loading">
+        <span class="region-hit-name">{{ r.name }}</span>
+        <span class="region-hit-meta" *ngIf="r.parentOrgName">{{ r.parentOrgName }}</span>
+        <span class="region-hit-meta" *ngIf="r.aoCount != null">{{ r.aoCount }} AOs</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Global tree error -->
+  <div class="tree-error" *ngIf="error">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    {{ error }}
+  </div>
+
+  <div class="tree-region" *ngFor="let region of regions">
+    <div class="tree-region-header" (click)="region.expanded = !region.expanded">
+      <ion-icon [name]="region.expanded ? 'chevron-down-outline' : 'chevron-forward-outline'" class="tree-chevron"></ion-icon>
+      <span class="tree-region-name">{{ region.regionName }}</span>
+      <span class="tree-region-count">{{ region.locations.length }}</span>
+    </div>
+
+    <div class="tree-region-body" *ngIf="region.expanded">
+      <div class="tree-location" *ngFor="let loc of region.locations">
+
+        <!-- Single AO: compact row → opens AO detail; location name as subtitle -->
+        <div *ngIf="loc.aos.length === 1"
+             class="tree-location-header tree-location-header--single-ao"
+             [class.tree-location-header--no-coords]="missingMapCoords(loc)"
+             (click)="onLocationRowClick(loc)">
+          <span class="tree-loc-chevron-spacer" aria-hidden="true"></span>
+          <div class="tree-location-info">
+            <span class="tree-location-name"
+                  [class.unnamed]="headerIsUnnamed(loc)">
+              {{ headerLabel(loc) }}
+              <span class="tree-ao-id" *ngIf="loc.aos[0]?.orgId">ao {{ loc.aos[0].orgId }}</span>
+            </span>
+            <span class="tree-location-secondary"
+                  *ngIf="subtitleSingleAo(loc)">
+              {{ subtitleSingleAo(loc) }}
+            </span>
+            <span class="tree-location-addr" *ngIf="loc.address">{{ loc.address }}</span>
+            <div class="ao-dot-row" *ngIf="loc.aos[0]?.dots?.length">
+              <span
+                *ngFor="let d of loc.aos[0].dots"
+                class="ao-dot"
+                [class.ao-dot--closed]="d.closed"
+                [title]="d.displayDate + (d.closed ? ' · ' + (d.text || 'Closed') : '')">
+              </span>
+            </div>
+            <div class="tree-loc-no-coords" *ngIf="missingMapCoords(loc)">
+              <ion-icon name="location-outline"></ion-icon>
+              <span>No lat/lng on this location — not shown on the map until coordinates are set.</span>
+            </div>
+            <div class="tree-loc-no-workouts"
+                 *ngIf="loc.aos[0]?.events?.length === 0">
+              <ion-icon name="warning-outline"></ion-icon>
+              <span>No workouts on file — open this AO and add weekly events.</span>
+            </div>
+          </div>
+          <div class="tree-loc-actions"
+               *ngIf="loc.permEditLocation || loc.permDeleteLocation"
+               (click)="$event.stopPropagation()">
+            <button *ngIf="loc.permEditLocation"
+                    type="button"
+                    class="tree-action-btn"
+                    (click)="editLocation.emit({ loc: loc, event: $event })"
+                    title="Edit location">
+              <ion-icon name="pencil-outline"></ion-icon>
+            </button>
+            <button *ngIf="loc.permDeleteLocation"
+                    type="button"
+                    class="tree-action-btn tree-action-btn--danger"
+                    (click)="deleteLocation.emit({ loc: loc, event: $event })"
+                    title="Delete location">
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- 0 or 2+ AOs: expandable row -->
+        <div *ngIf="loc.aos.length !== 1"
+             class="tree-location-header"
+             [class.tree-location-header--no-coords]="missingMapCoords(loc)"
+             (click)="onLocationRowClick(loc)">
+          <ion-icon [name]="loc.expanded ? 'chevron-down-outline' : 'chevron-forward-outline'" class="tree-chevron tree-chevron--sm"></ion-icon>
+          <div class="tree-location-info">
+            <span class="tree-location-name"
+                  [class.unnamed]="headerIsUnnamed(loc)">
+              {{ headerLabel(loc) }}
+            </span>
+            <span class="tree-location-addr" *ngIf="loc.address">{{ loc.address }}</span>
+            <div class="tree-loc-no-coords" *ngIf="missingMapCoords(loc)">
+              <ion-icon name="location-outline"></ion-icon>
+              <span>No lat/lng — AOs below won’t appear on the map until coordinates are set.</span>
+            </div>
+          </div>
+          <span class="tree-loc-badge"
+                [class.warn]="loc.aos.length === 0"
+                [class.multi]="loc.aos.length > 1">
+            {{ loc.aos.length }} AO{{ loc.aos.length !== 1 ? 's' : '' }}
+          </span>
+          <div class="tree-loc-actions"
+               *ngIf="loc.permEditLocation || loc.permDeleteLocation"
+               (click)="$event.stopPropagation()">
+            <button *ngIf="loc.permEditLocation"
+                    type="button"
+                    class="tree-action-btn"
+                    (click)="editLocation.emit({ loc: loc, event: $event })"
+                    title="Edit location">
+              <ion-icon name="pencil-outline"></ion-icon>
+            </button>
+            <button *ngIf="loc.permDeleteLocation"
+                    type="button"
+                    class="tree-action-btn tree-action-btn--danger"
+                    (click)="deleteLocation.emit({ loc: loc, event: $event })"
+                    title="Delete location">
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- AO list (multi-AO or empty location only) -->
+        <div class="tree-ao-list" *ngIf="loc.aos.length !== 1 && loc.expanded">
+          <div class="tree-ao"
+               *ngFor="let ao of loc.aos"
+               [class.no-events]="ao.events.length === 0"
+               [class.tree-ao--no-map-pin]="missingMapCoords(loc)"
+               (click)="aoSelected.emit({ ao: ao, loc: loc })">
+            <div class="tree-ao-header">
+              <span class="tree-ao-name">{{ ao.name }}</span>
+              <span class="tree-ao-id">ao {{ ao.orgId }}</span>
+              <div class="tree-ao-actions"
+                   *ngIf="ao.permRenameAo || ao.permDeleteAo"
+                   (click)="$event.stopPropagation()">
+                <button *ngIf="ao.permRenameAo"
+                        type="button"
+                        class="tree-action-btn"
+                        (click)="startEditAo.emit({ ao: ao, loc: loc, event: $event })"
+                        title="Rename AO">
+                  <ion-icon name="pencil-outline"></ion-icon>
+                </button>
+                <button *ngIf="ao.permDeleteAo"
+                        type="button"
+                        class="tree-action-btn tree-action-btn--danger"
+                        (click)="deleteAo.emit({ ao: ao, loc: loc, event: $event })"
+                        title="Delete AO">
+                  <ion-icon name="trash-outline"></ion-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- Inline AO rename form -->
+            <div class="tree-location-rename tree-ao-rename"
+                 *ngIf="editingAoId === ao.orgId"
+                 (click)="$event.stopPropagation()">
+              <input class="tree-rename-input"
+                     [ngModel]="editingAoName"
+                     (ngModelChange)="onEditingAoNameChange($event)"
+                     placeholder="AO name"
+                     (keydown.enter)="saveAo.emit({ ao: ao, loc: loc, event: $event })"
+                     (keydown.escape)="cancelEditAo.emit()"
+                     autofocus />
+              <button class="tree-rename-btn tree-rename-btn--save"
+                      [disabled]="editingAoSaving || !editingAoName.trim()"
+                      (click)="saveAo.emit({ ao: ao, loc: loc, event: $event })"
+                      title="Save">
+                <ion-icon name="checkmark-outline"></ion-icon>
+              </button>
+              <button class="tree-rename-btn tree-rename-btn--cancel"
+                      (click)="cancelEditAo.emit()"
+                      title="Cancel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="tree-ao-events" *ngIf="ao.events.length > 0">
+              <div class="tree-event" *ngFor="let ev of ao.events">
+                <span class="tree-event-day">{{ ev.dayOfWeek | titlecase }}</span>
+                <span class="tree-event-time" *ngIf="ev.startTime">{{ ev.startTime }}</span>
+                <span class="tree-event-type" *ngIf="ev.eventTypeName">{{ ev.eventTypeName }}</span>
+              </div>
+            </div>
+            <div class="tree-loc-no-workouts" *ngIf="ao.events.length === 0">
+              <ion-icon name="warning-outline"></ion-icon>
+              <span>No workouts on file — open this AO and add weekly events.</span>
+            </div>
+            <div class="ao-dot-row" *ngIf="ao.dots?.length">
+              <span
+                *ngFor="let d of ao.dots"
+                class="ao-dot"
+                [class.ao-dot--closed]="d.closed"
+                [title]="d.displayDate + (d.closed ? ' · ' + (d.text || 'Closed') : '')">
+              </span>
+            </div>
+          </div>
+
+          <div class="tree-ao-empty" *ngIf="loc.aos.length === 0">
+            <ion-icon name="warning-outline"></ion-icon> No AOs at this location
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

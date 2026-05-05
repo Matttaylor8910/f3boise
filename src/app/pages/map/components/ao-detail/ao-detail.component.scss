@@ -1,0 +1,239 @@
+:host {
+  display: block;
+}
+
+// ── AO detail ─────────────────────────────────────────────────────
+.ao-detail-header {
+  margin-bottom: 12px;
+}
+
+// ── Upcoming closures ──────────────────────────────────────────────
+.ao-closures {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.ao-closure-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #fff5f5;
+  border: 1px solid #ffcdd2;
+  border-radius: 6px;
+}
+
+.closure-square {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: #e53935;
+  margin-top: 2px;
+}
+
+.closure-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.closure-date {
+  font-size: 12px;
+  font-weight: 700;
+  color: #b71c1c;
+}
+
+.closure-reason {
+  font-size: 11px;
+  color: #c62828;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 13px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #444;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover { background: #eee; border-color: #bbb; }
+}
+
+.ao-location-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+
+  .ao-location-pin {
+    flex-shrink: 0;
+    font-size: 22px;
+    color: #5c6670;
+    margin-top: 1px;
+  }
+}
+
+.ao-location-block-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ao-location-name-btn {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: left;
+  max-width: 100%;
+
+  &:hover:not(:disabled) {
+    color: #1565c0;
+    text-decoration: underline;
+  }
+}
+
+/** Location label when editing address isn’t allowed — plain text */
+.ao-location-name-text {
+  display: inline-block;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+  max-width: 100%;
+}
+
+.ao-location-address {
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 400;
+  color: #8892a0;
+  line-height: 1.45;
+}
+
+.ao-meta {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 8px;
+
+  ion-icon { flex-shrink: 0; margin-top: 2px; font-size: 15px; color: #888; }
+}
+
+// ── Schedule + About ───────────────────────────────────────────────
+.days-section,
+.description {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #ececec;
+
+  > h4 {
+    font-size: 11px;
+    font-weight: 700;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin: 0 0 10px;
+  }
+}
+
+.description > h4 {
+  margin-bottom: 8px;
+}
+
+.day-list { display: flex; flex-direction: column; gap: 6px; }
+
+.day-item {
+  padding: 10px 12px;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  background: white;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+
+  &:hover {
+    border-color: #90caf9;
+    background: #fafcff;
+
+    .day-item-action { opacity: 1; }
+  }
+
+  &.filled { background: #f0f7ff; border-color: #2196f3; }
+  &.empty  { opacity: 0.6; }
+
+  &.day-item--readonly {
+    cursor: default;
+    pointer-events: none;
+
+    &:hover {
+      border-color: #e8e8e8;
+      background: white;
+    }
+
+    &.filled {
+      background: #f0f7ff;
+      border-color: #2196f3;
+
+      &:hover { background: #f0f7ff; border-color: #2196f3; }
+    }
+  }
+}
+
+.day-item-content { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+
+.day-item-action {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2196f3;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.day-label  { font-weight: 700; font-size: 13px; color: #333; }
+.day-content { display: flex; flex-direction: column; gap: 1px; font-size: 12px; }
+.ao-name    { font-weight: 600; color: #1a73e8; }
+.time-range { color: #888; font-size: 11px; }
+
+.day-event-type-line {
+  color: #5c6bc0;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.no-workout { color: #aaa; font-size: 12px; }
+
+.description {
+  p { font-size: 13px; color: #555; line-height: 1.55; white-space: pre-line; margin: 0; }
+
+  .description-empty {
+    color: #bbb;
+    font-style: italic;
+  }
+}

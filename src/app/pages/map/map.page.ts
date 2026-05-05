@@ -10,6 +10,8 @@ import {QService} from 'src/app/services/q.service';
 import {MapPermissions, UserPermissionsService} from 'src/app/services/user-permissions.service';
 import {UtilService} from 'src/app/services/util.service';
 
+import {treeLocationSortKey} from './map-tree.helpers';
+
 interface NewAoForm {
   name: string;
   regionId: number;
@@ -1183,8 +1185,8 @@ export class MapPage implements OnInit, OnDestroy {
           locations:
               Array.from(regionMap.get(r.id)?.values() ?? [])
                   .sort(
-                      (a, b) => this.treeLocationSortKey(a).localeCompare(
-                          this.treeLocationSortKey(b),
+                      (a, b) => treeLocationSortKey(a).localeCompare(
+                          treeLocationSortKey(b),
                           undefined,
                           {sensitivity: 'base'},
                           ),
@@ -1224,66 +1226,6 @@ export class MapPage implements OnInit, OnDestroy {
     gmap.panTo({lat, lng});
     google.maps.event.addListenerOnce(
         gmap, 'idle', () => this.syncMapCenterFromNativeMap(gmap));
-  }
-
-  /**
-   * Alphabetical sort key for region tree rows: the sole AO name when exactly
-   * one AO; otherwise location name (covers 0 or 2+ AOs at the pin).
-   */
-  private treeLocationSortKey(loc: TreeLocation): string {
-    if (loc.aos.length === 1) {
-      const aoName = loc.aos[0]?.name?.trim();
-      if (aoName) return aoName;
-    }
-    return loc.displayName?.trim() ?? '';
-  }
-
-  /**
-   * When a pin has exactly one AO, the tree lists that AO name instead of the
-   * location row label.
-   */
-  treeLocationHeaderLabel(loc: TreeLocation): string {
-    return this.treeLocationSortKey(loc) || '— unnamed —';
-  }
-
-  treeLocationHeaderIsUnnamed(loc: TreeLocation): boolean {
-    return !this.treeLocationSortKey(loc);
-  }
-
-  onTreeLocationRowClick(loc: TreeLocation): void {
-    if (loc.aos.length === 1) {
-      const ao = loc.aos[0];
-      if (ao) this.selectTreeAo(ao, loc);
-      return;
-    }
-    loc.expanded = !loc.expanded;
-    this.panToLocation(loc);
-  }
-
-  /**
-   * True when this tree row’s location has no usable lat/lng (no map pin).
-   */
-  treeLocationMissingMapCoords(loc: TreeLocation): boolean {
-    const {lat, lng} = loc;
-    if (lat == null || lng == null) return true;
-    if (lat === 0 && lng === 0) return true;
-    return false;
-  }
-
-  /**
-   * When the row shows a single AO, second line: location roster name if it
-   * differs from the AO title.
-   */
-  treeLocationSubtitleSingleAo(loc: TreeLocation): string {
-    if (loc.aos.length !== 1) return '';
-    const locName = loc.displayName?.trim() ?? '';
-    if (!locName) return '';
-    const aoName = loc.aos[0]?.name?.trim();
-    if (!aoName) return '';
-    if (locName.localeCompare(aoName, undefined, {sensitivity: 'base'}) === 0) {
-      return '';
-    }
-    return locName;
   }
 
   // ── Tree: rename AO ──────────────────────────────────────────────
@@ -2818,19 +2760,4 @@ export class MapPage implements OnInit, OnDestroy {
     return `${h.padStart(2, '0')}${m.padStart(2, '0')}`;
   }
 
-  formatTime(time: string): string {
-    if (!time || time.length < 4) return time;
-    const p = time.padStart(4, '0');
-    const h = parseInt(p.slice(0, 2), 10);
-    const mins = p.slice(2);
-    return `${h % 12 || 12}:${mins} ${h >= 12 ? 'PM' : 'AM'}`;
-  }
-
-  /** Workout type label(s) for schedule row (from `/event` `eventTypes`). */
-  dayEventTypeLine(ev: F3Event): string {
-    if (!ev.eventTypes?.length) return '';
-    return ev.eventTypes.map(t => t.eventTypeName)
-        .filter((n): n is string => !!n && n.trim().length > 0)
-        .join(' · ');
-  }
 }

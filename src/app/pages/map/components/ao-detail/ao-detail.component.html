@@ -1,0 +1,83 @@
+<div class="ao-detail">
+
+  <div class="ao-detail-header">
+    <button class="back-button" type="button" (click)="back.emit()">← Back</button>
+  </div>
+
+  <!-- Upcoming closure banner -->
+  <div class="ao-closures" *ngIf="closures.length > 0">
+    <div class="ao-closure-item" *ngFor="let c of closures">
+      <span class="closure-square" aria-hidden="true"></span>
+      <div class="closure-text">
+        <span class="closure-date">{{ c.displayDate }}</span>
+        <span class="closure-reason">{{ c.text || 'AO Closed' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ao-location-block">
+    <ion-icon name="location-outline" class="ao-location-pin" aria-hidden="true"></ion-icon>
+    <div class="ao-location-block-text">
+      <button
+        *ngIf="canEditLocation"
+        type="button"
+        class="ao-location-name-btn"
+        (click)="editLocation.emit()"
+        title="Edit location name and address">
+        {{ locationLabel }}
+      </button>
+      <span
+        *ngIf="!canEditLocation"
+        class="ao-location-name-text">
+        {{ locationLabel }}
+      </span>
+      <p class="ao-location-address" *ngIf="ao.address">{{ ao.address }}</p>
+    </div>
+  </div>
+
+  <div class="ao-meta" *ngIf="ao.eventTypes.length">
+    <ion-icon name="barbell-outline"></ion-icon>
+    <span>{{ ao.eventTypes.join(' · ') }}</span>
+  </div>
+
+  <div class="days-section">
+    <h4>Schedule</h4>
+    <div class="day-list">
+      <div
+        class="day-item"
+        *ngFor="let day of ao.days"
+        [class.filled]="day.event"
+        [class.empty]="!day.event"
+        [class.day-item--readonly]="!canEditSchedule"
+        (click)="editDay.emit(day)">
+        <div class="day-item-content">
+          <div class="day-label">{{ day.dayName }}</div>
+          <div class="day-content" *ngIf="day.event">
+            <span class="ao-name">{{ day.event.name }}</span>
+            <span class="time-range">
+              {{ formatTime(day.event.startTime) }} – {{ formatTime(day.event.endTime) }}
+            </span>
+            <span class="day-event-type-line" *ngIf="dayEventTypeLine(day.event!)">
+              {{ dayEventTypeLine(day.event!) }}
+            </span>
+          </div>
+          <div class="day-content no-workout" *ngIf="!day.event">No workout scheduled</div>
+        </div>
+        <span class="day-item-action" *ngIf="canEditSchedule">{{ day.event ? 'Edit' : 'Add' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="description">
+    <h4>AO description</h4>
+    <ng-container *ngIf="about; else aoAboutEmpty">
+      <p>{{ about }}</p>
+    </ng-container>
+    <ng-template #aoAboutEmpty>
+      <p class="description-empty">
+        No AO description yet — use the AO title above to add one.
+      </p>
+    </ng-template>
+  </div>
+
+</div>
