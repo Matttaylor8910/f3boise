@@ -75,6 +75,13 @@ ion-content {
     color: #888;
     margin: 0;
   }
+
+  .sidebar-header-empty-hint {
+    font-size: 12px;
+    line-height: 1.45;
+    color: #757575;
+    margin: 0;
+  }
 }
 
 /** Selected AO: title + region in shaded header; overflow menu top-right */

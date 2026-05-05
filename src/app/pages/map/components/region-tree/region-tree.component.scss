@@ -50,6 +50,44 @@
   }
 }
 
+.region-explorer-empty {
+  margin-top: 12px;
+  padding: 14px 12px;
+  border: 1px dashed #cfd8dc;
+  border-radius: 8px;
+  background: #fff;
+  text-align: center;
+}
+
+.region-explorer-empty-text {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #546e7a;
+}
+
+.region-explorer-empty-cta {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #90caf9;
+  border-radius: 6px;
+  background: #e3f2fd;
+  color: #0d47a1;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: #bbdefb;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
 .region-explorer-added {
   margin-top: 10px;
   padding: 10px 10px 10px;
@@ -122,10 +160,20 @@
   }
 }
 
+.region-explorer-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+
+  > button {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
 .region-explorer-clear-all {
   display: block;
-  width: 100%;
-  margin-top: 8px;
+  margin-top: 0;
   padding: 6px 10px;
   border: 1px solid #90caf9;
   border-radius: 4px;
@@ -137,6 +185,28 @@
 
   &:hover:not(:disabled) {
     background: #e3f2fd;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.region-explorer-clear-regions {
+  display: block;
+  margin-top: 0;
+  padding: 6px 10px;
+  border: 1px solid #cfd8dc;
+  border-radius: 4px;
+  background: white;
+  color: #455a64;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: #eceff1;
   }
 
   &:disabled {

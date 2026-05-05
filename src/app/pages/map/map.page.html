@@ -1,10 +1,4 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>AO Map</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content [scrollY]="false">
+<ion-content [scrollY]="false" fullscreen>
 
   <div *ngIf="initialLoading" class="loading-overlay">
     <ion-spinner name="crescent"></ion-spinner>
@@ -48,7 +42,12 @@
       <div class="sidebar-header">
         <ng-container *ngIf="!selectedAo">
           <h2>Region Overview</h2>
-          <p>{{ aos.length }} active locations across {{ activeRegionsBundle.length }} region{{ activeRegionsBundle.length !== 1 ? 's' : '' }}</p>
+          <p *ngIf="activeRegionsBundle.length">
+            {{ aos.length }} active locations across {{ activeRegionsBundle.length }} region{{ activeRegionsBundle.length !== 1 ? 's' : '' }}
+          </p>
+          <p *ngIf="!activeRegionsBundle.length" class="sidebar-header-empty-hint">
+            No regions selected. Search Nationwide regions below or load Boise home metros.
+          </p>
         </ng-container>
         <ng-container *ngIf="selectedAo">
           <div class="ao-panel-header">
@@ -94,13 +93,15 @@
           [searchResults]="regionSearchResultsFiltered"
           [searchLoading]="regionSearchLoading"
           [exploredNationRegions]="exploredNationRegions"
+          [showHomeMetrosButton]="showHomeMetrosButton"
           [loading]="refreshing || initialLoading"
           [editingAoId]="editingAoId"
           [(editingAoName)]="aoEditNameTree"
           [editingAoSaving]="aoEditNameSaving"
           (searchInput)="onRegionSearchInput($event)"
           (exploreRegion)="exploreNationRegion($event)"
-          (clearExplore)="clearNationRegionExplore()"
+          (clearExplore)="resetHomeMetrosExplore()"
+          (clearAllRegions)="clearAllRegionsExplore()"
           (removeExploredRegion)="removeExploredNationRegion($event)"
           (aoSelected)="selectTreeAo($event.ao, $event.loc)"
           (locationFocused)="panToLocation($event)"

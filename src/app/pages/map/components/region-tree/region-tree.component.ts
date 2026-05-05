@@ -29,10 +29,12 @@ export class MapRegionTreeComponent {
   @Input() searchResults: F3Org[] = [];
   @Input() searchLoading = false;
   /**
-   * Regions the user chose from search. When non-empty, the parent loads **only**
-   * these (home metros are not included). Chips with remove + “Home metros”.
+   * Regions shown as chips. The parent loads **only** these ids; when empty,
+   * the map stays empty until the user adds regions or taps Home metros.
    */
   @Input() exploredNationRegions: Array<{id: number; name: string}> = [];
+  /** False when chips are exactly the four home metros — reset is redundant. */
+  @Input() showHomeMetrosButton = true;
   /** Disables search-clear actions during reload. */
   @Input() loading = false;
 
@@ -56,8 +58,10 @@ export class MapRegionTreeComponent {
 
   /** User picked a Nation region from the search results (parent appends). */
   @Output() exploreRegion = new EventEmitter<F3Org>();
-  /** Clear every appended region and return to home metros only. */
+  /** Reset chips to the four Boise home metros and reload. */
   @Output() clearExplore = new EventEmitter<void>();
+  /** Remove all chips — implicit home bundle only. */
+  @Output() clearAllRegions = new EventEmitter<void>();
   /** Remove one appended region by id. */
   @Output() removeExploredRegion = new EventEmitter<number>();
 

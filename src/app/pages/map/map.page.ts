@@ -1,11 +1,12 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
 import {GoogleMap} from '@angular/google-maps';
 import {AlertController, PopoverController, ToastController} from '@ionic/angular';
 import * as moment from 'moment';
 import {Subscription} from 'rxjs';
 import {ActionsPopoverPageComponent} from 'src/app/components/actions-popover/actions-popover-page.component';
 import {PopoverAction,} from 'src/app/components/actions-popover/actions-popover.component';
-import {BOISE_REGION_IDS, CreateOrUpdateEventRequest, F3_REGION_WEBSITE_URL, F3ApiService, F3Event, F3Location, F3Org,} from 'src/app/services/f3-api.service';
+import {BOISE_REGION_IDS, CreateOrUpdateEventRequest, F3_REGION_WEBSITE_URL, F3ApiService, F3Event, F3Location, F3Org, NationRegionId,} from 'src/app/services/f3-api.service';
 import {QService} from 'src/app/services/q.service';
 import {MapPermissions, UserPermissionsService} from 'src/app/services/user-permissions.service';
 import {UtilService} from 'src/app/services/util.service';
@@ -24,6 +25,9 @@ interface NewAoForm {
 const DAYS = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 ];
+/** Query param for shareable region selection (`/map?regions=1,2,3`). */
+const REGIONS_QUERY_PARAM = 'regions';
+
 const DAY_INDEX: Record<string, number> = {
   sunday: 0,
   monday: 1,
@@ -249,26 +253,26 @@ export class MapPage implements OnInit, OnDestroy {
   readonly eventTypes = EVENT_TYPES;
 
   /**
-   * Default region bundle when the user has not picked any regions from search
-   * ({@link exploredNationRegions} empty).
+   * Boise-area bundle (display order matches “Home metros” / {@link resetHomeMetrosExplore}).
    */
   readonly metroRegions: ReadonlyArray<{id: number; name: string}> = [
     {id: BOISE_REGION_IDS.cityOfTrees, name: 'City of Trees'},
-    {id: BOISE_REGION_IDS.settlers, name: 'Settlers'},
-    {id: BOISE_REGION_IDS.highDesert, name: 'High Desert'},
     {id: BOISE_REGION_IDS.canyon, name: 'Canyon'},
+    {id: BOISE_REGION_IDS.highDesert, name: 'High Desert'},
+    {id: BOISE_REGION_IDS.settlers, name: 'Settlers'},
   ];
 
   /**
-   * Regions chosen from nationwide search. When non-empty, the map loads
-   * **only** these (home metros are omitted). When empty, {@link metroRegions}
-   * is used. Cleared per-chip or all at once via {@link clearNationRegionExplore}.
+   * Regions shown as chips; the map loads **only** these ids. Initialized in
+   * {@link ngOnInit} from the `regions` query param or default home metros.
+   * Empty ⇒ no regions selected (empty map + empty-state UI), not an implicit
+   * Boise bundle.
    */
   exploredNationRegions: Array<{id: number; name: string}> = [];
 
   /**
-   * Drives API filters + tree sections — either {@link metroRegions} (default)
-   * or solely {@link exploredNationRegions} when the user has made selections.
+   * Drives API filters + tree sections — mirrors {@link exploredNationRegions}
+   * (empty after “Clear regions” ⇒ no data loaded).
    */
   activeRegionsBundle: ReadonlyArray<{id: number; name: string}> = [];
 
@@ -286,6 +290,23 @@ export class MapPage implements OnInit, OnDestroy {
     }
     const selected = new Set(this.exploredNationRegions.map(r => r.id));
     return this.regionSearchResults.filter(o => !selected.has(o.id));
+  }
+
+  /**
+   * “Home metros” only when chips are not exactly the four {@link metroRegions}
+   * (same ids; order ignored).
+   */
+  get showHomeMetrosButton(): boolean {
+    const home = this.metroRegions;
+    const cur = this.exploredNationRegions;
+    if (cur.length !== home.length) return true;
+    const homeIds = new Set(home.map(r => r.id));
+    const curIds = new Set(cur.map(r => r.id));
+    if (curIds.size !== homeIds.size) return true;
+    for (const id of homeIds) {
+      if (!curIds.has(id)) return true;
+    }
+    return false;
   }
 
   /** Current user's effective permissions — updated reactively. */
@@ -333,9 +354,13 @@ export class MapPage implements OnInit, OnDestroy {
       private readonly userPermissions: UserPermissionsService,
       private readonly qService: QService,
       private readonly utilService: UtilService,
+      private readonly route: ActivatedRoute,
+      private readonly router: Router,
   ) {}
 
   async ngOnInit() {
+    this.hydrateExploredRegionsFromRoute();
+    await this.enrichExploredRegionNamesFromNationApi();
     this.permSub = this.userPermissions.mapPermissions$.subscribe(p => {
       this.permissions = p;
       this.syncPermissionDerivedViews();
@@ -350,9 +375,114 @@ export class MapPage implements OnInit, OnDestroy {
   }
 
   private syncActiveRegionsBundle(): void {
-    this.activeRegionsBundle = this.exploredNationRegions.length ?
-        [...this.exploredNationRegions] :
-        [...this.metroRegions];
+    this.activeRegionsBundle = [...this.exploredNationRegions];
+  }
+
+  private nameForRegionId(id: number): string {
+    return this.metroRegions.find(r => r.id === id)?.name ?? `Region ${id}`;
+  }
+
+  private parseRegionIdsQuery(raw: string|null): number[] {
+    if (raw == null || !String(raw).trim()) return [];
+    const ids: number[] = [];
+    const seen = new Set<number>();
+    for (const part of String(raw).split(/[,\s]+/)) {
+      const n = parseInt(part.trim(), 10);
+      if (!isNaN(n) && !seen.has(n)) {
+        seen.add(n);
+        ids.push(n);
+      }
+    }
+    return ids;
+  }
+
+  /** Apply `regions` query param before first load, else default metro chips. */
+  private hydrateExploredRegionsFromRoute(): void {
+    const map = this.route.snapshot.queryParamMap;
+    if (map.has(REGIONS_QUERY_PARAM)) {
+      const raw = map.get(REGIONS_QUERY_PARAM);
+      if (raw == null || raw.trim() === '') {
+        this.exploredNationRegions = [];
+        return;
+      }
+      const ids = this.parseRegionIdsQuery(raw);
+      this.exploredNationRegions = ids.length ?
+          ids.map(id => ({id, name: this.nameForRegionId(id)})) :
+          [];
+      return;
+    }
+    this.exploredNationRegions =
+        this.metroRegions.map(r => ({id: r.id, name: r.name}));
+  }
+
+  /**
+   * Fills chip labels for ids hydrated from the URL (`Region 123` placeholders)
+   * using Nation API location rows (and events as fallback).
+   */
+  private async enrichExploredRegionNamesFromNationApi(): Promise<void> {
+    if (!this.exploredNationRegions.length) return;
+    if (!this.exploredNationRegions.some(r => r.name === `Region ${r.id}`)) {
+      return;
+    }
+    const idOrder = this.exploredNationRegions.map(r => r.id);
+    const nameById = new Map<number, string>();
+    for (const r of this.metroRegions) {
+      nameById.set(r.id, r.name);
+    }
+    const uniqueIds = [...new Set(idOrder)];
+
+    try {
+      const {locations} = await this.f3Api.listLocations({
+        regionIds: uniqueIds as NationRegionId[],
+        pageSize: 500,
+      });
+      for (const loc of locations) {
+        const n = loc.regionName?.trim();
+        if (n && !nameById.has(loc.regionId)) {
+          nameById.set(loc.regionId, n);
+        }
+      }
+    } catch {
+      // Chips keep placeholders; map data still loads.
+    }
+
+    const missing = uniqueIds.filter(id => !nameById.has(id));
+    if (missing.length) {
+      try {
+        const {events} = await this.f3Api.listEvents({
+          regionIds: missing as NationRegionId[],
+          pageSize: 200,
+        });
+        for (const ev of events) {
+          for (const reg of ev.regions ?? []) {
+            const n = reg.regionName?.trim();
+            if (n && !nameById.has(reg.regionId)) {
+              nameById.set(reg.regionId, n);
+            }
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    this.exploredNationRegions = idOrder.map(id => ({
+      id,
+      name: nameById.get(id) ?? `Region ${id}`,
+    }));
+  }
+
+  /** Keep the address bar shareable whenever chips change (clear vs list). */
+  private syncExploredRegionsToUrl(): void {
+    const value = !this.exploredNationRegions.length ?
+        '' :
+        this.exploredNationRegions.map(r => r.id).join(',');
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {[REGIONS_QUERY_PARAM]: value},
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   private activeRegionIdSet(): Set<number> {
@@ -405,6 +535,7 @@ export class MapPage implements OnInit, OnDestroy {
       this.closeDetailEditModals();
       this.closeModal();
       this.refreshNewAoRegionOptions();
+      this.syncExploredRegionsToUrl();
       await this.loadData();
     }
     this.regionSearchResults = [];
@@ -424,20 +555,45 @@ export class MapPage implements OnInit, OnDestroy {
     this.closeDetailEditModals();
     this.closeModal();
     this.refreshNewAoRegionOptions();
+    this.syncExploredRegionsToUrl();
     await this.loadData();
   }
 
-  /** Clear all manual region picks and restore the default home bundle. */
-  async clearNationRegionExplore(): Promise<void> {
-    if (!this.exploredNationRegions.length) return;
-    this.exploredNationRegions = [];
-    this.regionSearchResults = [];
+  /**
+   * Replace the chip list with the four Boise home metros (same IDs/names as
+   * {@link metroRegions}) and reload — not an implicit empty default.
+   */
+  async resetHomeMetrosExplore(): Promise<void> {
+    this.exploredNationRegions =
+        this.metroRegions.map(r => ({id: r.id, name: r.name}));
+    this.clearRegionSearchUi();
     this.syncActiveRegionsBundle();
     this.selectedAo = null;
     this.closeDetailEditModals();
     this.closeModal();
     this.refreshNewAoRegionOptions();
+    this.syncExploredRegionsToUrl();
     await this.loadData();
+  }
+
+  /** Drop all chips — empty map until the user selects regions again. */
+  async clearAllRegionsExplore(): Promise<void> {
+    if (!this.exploredNationRegions.length) return;
+    this.exploredNationRegions = [];
+    this.clearRegionSearchUi();
+    this.syncActiveRegionsBundle();
+    this.selectedAo = null;
+    this.closeDetailEditModals();
+    this.closeModal();
+    this.refreshNewAoRegionOptions();
+    this.syncExploredRegionsToUrl();
+    await this.loadData();
+  }
+
+  private clearRegionSearchUi(): void {
+    window.clearTimeout(this.regionSearchTimer);
+    this.regionSearchQuery = '';
+    this.regionSearchResults = [];
   }
 
   // ── Permission-derived view fields (synced; avoid getters/functions in
@@ -562,6 +718,18 @@ export class MapPage implements OnInit, OnDestroy {
     this.refreshing = true;
     this.error = null;
     try {
+      if (!this.activeRegionsBundle.length) {
+        if (seq !== this.loadDataSeq) return;
+        this.rawEvents = [];
+        this.rawOrgs = [];
+        this.rawLocations = [];
+        this.rebuildDerivedFromRaw(false);
+        this.refreshing = false;
+        this.initialLoading = false;
+        void this.fetchQLineupForTree();
+        return;
+      }
+
       const regionIds = this.activeRegionsBundle.map(r => r.id);
       const [{events}, {orgs}, regionalLocs, mineLocs] = await Promise.all([
         this.f3Api.listEvents({regionIds, pageSize: 500}),
@@ -1550,7 +1718,11 @@ export class MapPage implements OnInit, OnDestroy {
                     !!ao.position,
                 )
             .map(ao => ao.position);
-    if (coords.length === 0) return;
+    if (coords.length === 0) {
+      gmap.setCenter(this.mapCenter);
+      gmap.setZoom(MapPage.NO_PINS_FALLBACK_ZOOM);
+      return;
+    }
 
     const PAD = 56;
 
@@ -1658,6 +1830,8 @@ export class MapPage implements OnInit, OnDestroy {
   }
 
   private static readonly SINGLE_AO_ZOOM = 14;
+  /** When there are no pins, reset framing to the default metro center. */
+  private static readonly NO_PINS_FALLBACK_ZOOM = 10;
   /** Keeps clustered markers visible when overlapping pins inflate zoom */
   private static readonly MULTI_PIN_MAX_ZOOM = 17;
 
@@ -1790,6 +1964,7 @@ export class MapPage implements OnInit, OnDestroy {
   onMapClick(event: google.maps.MapMouseEvent) {
     if (this.modalOpen || this.newAoModalOpen) return;
     if (!this.permissions?.canCreate) return;
+    if (!this.newAoRegionOptions.length) return;
     const latLng = event.latLng?.toJSON();
     if (!latLng) return;
     this.pendingLatLng = latLng;

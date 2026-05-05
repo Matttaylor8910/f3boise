@@ -18,9 +18,9 @@ import {UserProfile, UserProfilesService} from './user-profiles.service';
 
 export const BOISE_REGIONS: ReadonlyArray<{id: number; name: string}> = [
   {id: BOISE_REGION_IDS.cityOfTrees, name: 'City of Trees'},
-  {id: BOISE_REGION_IDS.settlers, name: 'Settlers'},
-  {id: BOISE_REGION_IDS.highDesert, name: 'High Desert'},
   {id: BOISE_REGION_IDS.canyon, name: 'Canyon'},
+  {id: BOISE_REGION_IDS.highDesert, name: 'High Desert'},
+  {id: BOISE_REGION_IDS.settlers, name: 'Settlers'},
 ];
 
 export function makeNantanRole(regionId: number): string {
