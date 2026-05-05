@@ -107,12 +107,21 @@
                     <span class="tree-location-name"
                           [class.unnamed]="treeLocationHeaderIsUnnamed(loc)">
                       {{ treeLocationHeaderLabel(loc) }}
+                      <span class="tree-ao-id" *ngIf="loc.aos[0]?.orgId">ao {{ loc.aos[0].orgId }}</span>
                     </span>
                     <span class="tree-location-secondary"
                           *ngIf="treeLocationSubtitleSingleAo(loc)">
                       {{ treeLocationSubtitleSingleAo(loc) }}
                     </span>
                     <span class="tree-location-addr" *ngIf="loc.address">{{ loc.address }}</span>
+                    <div class="ao-dot-row" *ngIf="loc.aos[0]?.dots?.length">
+                      <span
+                        *ngFor="let d of loc.aos[0].dots"
+                        class="ao-dot"
+                        [class.ao-dot--closed]="d.closed"
+                        [title]="d.displayDate + (d.closed ? ' · ' + (d.text || 'Closed') : '')">
+                      </span>
+                    </div>
                   </div>
                   <div class="tree-loc-actions"
                        *ngIf="loc.permEditLocation || loc.permDeleteLocation"
@@ -231,6 +240,14 @@
                     </div>
                     <div class="tree-no-events" *ngIf="ao.events.length === 0">
                       <ion-icon name="warning-outline"></ion-icon> No events
+                    </div>
+                    <div class="ao-dot-row" *ngIf="ao.dots?.length">
+                      <span
+                        *ngFor="let d of ao.dots"
+                        class="ao-dot"
+                        [class.ao-dot--closed]="d.closed"
+                        [title]="d.displayDate + (d.closed ? ' · ' + (d.text || 'Closed') : '')">
+                      </span>
                     </div>
                   </div>
 

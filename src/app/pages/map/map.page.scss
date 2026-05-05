@@ -648,6 +648,39 @@ ion-modal {
   &.multi { background: #e3f2fd; color: #1565c0; }
 }
 
+// ── Schedule dots (overview tree) ────────────────────────────────
+
+.ao-dot-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 5px;
+}
+
+.ao-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #c8d0d8;
+  cursor: default;
+  transition: background 0.15s, transform 0.1s;
+  flex-shrink: 0;
+
+  &--closed {
+    background: #e53935;
+  }
+
+  &:hover {
+    transform: scale(1.5);
+    background: #90a4ae;
+
+    &.ao-dot--closed {
+      background: #b71c1c;
+    }
+  }
+}
+
 .tree-ao-list {
   background: #fafafa;
   border-top: 1px solid #f0f0f0;
@@ -684,6 +717,7 @@ ion-modal {
   font-size: 10px;
   color: #bbb;
   font-family: monospace;
+  margin-left: 6px;
 }
 
 .tree-ao-events {

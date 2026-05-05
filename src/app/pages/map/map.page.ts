@@ -7,8 +7,8 @@ import {ActionsPopoverPageComponent} from 'src/app/components/actions-popover/ac
 import {PopoverAction,} from 'src/app/components/actions-popover/actions-popover.component';
 import {BOISE_REGION_IDS, CreateOrUpdateEventRequest, F3_REGION_WEBSITE_URL, F3ApiService, F3Event, F3Location, F3Org,} from 'src/app/services/f3-api.service';
 import {QService} from 'src/app/services/q.service';
-import {UtilService} from 'src/app/services/util.service';
 import {MapPermissions, UserPermissionsService} from 'src/app/services/user-permissions.service';
+import {UtilService} from 'src/app/services/util.service';
 
 interface NewAoForm {
   name: string;
@@ -66,7 +66,10 @@ export interface GroupedAo {
   days: AoDay[];
   position?: google.maps.LatLngLiteral;
   markerOptions?: google.maps.MarkerOptions;
-  /** True when the AO's next scheduled workout date has a closure in the Q lineup */
+  /**
+   * True when the AO's next scheduled workout date has a closure in the Q
+   * lineup
+   */
   closedNextDate?: boolean;
 }
 
@@ -104,6 +107,13 @@ export interface TreeEvent {
   eventTypeName: string;
 }
 
+export interface AoDot {
+  date: string;
+  displayDate: string;
+  closed: boolean;
+  text: string|null;
+}
+
 export interface TreeAo {
   orgId: number;
   name: string;
@@ -112,6 +122,10 @@ export interface TreeAo {
   permRenameAo: boolean;
   /** Whether current user may delete/deactivate this AO (region gate) */
   permDeleteAo: boolean;
+  /**
+   * Upcoming schedule dots for the overview tree (loaded after Q lineup fetch)
+   */
+  dots: AoDot[];
 }
 
 export interface TreeLocation {
@@ -142,7 +156,10 @@ export interface TreeRegion {
   expanded: boolean;
 }
 
-/** Boise AO org row not covered by normal event/location merge (no location, etc.). */
+/**
+ * Boise AO org row not covered by normal event/location merge (no location,
+ * etc.).
+ */
 interface OrphanOrgPlacement {
   readonly org: F3Org;
   readonly locationId: number;
@@ -209,6 +226,9 @@ export class MapPage implements OnInit, OnDestroy {
   aoSaveError: string|null = null;
   isDeletingAo = false;
 
+  /** Full Q lineup for the next 30 days — fetched once, used for tree dots */
+  private qLineupData: import('types').QLineUp[] = [];
+
   /** Upcoming closure dates for the currently selected AO */
   selectedAoClosures: AoUpcomingClosure[] = [];
   /** Whether the very next scheduled date for the selected AO is closed */
@@ -228,7 +248,10 @@ export class MapPage implements OnInit, OnDestroy {
   permissions: MapPermissions|null = null;
   private permSub?: Subscription;
 
-  /** Detail panel — synced when selection or permissions change (no template helpers). */
+  /**
+   * Detail panel — synced when selection or permissions change (no template
+   * helpers).
+   */
   detailEditAoTitle = false;
   detailDeleteAo = false;
   detailEditLocation = false;
@@ -272,11 +295,10 @@ export class MapPage implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.geocoder = new google.maps.Geocoder();
-    this.permSub =
-        this.userPermissions.mapPermissions$.subscribe(p => {
-          this.permissions = p;
-          this.syncPermissionDerivedViews();
-        });
+    this.permSub = this.userPermissions.mapPermissions$.subscribe(p => {
+      this.permissions = p;
+      this.syncPermissionDerivedViews();
+    });
     await this.loadData();
   }
 
@@ -284,22 +306,23 @@ export class MapPage implements OnInit, OnDestroy {
     this.permSub?.unsubscribe();
   }
 
-  // ── Permission-derived view fields (synced; avoid getters/functions in templates)
+  // ── Permission-derived view fields (synced; avoid getters/functions in
+  // templates)
 
   /** Shared location row — requires edit rights on every AO org at this pin. */
-  private canEditSharedLocationRecord(regionId: number, locationId: number): boolean {
+  private canEditSharedLocationRecord(regionId: number, locationId: number):
+      boolean {
     const p = this.permissions;
     if (!p) return false;
     const orgIds = this.orgIdsAtLocation(locationId);
     if (orgIds.length === 0) {
       return p.canDeleteAo({regionId});
     }
-    return orgIds.every(oid =>
-        p.canEditAo({
-          regionId,
-          orgId: oid,
-          parentAoId: oid,
-        }));
+    return orgIds.every(oid => p.canEditAo({
+      regionId,
+      orgId: oid,
+      parentAoId: oid,
+    }));
   }
 
   /** AO org ids sharing this physical location (pin). */
@@ -329,11 +352,10 @@ export class MapPage implements OnInit, OnDestroy {
           }
           continue;
         }
-        loc.permEditLocation =
-            loc.locationId > 0 &&
+        loc.permEditLocation = loc.locationId > 0 &&
             this.canEditSharedLocationRecord(loc.regionId, loc.locationId);
-        loc.permDeleteLocation = loc.locationId > 0 &&
-            p.canDeleteAo({regionId: loc.regionId});
+        loc.permDeleteLocation =
+            loc.locationId > 0 && p.canDeleteAo({regionId: loc.regionId});
         for (const ao of loc.aos) {
           ao.permRenameAo = p.canEditAo({
             regionId: loc.regionId,
@@ -371,8 +393,8 @@ export class MapPage implements OnInit, OnDestroy {
       orgId: ao.orgId,
       parentAoId: ao.parentAoId,
     });
-    this.detailShowOverflowMenu =
-        this.detailEditAoTitle || this.detailEditLocation || this.detailDeleteAo;
+    this.detailShowOverflowMenu = this.detailEditAoTitle ||
+        this.detailEditLocation || this.detailDeleteAo;
   }
 
   private syncPermissionDerivedViews(): void {
@@ -389,11 +411,11 @@ export class MapPage implements OnInit, OnDestroy {
       return;
     }
     const allowed = new Set(p.creatableRegionIds);
-    this.newAoRegionOptions =
-        this.boiseRegions.filter(r => allowed.has(r.id));
+    this.newAoRegionOptions = this.boiseRegions.filter(r => allowed.has(r.id));
   }
 
-  // ── Legacy bridge removed — templates bind detail* and Tree*.perm* fields only.
+  // ── Legacy bridge removed — templates bind detail* and Tree*.perm* fields
+  // only.
 
   /**
    * Full fetch — only on startup (or explicit refresh). Mutations patch `raw*`
@@ -429,6 +451,7 @@ export class MapPage implements OnInit, OnDestroy {
 
       this.rebuildDerivedFromRaw(false);
       this.loading = false;
+      void this.fetchQLineupForTree();
     } catch (e: any) {
       this.error = e.message ?? 'Failed to load events';
       this.loading = false;
@@ -486,6 +509,7 @@ export class MapPage implements OnInit, OnDestroy {
     this.syncPermissionDerivedViews();
     this.geocodeAll();
     this.scheduleFitMapToPins();
+    if (this.qLineupData.length) this.annotateTreeWithDots();
   }
 
   private findGroupedAoInList(
@@ -688,12 +712,12 @@ export class MapPage implements OnInit, OnDestroy {
     if (isSyntheticLocation) {
       address = '(no location on file — assign a location or delete this AO)';
     } else if (loc) {
-      address = [
-        loc.addressStreet, loc.addressCity, loc.addressState
-      ].filter(Boolean).join(', ');
+      address = [loc.addressStreet, loc.addressCity, loc.addressState]
+                    .filter(Boolean)
+                    .join(', ');
     } else {
-      address =
-          `(location id ${locationId} not returned by API — you can still delete the AO)`;
+      address = `(location id ${
+          locationId} not returned by API — you can still delete the AO)`;
     }
 
     const ao: GroupedAo = {
@@ -939,6 +963,7 @@ export class MapPage implements OnInit, OnDestroy {
             events: [],
             permRenameAo: false,
             permDeleteAo: false,
+            dots: [],
           });
         }
       }
@@ -957,6 +982,7 @@ export class MapPage implements OnInit, OnDestroy {
             events: [],
             permRenameAo: false,
             permDeleteAo: false,
+            dots: [],
           });
         }
         const ao = aoMap.get(orgId)!;
@@ -1005,15 +1031,14 @@ export class MapPage implements OnInit, OnDestroy {
       if (!regionLocs) continue;
 
       const address = loc ?
-          [
-            loc.addressStreet, loc.addressCity, loc.addressState
-          ].filter(Boolean).join(', ') :
+          [loc.addressStreet, loc.addressCity, loc.addressState]
+              .filter(Boolean)
+              .join(', ') :
           '';
 
       const displayName = (loc?.locationName?.trim()) ||
-          (isSyntheticLocation ?
-               '(no location)' :
-               `Location ${locationId} (missing)`);
+          (isSyntheticLocation ? '(no location)' :
+                                 `Location ${locationId} (missing)`);
 
       const treeAo: TreeAo = {
         orgId: org.id,
@@ -1021,6 +1046,7 @@ export class MapPage implements OnInit, OnDestroy {
         events: [],
         permRenameAo: false,
         permDeleteAo: false,
+        dots: [],
       };
 
       const existing = regionLocs.get(locationId);
@@ -1594,13 +1620,13 @@ export class MapPage implements OnInit, OnDestroy {
       const fill = closed ? '#e53935' : '#2196f3';
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${
           SIZE}" height="${totalH}">
-  <circle cx="${cx}" cy="${cx}" r="${
-          cx - 1.5}" fill="${fill}" stroke="white" stroke-width="2"
+  <circle cx="${cx}" cy="${cx}" r="${cx - 1.5}" fill="${
+          fill}" stroke="white" stroke-width="2"
           style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.25))"/>
   <text x="${cx}" y="${cx + 5}" font-size="18" font-weight="700" fill="white"
         text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,sans-serif">+</text>
-  <path d="M${cx - 5} ${SIZE} L${cx} ${totalH} L${cx + 5} ${
-          SIZE} Z" fill="${fill}"/>
+  <path d="M${cx - 5} ${SIZE} L${cx} ${totalH} L${cx + 5} ${SIZE} Z" fill="${
+          fill}"/>
 </svg>`;
       return {
         title: ao.name,
@@ -1625,7 +1651,7 @@ export class MapPage implements OnInit, OnDestroy {
             activeDays,
             {boxW, boxH, totalH, PILL_W, PILL_H, PAD, GAP, CARET_H},
             closed,
-        ),
+            ),
         scaledSize: new google.maps.Size(boxW, totalH),
         anchor: new google.maps.Point(boxW / 2, totalH),
       },
@@ -1684,8 +1710,7 @@ export class MapPage implements OnInit, OnDestroy {
 
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${
         boxW}" height="${totalH}">
-  <rect width="${boxW}" height="${
-        boxH}" rx="6" fill="${boxFill}" stroke="${
+  <rect width="${boxW}" height="${boxH}" rx="6" fill="${boxFill}" stroke="${
         boxStroke}" stroke-width="1.5"
         style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.18))"/>
   ${pills}
@@ -1881,10 +1906,77 @@ export class MapPage implements OnInit, OnDestroy {
     this.prevClosedAo = null;
   }
 
-  /** Min ratio for fuzzy AO match on collapsed alphanumeric keys (see {@link aoCollapsedKeysMatch}). */
+  /** Max dots to show per AO in the overview tree (keeps rows compact). */
+  private static readonly MAX_TREE_DOTS = 10;
+
+  /**
+   * Loads Q lineup for the next 30 days and annotates the region tree.
+   * Non-critical.
+   */
+  private async fetchQLineupForTree(): Promise<void> {
+    const FORMAT = 'YYYY-MM-DD';
+    const today = moment().format(FORMAT);
+    const end = moment().add(30, 'days').format(FORMAT);
+    try {
+      this.qLineupData = await this.qService.getQLineUp(today, end);
+      this.annotateTreeWithDots();
+    } catch {
+      // Non-critical: tree still works without dots
+    }
+  }
+
+  /** Stamps `.dots` on every TreeAo from the cached lineup. */
+  private annotateTreeWithDots(): void {
+    for (const region of this.regionTree) {
+      for (const loc of region.locations) {
+        for (const ao of loc.aos) {
+          ao.dots = this.buildDotsForTreeAo(ao);
+        }
+      }
+    }
+  }
+
+  /**
+   * Builds the ordered dot array for one TreeAo, capped at {@link
+   * MAX_TREE_DOTS}.
+   */
+  private buildDotsForTreeAo(ao: TreeAo): AoDot[] {
+    return this.qLineupData
+        .filter(q => this.lineupAoKeyMatchesName(q.ao, ao.name))
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .slice(0, MapPage.MAX_TREE_DOTS)
+        .map(q => ({
+               date: q.date,
+               displayDate: moment(q.date).format('ddd M/D'),
+               closed: q.closed,
+               text: q.text,
+             }));
+  }
+
+  /**
+   * Single-name variant of {@link lineupAoMatchesGroupedAo} used for tree
+   * annotations.
+   */
+  private lineupAoKeyMatchesName(lineupAoNormalized: string, aoName: string):
+      boolean {
+    const lineupKey = MapPage.slugCollapseAoKey(lineupAoNormalized);
+    if (!lineupKey) return false;
+    const mapKey =
+        MapPage.slugCollapseAoKey(this.utilService.normalizeName(aoName));
+    if (!mapKey) return false;
+    return MapPage.aoCollapsedKeysMatch(mapKey, lineupKey);
+  }
+
+  /**
+   * Min ratio for fuzzy AO match on collapsed alphanumeric keys (see {@link
+   * aoCollapsedKeysMatch}).
+   */
   private static readonly AO_NAME_MATCH_MIN_SIMILARITY = 0.82;
 
-  /** Collapses an AO label for fuzzy comparison (handles hyphen vs space vs apostrophe drift). */
+  /**
+   * Collapses an AO label for fuzzy comparison (handles hyphen vs space vs
+   * apostrophe drift).
+   */
   private static slugCollapseAoKey(raw: string): string {
     return raw.toLowerCase().replace(/['']/g, '').replace(/[^a-z0-9]/g, '');
   }
@@ -1922,15 +2014,18 @@ export class MapPage implements OnInit, OnDestroy {
 
   /**
    * Whether two collapsed AO keys refer to the same workout site name.
-   * Map/F3Nation strings often diverge from scraper slugs (`camel-back` vs `Camel's Back`).
+   * Map/F3Nation strings often diverge from scraper slugs (`camel-back` vs
+   * `Camel's Back`).
    */
-  private static aoCollapsedKeysMatch(mapKey: string, lineupKey: string): boolean {
+  private static aoCollapsedKeysMatch(mapKey: string, lineupKey: string):
+      boolean {
     if (!mapKey || !lineupKey) return false;
     if (mapKey === lineupKey) return true;
 
     const short = mapKey.length <= lineupKey.length ? mapKey : lineupKey;
     const long = mapKey.length <= lineupKey.length ? lineupKey : mapKey;
-    // Substring only when the shorter token is long enough to avoid e.g. "gem" inside "gem island park".
+    // Substring only when the shorter token is long enough to avoid e.g. "gem"
+    // inside "gem island park".
     if (short.length >= 6 && long.includes(short)) return true;
     if (short.length >= 4 && long.includes(short) &&
         long.length <= short.length + 3) {
@@ -1948,7 +2043,8 @@ export class MapPage implements OnInit, OnDestroy {
    * Match grouped AO display labels to a lineup row (`q.ao` is already
    * {@link UtilService.normalizeName}'d by {@link QService}).
    */
-  private lineupAoMatchesGroupedAo(lineupAoNormalized: string, ao: GroupedAo): boolean {
+  private lineupAoMatchesGroupedAo(lineupAoNormalized: string, ao: GroupedAo):
+      boolean {
     const lineupKey = MapPage.slugCollapseAoKey(lineupAoNormalized);
     if (!lineupKey) return false;
 
@@ -1956,8 +2052,8 @@ export class MapPage implements OnInit, OnDestroy {
       this.utilService.normalizeName(this.detailPanelAoTitle(ao)),
       this.utilService.normalizeName(ao.name),
     ];
-    const keys =
-        [...new Set(candidates.map(c => MapPage.slugCollapseAoKey(c)).filter(Boolean))];
+    const keys = [...new Set(
+        candidates.map(c => MapPage.slugCollapseAoKey(c)).filter(Boolean))];
 
     return keys.some(mapKey => MapPage.aoCollapsedKeysMatch(mapKey, lineupKey));
   }
@@ -1977,16 +2073,19 @@ export class MapPage implements OnInit, OnDestroy {
       // Guard: AO may have changed while the request was in flight
       if (this.selectedAo !== ao) return;
 
-      const closures = lineups.filter(q => {
-        if (!q.closed) return false;
-        return this.lineupAoMatchesGroupedAo(q.ao, ao);
-      }).sort((a, b) => a.date.localeCompare(b.date));
+      const closures = lineups
+                           .filter(q => {
+                             if (!q.closed) return false;
+                             return this.lineupAoMatchesGroupedAo(q.ao, ao);
+                           })
+                           .sort((a, b) => a.date.localeCompare(b.date));
 
-      this.selectedAoClosures = closures.map(q => ({
-        date: q.date,
-        displayDate: moment(q.date).format('ddd, M/D'),
-        text: q.text,
-      }));
+      this.selectedAoClosures =
+          closures.map(q => ({
+                         date: q.date,
+                         displayDate: moment(q.date).format('ddd, M/D'),
+                         text: q.text,
+                       }));
 
       // Determine whether the AO's very next scheduled date is closed
       const activeDayIndices =
@@ -2094,21 +2193,27 @@ export class MapPage implements OnInit, OnDestroy {
       actions.push({
         label: 'Edit AO',
         icon: 'create-outline',
-        onClick: () => { this.openAoMetaModal(); },
+        onClick: () => {
+          this.openAoMetaModal();
+        },
       });
     }
     if (this.detailEditLocation) {
       actions.push({
         label: 'Edit Location',
         icon: 'location-outline',
-        onClick: () => { this.openLocationEditModal(); },
+        onClick: () => {
+          this.openLocationEditModal();
+        },
       });
     }
     if (this.detailDeleteAo) {
       actions.push({
         label: 'Delete AO',
         icon: 'trash-outline',
-        onClick: () => { void this.confirmDeleteAo(); },
+        onClick: () => {
+          void this.confirmDeleteAo();
+        },
       });
     }
     if (!actions.length) return;
@@ -2399,8 +2504,8 @@ export class MapPage implements OnInit, OnDestroy {
         if (oid > 0) {
           this.rawOrgs = this.rawOrgs.filter(o => o.id !== oid);
         }
-        this.rawEvents = this.rawEvents.filter(
-            e => (e.parents?.[0]?.parentId ?? 0) !== oid);
+        this.rawEvents =
+            this.rawEvents.filter(e => (e.parents?.[0]?.parentId ?? 0) !== oid);
       } else {
         this.rawEvents = this.rawEvents.filter(e => e.locationId !== lid);
         this.rawOrgs = this.rawOrgs.filter(o => o.defaultLocationId !== lid);
