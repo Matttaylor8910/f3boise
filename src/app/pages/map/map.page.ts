@@ -237,12 +237,37 @@ export class MapPage implements OnInit, OnDestroy {
   private prevClosedAo: GroupedAo|null = null;
 
   readonly eventTypes = EVENT_TYPES;
-  readonly boiseRegions = [
+
+  /**
+   * Home metro regions loaded together when not exploring elsewhere.
+   * Add/remove IDs here — {@link focusedNationRegion} overrides to a single
+   * Nation region for audits.
+   */
+  readonly metroRegions: ReadonlyArray<{id: number; name: string}> = [
     {id: BOISE_REGION_IDS.cityOfTrees, name: 'City of Trees'},
     {id: BOISE_REGION_IDS.settlers, name: 'Settlers'},
     {id: BOISE_REGION_IDS.highDesert, name: 'High Desert'},
     {id: BOISE_REGION_IDS.canyon, name: 'Canyon'},
   ];
+
+  /**
+   * Single region from nationwide search — when set, map data loads only this
+   * region id.
+   */
+  focusedNationRegion: {id: number; name: string}|null = null;
+
+  /**
+   * Drives API filters + tree sections — {@link metroRegions} or one explored
+   * region
+   */
+  activeRegionsBundle: ReadonlyArray<{id: number; name: string}> = [];
+
+  // ── Nationwide region search (sidebar) ────────────────────────────
+
+  regionSearchQuery = '';
+  regionSearchResults: F3Org[] = [];
+  regionSearchLoading = false;
+  private regionSearchTimer?: number;
 
   /** Current user's effective permissions — updated reactively. */
   permissions: MapPermissions|null = null;
@@ -299,11 +324,82 @@ export class MapPage implements OnInit, OnDestroy {
       this.permissions = p;
       this.syncPermissionDerivedViews();
     });
+    this.syncActiveRegionsBundle();
     await this.loadData();
   }
 
   ngOnDestroy(): void {
     this.permSub?.unsubscribe();
+    window.clearTimeout(this.regionSearchTimer);
+  }
+
+  private syncActiveRegionsBundle(): void {
+    this.activeRegionsBundle = this.focusedNationRegion ?
+        [this.focusedNationRegion] :
+        [...this.metroRegions];
+  }
+
+  private activeRegionIdSet(): Set<number> {
+    return new Set(this.activeRegionsBundle.map(r => r.id));
+  }
+
+  private defaultPayloadRegionId(): number {
+    return this.activeRegionsBundle[0]?.id ?? BOISE_REGION_IDS.cityOfTrees;
+  }
+
+  onRegionSearchInput(value: string): void {
+    this.regionSearchQuery = value;
+    window.clearTimeout(this.regionSearchTimer);
+    const q = value.trim();
+    if (q.length < 2) {
+      this.regionSearchResults = [];
+      return;
+    }
+    this.regionSearchTimer = window.setTimeout(() => {
+      void this.runNationRegionSearch(q);
+    }, 320);
+  }
+
+  private async runNationRegionSearch(q: string): Promise<void> {
+    this.regionSearchLoading = true;
+    try {
+      const {orgs} = await this.f3Api.listOrgs({
+        orgTypes: ['region'],
+        searchTerm: q,
+        pageSize: 40,
+        statuses: 'active',
+      });
+      this.regionSearchResults = orgs;
+    } catch {
+      this.regionSearchResults = [];
+    } finally {
+      this.regionSearchLoading = false;
+    }
+  }
+
+  /** Load map + tree for one Nation region (auditing data quality). */
+  async exploreNationRegion(org: F3Org): Promise<void> {
+    const name = org.name?.trim() || `Region ${org.id}`;
+    this.focusedNationRegion = {id: org.id, name};
+    this.regionSearchResults = [];
+    this.regionSearchQuery = '';
+    this.syncActiveRegionsBundle();
+    this.selectedAo = null;
+    this.closeDetailEditModals();
+    this.closeModal();
+    await this.loadData();
+  }
+
+  /** Restore home metro bundle */
+  async clearNationRegionExplore(): Promise<void> {
+    if (!this.focusedNationRegion) return;
+    this.focusedNationRegion = null;
+    this.regionSearchResults = [];
+    this.syncActiveRegionsBundle();
+    this.selectedAo = null;
+    this.closeDetailEditModals();
+    this.closeModal();
+    await this.loadData();
   }
 
   // ── Permission-derived view fields (synced; avoid getters/functions in
@@ -411,7 +507,7 @@ export class MapPage implements OnInit, OnDestroy {
       return;
     }
     const allowed = new Set(p.creatableRegionIds);
-    this.newAoRegionOptions = this.boiseRegions.filter(r => allowed.has(r.id));
+    this.newAoRegionOptions = this.metroRegions.filter(r => allowed.has(r.id));
   }
 
   // ── Legacy bridge removed — templates bind detail* and Tree*.perm* fields
@@ -425,17 +521,15 @@ export class MapPage implements OnInit, OnDestroy {
     this.loading = true;
     this.error = null;
     try {
-      const boiseRegionIds = Object.values(BOISE_REGION_IDS) as number[];
+      const regionIds = this.activeRegionsBundle.map(r => r.id);
       const [{events}, {orgs}, regionalLocs, mineLocs] = await Promise.all([
-        this.f3Api.listEvents({pageSize: 500}),
-        // Fetch all AOs under the Boise metro regions (not just onlyMine) so
-        // orphan orgs created by other users are visible and can be managed.
+        this.f3Api.listEvents({regionIds, pageSize: 500}),
         this.f3Api.listOrgs({
           orgTypes: ['ao'],
-          parentOrgIds: boiseRegionIds,
+          parentOrgIds: regionIds,
           pageSize: 500,
         }),
-        this.f3Api.listLocations({regionIds: boiseRegionIds, pageSize: 500}),
+        this.f3Api.listLocations({regionIds, pageSize: 500}),
         // AO locations we created can have regionId = AO org id (not Boise
         // metro IDs) and are omitted from regional list — merge onlyMine coords
         // for pin placement.
@@ -578,7 +672,7 @@ export class MapPage implements OnInit, OnDestroy {
         }
       }
 
-      const regionPick = this.pickBoiseRegion(evts);
+      const regionPick = this.pickActiveBundleRegion(evts);
       return {
         locationId,
         parentAoId,
@@ -613,10 +707,10 @@ export class MapPage implements OnInit, OnDestroy {
       eventLocationIds: Set<number>,
       ): GroupedAo[] {
     const emptyAos: GroupedAo[] = [];
-    const boiseRegionIds = new Set<number>(Object.values(BOISE_REGION_IDS));
+    const allowed = this.activeRegionIdSet();
 
     for (const org of orgs) {
-      if (!boiseRegionIds.has(org.parentId)) continue;
+      if (!allowed.has(org.parentId)) continue;
 
       const locId = org.defaultLocationId;
       if (!locId) continue;
@@ -629,7 +723,8 @@ export class MapPage implements OnInit, OnDestroy {
         loc.addressStreet, loc.addressCity, loc.addressState
       ].filter(Boolean).join(', ');
 
-      const parentRegion = this.boiseRegions.find(r => r.id === org.parentId);
+      const parentRegion =
+          this.activeRegionsBundle.find(r => r.id === org.parentId);
 
       const ao: GroupedAo = {
         locationId: locId,
@@ -675,11 +770,11 @@ export class MapPage implements OnInit, OnDestroy {
         coveredOrgIds.add(a.parentAoId);
     }
 
-    const boiseRegionIds = new Set<number>(Object.values(BOISE_REGION_IDS));
+    const allowed = this.activeRegionIdSet();
     const out: OrphanOrgPlacement[] = [];
 
     for (const org of orgs) {
-      if (!boiseRegionIds.has(org.parentId)) continue;
+      if (!allowed.has(org.parentId)) continue;
       if (coveredOrgIds.has(org.id)) continue;
 
       const lid = org.defaultLocationId;
@@ -706,7 +801,8 @@ export class MapPage implements OnInit, OnDestroy {
 
   private groupedAoFromOrphanPlacement(p: OrphanOrgPlacement): GroupedAo {
     const {org, locationId, loc, isSyntheticLocation} = p;
-    const parentRegion = this.boiseRegions.find(r => r.id === org.parentId);
+    const parentRegion =
+        this.activeRegionsBundle.find(r => r.id === org.parentId);
 
     let address: string;
     if (isSyntheticLocation) {
@@ -772,9 +868,12 @@ export class MapPage implements OnInit, OnDestroy {
     return [...eventAos, ...emptyAos, ...orphanAos];
   }
 
-  /** Prefer a Boise-area region; API may list other metros first. */
-  private pickBoiseRegion(evts: F3Event[]): {id: number; name: string} {
-    const allowed = new Set<number>(Object.values(BOISE_REGION_IDS));
+  /**
+   * Prefer a region id from the loaded bundle (event payload may list others
+   * first).
+   */
+  private pickActiveBundleRegion(evts: F3Event[]): {id: number; name: string} {
+    const allowed = this.activeRegionIdSet();
     for (const ev of evts) {
       for (const r of ev.regions ?? []) {
         if (allowed.has(r.regionId)) {
@@ -792,14 +891,14 @@ export class MapPage implements OnInit, OnDestroy {
    */
   private regionIdForPayload(
       ev: F3Event|null|undefined, fallback: AoPayloadContext): number {
-    const allowed = new Set<number>(Object.values(BOISE_REGION_IDS));
+    const allowed = this.activeRegionIdSet();
     if (ev?.regions?.length) {
       const hit = ev.regions.find(r => allowed.has(r.regionId));
       if (hit) return hit.regionId;
     }
     if (fallback.regionId && allowed.has(fallback.regionId))
       return fallback.regionId;
-    return BOISE_REGION_IDS.cityOfTrees;
+    return this.defaultPayloadRegionId();
   }
 
   /**
@@ -851,11 +950,11 @@ export class MapPage implements OnInit, OnDestroy {
 
   private payloadContextFromTreeLocation(
       loc: TreeLocation, sampleEv?: F3Event|null): AoPayloadContext {
-    const picked = sampleEv ? this.pickBoiseRegion([sampleEv]) : null;
-    const allowed = new Set<number>(Object.values(BOISE_REGION_IDS));
+    const picked = sampleEv ? this.pickActiveBundleRegion([sampleEv]) : null;
+    const allowed = this.activeRegionIdSet();
     const regionId = picked?.id && allowed.has(picked.id) ?
         picked.id :
-        BOISE_REGION_IDS.cityOfTrees;
+        this.defaultPayloadRegionId();
     return {locationId: loc.locationId, regionId};
   }
 
@@ -879,7 +978,7 @@ export class MapPage implements OnInit, OnDestroy {
 
   private buildRegionTree(
       events: F3Event[], orgs: F3Org[], locations: F3Location[]): TreeRegion[] {
-    const boiseRegionIdSet = new Set<number>(this.boiseRegions.map(r => r.id));
+    const activeRegionIds = this.activeRegionIdSet();
     const locationById = new Map(locations.map(l => [l.id, l]));
 
     // Group events by locationId → Map<orgId, events[]>
@@ -897,16 +996,16 @@ export class MapPage implements OnInit, OnDestroy {
       eventsByLocation.set(ev.locationId, locList);
     }
 
-    // Determine Boise region for each relevant locationId
+    // Determine region for each relevant locationId
     const locationToRegion = new Map<number, number>();
     for (const loc of locations) {
-      if (boiseRegionIdSet.has(loc.regionId)) {
+      if (activeRegionIds.has(loc.regionId)) {
         locationToRegion.set(loc.id, loc.regionId);
       }
     }
     // Fallback: org's parentId for locations whose regionId is non-standard
     for (const org of orgs) {
-      if (!boiseRegionIdSet.has(org.parentId)) continue;
+      if (!activeRegionIds.has(org.parentId)) continue;
       if (org.defaultLocationId &&
           !locationToRegion.has(org.defaultLocationId)) {
         locationToRegion.set(org.defaultLocationId, org.parentId);
@@ -916,7 +1015,7 @@ export class MapPage implements OnInit, OnDestroy {
     for (const [locId, evs] of eventsByLocation) {
       if (!locationToRegion.has(locId)) {
         for (const ev of evs) {
-          const r = ev.regions?.find(r => boiseRegionIdSet.has(r.regionId));
+          const r = ev.regions?.find(r => activeRegionIds.has(r.regionId));
           if (r) {
             locationToRegion.set(locId, r.regionId);
             break;
@@ -936,7 +1035,7 @@ export class MapPage implements OnInit, OnDestroy {
 
     // Build region → TreeLocation map
     const regionMap = new Map<number, Map<number, TreeLocation>>(
-        this.boiseRegions.map(r => [r.id, new Map()]));
+        this.activeRegionsBundle.map(r => [r.id, new Map()]));
 
     for (const locId of allLocIds) {
       const regionId = locationToRegion.get(locId);
@@ -1072,7 +1171,7 @@ export class MapPage implements OnInit, OnDestroy {
       }
     }
 
-    return this.boiseRegions.map(
+    return this.activeRegionsBundle.map(
         r => ({
           regionId: r.id,
           regionName: r.name,
@@ -1199,7 +1298,7 @@ export class MapPage implements OnInit, OnDestroy {
       const rawOrg = this.rawOrgs.find(o => o.id === ao.orgId);
       await this.f3Api.createOrg({
         id: ao.orgId,
-        parentId: rawOrg?.parentId ?? Object.values(BOISE_REGION_IDS)[0],
+        parentId: rawOrg?.parentId ?? this.defaultPayloadRegionId(),
         name,
         description: rawOrg?.description ?? '',
         isActive: true,
@@ -1804,8 +1903,9 @@ export class MapPage implements OnInit, OnDestroy {
         instagram: '',
       });
 
-      const region =
-          this.boiseRegions.find(r => r.id === this.newAoForm.regionId);
+      const region = this.activeRegionsBundle.find(
+                         r => r.id === this.newAoForm.regionId) ??
+          this.metroRegions.find(r => r.id === this.newAoForm.regionId);
 
       this.rawOrgs.push({
         id: org.id,
@@ -2665,7 +2765,8 @@ export class MapPage implements OnInit, OnDestroy {
   private emptyNewAoForm(): NewAoForm {
     return {
       name: '',
-      regionId: BOISE_REGION_IDS.cityOfTrees,
+      regionId: this.metroRegions?.[0]?.id ??
+          this.activeRegionsBundle?.[0]?.id ?? BOISE_REGION_IDS.cityOfTrees,
       addressStreet: '',
       addressCity: 'Boise',
       addressState: 'ID',

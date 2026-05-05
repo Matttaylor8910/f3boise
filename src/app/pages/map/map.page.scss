@@ -519,6 +519,143 @@ ion-modal {
 
 // ── Region tree ───────────────────────────────────────────────────
 
+.region-explorer {
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid #e8e8e8;
+  background: #fafbfc;
+}
+
+.region-explorer-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.45px;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.region-explorer-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #d8dee6;
+  border-radius: 6px;
+  font-size: 13px;
+  background: white;
+
+  &:focus {
+    outline: none;
+    border-color: #2196f3;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.12);
+  }
+
+  &::placeholder {
+    color: #9aa5b1;
+  }
+}
+
+.region-explorer-loading {
+  display: flex;
+  justify-content: center;
+  padding: 6px 0 0;
+
+  ion-spinner {
+    width: 22px;
+    height: 22px;
+    color: #90a4ae;
+  }
+}
+
+.region-explorer-pill {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: #e8f4fd;
+  border: 1px solid #bbdefb;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #1565c0;
+}
+
+.region-explorer-pill-id {
+  font-weight: 400;
+  color: #5c6bc0;
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+}
+
+.region-explorer-clear {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  background: white;
+  color: #1565c0;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #90caf9;
+
+  &:hover:not(:disabled) {
+    background: #e3f2fd;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.region-search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.region-search-hit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: 1px solid #eceff1;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  transition: border-color 0.12s, background 0.12s;
+
+  &:hover:not(:disabled) {
+    border-color: #90caf9;
+    background: #f8fbff;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: wait;
+  }
+}
+
+.region-hit-name {
+  font-weight: 600;
+  color: #263238;
+}
+
+.region-hit-meta {
+  font-size: 11px;
+  color: #78909c;
+}
+
 .region-tree {
   margin: -20px;
 }

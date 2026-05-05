@@ -41,7 +41,7 @@
       <div class="sidebar-header">
         <ng-container *ngIf="!selectedAo">
           <h2>Region Overview</h2>
-          <p>{{ aos.length }} active locations across {{ boiseRegions.length }} regions</p>
+          <p>{{ aos.length }} active locations across {{ activeRegionsBundle.length }} region{{ activeRegionsBundle.length !== 1 ? 's' : '' }}</p>
         </ng-container>
         <ng-container *ngIf="selectedAo">
           <div class="ao-panel-header">
@@ -81,6 +81,47 @@
 
         <!-- Region tree -->
         <div class="region-tree" *ngIf="!selectedAo">
+
+          <div class="region-explorer">
+            <label class="region-explorer-label" for="nationRegionSearch">Nationwide regions</label>
+            <input
+              id="nationRegionSearch"
+              type="search"
+              class="region-explorer-input"
+              [(ngModel)]="regionSearchQuery"
+              (ngModelChange)="onRegionSearchInput($event)"
+              placeholder="Search any F3 region (e.g. Denver, Everett)…"
+              autocomplete="off"
+            />
+            <div class="region-explorer-loading" *ngIf="regionSearchLoading">
+              <ion-spinner name="crescent"></ion-spinner>
+            </div>
+            <div class="region-explorer-pill" *ngIf="focusedNationRegion">
+              <span class="region-explorer-pill-text">
+                Exploring <strong>{{ focusedNationRegion.name }}</strong>
+                <span class="region-explorer-pill-id"> · id {{ focusedNationRegion.id }}</span>
+              </span>
+              <button
+                type="button"
+                class="region-explorer-clear"
+                (click)="clearNationRegionExplore()"
+                [disabled]="loading">
+                Home metros
+              </button>
+            </div>
+            <div class="region-search-results" *ngIf="regionSearchResults.length">
+              <button
+                type="button"
+                class="region-search-hit"
+                *ngFor="let r of regionSearchResults"
+                (click)="exploreNationRegion(r)"
+                [disabled]="loading">
+                <span class="region-hit-name">{{ r.name }}</span>
+                <span class="region-hit-meta" *ngIf="r.parentOrgName">{{ r.parentOrgName }}</span>
+                <span class="region-hit-meta" *ngIf="r.aoCount != null">{{ r.aoCount }} AOs</span>
+              </button>
+            </div>
+          </div>
 
           <!-- Global tree error -->
           <div class="tree-error" *ngIf="treeActionError">

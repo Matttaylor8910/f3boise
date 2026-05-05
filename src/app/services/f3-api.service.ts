@@ -24,6 +24,12 @@ export const F3_REGION_WEBSITE_URL = 'https://f3boise.com';
 
 export type RegionId = (typeof BOISE_REGION_IDS)[keyof typeof BOISE_REGION_IDS];
 
+/**
+ * Same numeric IDs as {@link RegionId} — use for arbitrary Nation regions when
+ * exploring outside the home bundle
+ */
+export type NationRegionId = number;
+
 export interface F3EventType {
   eventTypeId: number;
   eventTypeName: string;
@@ -64,7 +70,7 @@ export interface F3EventsResponse {
 }
 
 export interface ListEventsParams {
-  regionIds?: RegionId[];
+  regionIds?: NationRegionId[];
   statuses?: 'active'|'inactive'|'all';
   pageIndex?: number;
   pageSize?: number;
@@ -103,6 +109,9 @@ export interface F3Org {
   isActive: boolean;
   website: string|null;
   description: string;
+  /** Present on some GET /org responses (e.g. region search). */
+  parentOrgName?: string;
+  aoCount?: number;
 }
 
 export interface F3Location {
@@ -125,13 +134,15 @@ export interface ListOrgsParams {
   orgTypes?: string[];
   onlyMine?: boolean;
   parentOrgIds?: number[];
+  /** Nation-wide region search — pairs with orgTypes including `region`. */
+  searchTerm?: string;
   statuses?: string;
   pageIndex?: number;
   pageSize?: number;
 }
 
 export interface ListLocationsParams {
-  regionIds?: number[];
+  regionIds?: NationRegionId[];
   onlyMine?: boolean;
   statuses?: string;
   pageIndex?: number;
@@ -212,7 +223,7 @@ export class F3ApiService {
    */
   async listEvents(params: ListEventsParams = {}): Promise<F3EventsResponse> {
     const {
-      regionIds = Object.values(BOISE_REGION_IDS) as RegionId[],
+      regionIds = Object.values(BOISE_REGION_IDS) as NationRegionId[],
       statuses = 'active',
       pageIndex,
       pageSize,
@@ -245,6 +256,7 @@ export class F3ApiService {
       orgTypes = ['ao'],
       onlyMine,
       parentOrgIds,
+      searchTerm,
       statuses = 'active',
       pageIndex,
       pageSize
@@ -254,6 +266,7 @@ export class F3ApiService {
     if (onlyMine) p = p.set('onlyMine', 'true');
     if (parentOrgIds?.length)
       for (const id of parentOrgIds) p = p.append('parentOrgIds', String(id));
+    if (searchTerm?.trim()) p = p.set('searchTerm', searchTerm.trim());
     if (pageIndex !== undefined) p = p.set('pageIndex', pageIndex);
     if (pageSize !== undefined) p = p.set('pageSize', pageSize);
     return firstValueFrom(
