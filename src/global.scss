@@ -351,3 +351,8 @@ ion-icon[name="logo-instagram"] {
   --border-radius: 16px;
   --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
+
+// Map page: region explorer + sidebar tree (scoped to app-map; not counted toward anyComponentStyle budget)
+app-map {
+  @import './app/pages/map/map.page.region-tree.scss';
+}
