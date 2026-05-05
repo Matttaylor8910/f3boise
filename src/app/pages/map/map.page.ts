@@ -1,10 +1,13 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {GoogleMap} from '@angular/google-maps';
 import {AlertController, PopoverController, ToastController} from '@ionic/angular';
+import * as moment from 'moment';
 import {Subscription} from 'rxjs';
 import {ActionsPopoverPageComponent} from 'src/app/components/actions-popover/actions-popover-page.component';
 import {PopoverAction,} from 'src/app/components/actions-popover/actions-popover.component';
 import {BOISE_REGION_IDS, CreateOrUpdateEventRequest, F3_REGION_WEBSITE_URL, F3ApiService, F3Event, F3Location, F3Org,} from 'src/app/services/f3-api.service';
+import {QService} from 'src/app/services/q.service';
+import {UtilService} from 'src/app/services/util.service';
 import {MapPermissions, UserPermissionsService} from 'src/app/services/user-permissions.service';
 
 interface NewAoForm {
@@ -63,6 +66,14 @@ export interface GroupedAo {
   days: AoDay[];
   position?: google.maps.LatLngLiteral;
   markerOptions?: google.maps.MarkerOptions;
+  /** True when the AO's next scheduled workout date has a closure in the Q lineup */
+  closedNextDate?: boolean;
+}
+
+export interface AoUpcomingClosure {
+  date: string;
+  displayDate: string;
+  text: string|null;
 }
 
 /**
@@ -198,6 +209,13 @@ export class MapPage implements OnInit, OnDestroy {
   aoSaveError: string|null = null;
   isDeletingAo = false;
 
+  /** Upcoming closure dates for the currently selected AO */
+  selectedAoClosures: AoUpcomingClosure[] = [];
+  /** Whether the very next scheduled date for the selected AO is closed */
+  selectedAoNextDateClosed = false;
+  /** AO whose marker was last tinted red — reset on deselect */
+  private prevClosedAo: GroupedAo|null = null;
+
   readonly eventTypes = EVENT_TYPES;
   readonly boiseRegions = [
     {id: BOISE_REGION_IDS.cityOfTrees, name: 'City of Trees'},
@@ -248,6 +266,8 @@ export class MapPage implements OnInit, OnDestroy {
       private readonly toastController: ToastController,
       private readonly popoverController: PopoverController,
       private readonly userPermissions: UserPermissionsService,
+      private readonly qService: QService,
+      private readonly utilService: UtilService,
   ) {}
 
   async ngOnInit() {
@@ -1566,20 +1586,21 @@ export class MapPage implements OnInit, OnDestroy {
 
   private buildMarkerOptions(ao: GroupedAo): google.maps.MarkerOptions {
     const activeDays = ao.days.filter(d => d.event);
+    const closed = !!ao.closedNextDate;
 
     if (activeDays.length === 0) {
-      // "New / empty" pin — a simple circle with a + sign
       const SIZE = 32, CARET_H = 7, totalH = SIZE + CARET_H;
       const cx = SIZE / 2;
+      const fill = closed ? '#e53935' : '#2196f3';
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${
           SIZE}" height="${totalH}">
   <circle cx="${cx}" cy="${cx}" r="${
-          cx - 1.5}" fill="#2196f3" stroke="white" stroke-width="2"
+          cx - 1.5}" fill="${fill}" stroke="white" stroke-width="2"
           style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.25))"/>
   <text x="${cx}" y="${cx + 5}" font-size="18" font-weight="700" fill="white"
         text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,sans-serif">+</text>
   <path d="M${cx - 5} ${SIZE} L${cx} ${totalH} L${cx + 5} ${
-          SIZE} Z" fill="#2196f3"/>
+          SIZE} Z" fill="${fill}"/>
 </svg>`;
       return {
         title: ao.name,
@@ -1602,7 +1623,9 @@ export class MapPage implements OnInit, OnDestroy {
       icon: {
         url: this.buildMarkerSvgUri(
             activeDays,
-            {boxW, boxH, totalH, PILL_W, PILL_H, PAD, GAP, CARET_H}),
+            {boxW, boxH, totalH, PILL_W, PILL_H, PAD, GAP, CARET_H},
+            closed,
+        ),
         scaledSize: new google.maps.Size(boxW, totalH),
         anchor: new google.maps.Point(boxW / 2, totalH),
       },
@@ -1612,6 +1635,7 @@ export class MapPage implements OnInit, OnDestroy {
   /**
    * Generates an SVG callout marker: one colored pill per active day,
    * with a downward-pointing caret anchored at the location point.
+   * When `closed` is true the outer box is tinted red to signal a closure.
    */
   private buildMarkerSvgUri(
       activeDays: AoDay[],
@@ -1625,6 +1649,7 @@ export class MapPage implements OnInit, OnDestroy {
         GAP: number,
         CARET_H: number
       },
+      closed = false,
       ): string {
     const {boxW, boxH, totalH, PILL_W, PILL_H, PAD, GAP, CARET_H} = dim;
 
@@ -1646,8 +1671,11 @@ export class MapPage implements OnInit, OnDestroy {
             })
             .join('');
 
-    // Caret: gray outline triangle then white-fill triangle to simulate a
-    // border
+    const boxFill = closed ? '#fff0f0' : 'white';
+    const boxStroke = closed ? '#e53935' : '#ccc';
+    const caretFill = closed ? '#e53935' : '#ccc';
+    const caretInnerFill = closed ? '#fff0f0' : 'white';
+
     const cx = boxW / 2;
     const caretOuter =
         `M${cx - 7} ${boxH} L${cx} ${totalH} L${cx + 7} ${boxH} Z`;
@@ -1657,11 +1685,12 @@ export class MapPage implements OnInit, OnDestroy {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${
         boxW}" height="${totalH}">
   <rect width="${boxW}" height="${
-        boxH}" rx="6" fill="white" stroke="#ccc" stroke-width="1.5"
+        boxH}" rx="6" fill="${boxFill}" stroke="${
+        boxStroke}" stroke-width="1.5"
         style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.18))"/>
   ${pills}
-  <path d="${caretOuter}" fill="#ccc"/>
-  <path d="${caretInner}" fill="white"/>
+  <path d="${caretOuter}" fill="${caretFill}"/>
+  <path d="${caretInner}" fill="${caretInnerFill}"/>
 </svg>`;
 
     return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
@@ -1815,15 +1844,22 @@ export class MapPage implements OnInit, OnDestroy {
   }
 
   private applyAoSelection(ao: GroupedAo): void {
+    this.resetPrevClosedAoMarker();
     this.selectedAo = ao;
+    this.selectedAoClosures = [];
+    this.selectedAoNextDateClosed = false;
     this.closeDetailEditModals();
     this.aoSaveError = null;
     this.closeModal();
     this.refreshDetailSelectionVm();
+    void this.loadClosuresForSelectedAo(ao);
   }
 
   clearSelection() {
+    this.resetPrevClosedAoMarker();
     this.selectedAo = null;
+    this.selectedAoClosures = [];
+    this.selectedAoNextDateClosed = false;
     this.closeDetailEditModals();
     this.aoSaveError = null;
     this.closeModal();
@@ -1831,6 +1867,167 @@ export class MapPage implements OnInit, OnDestroy {
     window.clearTimeout(this.fitBoundsTimer);
     this.fitBoundsTimer = undefined;
     this.fitMapToPins();
+  }
+
+  /** Restores the previous closed-AO marker back to its normal style. */
+  private resetPrevClosedAoMarker(): void {
+    const prev = this.prevClosedAo;
+    if (!prev) return;
+    prev.closedNextDate = false;
+    if (prev.position) {
+      prev.markerOptions = this.buildMarkerOptions(prev);
+      this.aos = [...this.aos];
+    }
+    this.prevClosedAo = null;
+  }
+
+  /** Min ratio for fuzzy AO match on collapsed alphanumeric keys (see {@link aoCollapsedKeysMatch}). */
+  private static readonly AO_NAME_MATCH_MIN_SIMILARITY = 0.82;
+
+  /** Collapses an AO label for fuzzy comparison (handles hyphen vs space vs apostrophe drift). */
+  private static slugCollapseAoKey(raw: string): string {
+    return raw.toLowerCase().replace(/['']/g, '').replace(/[^a-z0-9]/g, '');
+  }
+
+  /** Normalized Levenshtein similarity in [0, 1]. */
+  private static levenshteinSimilarity(a: string, b: string): number {
+    if (!a.length && !b.length) return 1;
+    const maxLen = Math.max(a.length, b.length);
+    return 1 - MapPage.levenshteinDistance(a, b) / maxLen;
+  }
+
+  private static levenshteinDistance(a: string, b: string): number {
+    const n = a.length;
+    const m = b.length;
+    if (n === 0) return m;
+    if (m === 0) return n;
+    const prev = new Array<number>(m + 1);
+    const curr = new Array<number>(m + 1);
+    for (let j = 0; j <= m; j++) prev[j] = j;
+    for (let i = 1; i <= n; i++) {
+      curr[0] = i;
+      const ai = a.charCodeAt(i - 1);
+      for (let j = 1; j <= m; j++) {
+        const cost = ai === b.charCodeAt(j - 1) ? 0 : 1;
+        curr[j] = Math.min(
+            curr[j - 1] + 1,
+            prev[j] + 1,
+            prev[j - 1] + cost,
+        );
+      }
+      for (let j = 0; j <= m; j++) prev[j] = curr[j];
+    }
+    return prev[m];
+  }
+
+  /**
+   * Whether two collapsed AO keys refer to the same workout site name.
+   * Map/F3Nation strings often diverge from scraper slugs (`camel-back` vs `Camel's Back`).
+   */
+  private static aoCollapsedKeysMatch(mapKey: string, lineupKey: string): boolean {
+    if (!mapKey || !lineupKey) return false;
+    if (mapKey === lineupKey) return true;
+
+    const short = mapKey.length <= lineupKey.length ? mapKey : lineupKey;
+    const long = mapKey.length <= lineupKey.length ? lineupKey : mapKey;
+    // Substring only when the shorter token is long enough to avoid e.g. "gem" inside "gem island park".
+    if (short.length >= 6 && long.includes(short)) return true;
+    if (short.length >= 4 && long.includes(short) &&
+        long.length <= short.length + 3) {
+      return true;
+    }
+
+    const maxLen = Math.max(mapKey.length, lineupKey.length);
+    if (maxLen < 4) return false;
+
+    return MapPage.levenshteinSimilarity(mapKey, lineupKey) >=
+        MapPage.AO_NAME_MATCH_MIN_SIMILARITY;
+  }
+
+  /**
+   * Match grouped AO display labels to a lineup row (`q.ao` is already
+   * {@link UtilService.normalizeName}'d by {@link QService}).
+   */
+  private lineupAoMatchesGroupedAo(lineupAoNormalized: string, ao: GroupedAo): boolean {
+    const lineupKey = MapPage.slugCollapseAoKey(lineupAoNormalized);
+    if (!lineupKey) return false;
+
+    const candidates = [
+      this.utilService.normalizeName(this.detailPanelAoTitle(ao)),
+      this.utilService.normalizeName(ao.name),
+    ];
+    const keys =
+        [...new Set(candidates.map(c => MapPage.slugCollapseAoKey(c)).filter(Boolean))];
+
+    return keys.some(mapKey => MapPage.aoCollapsedKeysMatch(mapKey, lineupKey));
+  }
+
+  /**
+   * Fetches the Q lineup for the next 30 days, finds closures matching this
+   * AO by fuzzy name match, and updates the closure banner + marker color.
+   */
+  private async loadClosuresForSelectedAo(ao: GroupedAo): Promise<void> {
+    const FORMAT = 'YYYY-MM-DD';
+    const today = moment().format(FORMAT);
+    const end = moment().add(30, 'days').format(FORMAT);
+
+    try {
+      const lineups = await this.qService.getQLineUp(today, end);
+
+      // Guard: AO may have changed while the request was in flight
+      if (this.selectedAo !== ao) return;
+
+      const closures = lineups.filter(q => {
+        if (!q.closed) return false;
+        return this.lineupAoMatchesGroupedAo(q.ao, ao);
+      }).sort((a, b) => a.date.localeCompare(b.date));
+
+      this.selectedAoClosures = closures.map(q => ({
+        date: q.date,
+        displayDate: moment(q.date).format('ddd, M/D'),
+        text: q.text,
+      }));
+
+      // Determine whether the AO's very next scheduled date is closed
+      const activeDayIndices =
+          ao.days.filter(d => d.event).map(d => d.dayIndex);
+      if (activeDayIndices.length > 0 && closures.length > 0) {
+        const nextDate = this.getNextScheduledDate(activeDayIndices);
+        this.selectedAoNextDateClosed =
+            !!nextDate && closures.some(q => q.date === nextDate);
+      } else {
+        this.selectedAoNextDateClosed = false;
+      }
+
+      // Tint the marker red when the next workout is cancelled
+      if (this.selectedAoNextDateClosed) {
+        ao.closedNextDate = true;
+        this.prevClosedAo = ao;
+        if (ao.position) {
+          ao.markerOptions = this.buildMarkerOptions(ao);
+          this.aos = [...this.aos];
+        }
+      }
+    } catch {
+      // Closure data is informational — silently swallow fetch errors
+    }
+  }
+
+  /**
+   * Returns the next calendar date (YYYY-MM-DD) that falls on one of the
+   * given day-of-week indices (0 = Sunday … 6 = Saturday), looking up to
+   * 7 days ahead from today.
+   */
+  private getNextScheduledDate(dayIndices: number[]): string|null {
+    const FORMAT = 'YYYY-MM-DD';
+    const today = moment().startOf('day');
+    for (let i = 0; i <= 7; i++) {
+      const d = today.clone().add(i, 'days');
+      if (dayIndices.includes(d.day())) {
+        return d.format(FORMAT);
+      }
+    }
+    return null;
   }
 
   // ── AO detail: modals & display helpers ──────────────────────────

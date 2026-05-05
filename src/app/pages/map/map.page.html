@@ -250,6 +250,17 @@
             <button class="back-button" (click)="clearSelection()">← Back</button>
           </div>
 
+          <!-- Upcoming closure banner -->
+          <div class="ao-closures" *ngIf="selectedAoClosures.length > 0">
+            <div class="ao-closure-item" *ngFor="let c of selectedAoClosures">
+              <span class="closure-square" aria-hidden="true"></span>
+              <div class="closure-text">
+                <span class="closure-date">{{ c.displayDate }}</span>
+                <span class="closure-reason">{{ c.text || 'AO Closed' }}</span>
+              </div>
+            </div>
+          </div>
+
           <div class="ao-location-block">
             <ion-icon name="location-outline" class="ao-location-pin" aria-hidden="true"></ion-icon>
             <div class="ao-location-block-text">
