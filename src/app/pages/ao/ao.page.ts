@@ -346,8 +346,10 @@ export class AoPage {
 
       qDepth.push({
         ao,
+        workouts: W,
         regularAttenders: regularsCount,
         regularQs: regularQsCount,
+        regularQCutoff: regularQsCutoff,
         rate,
       });
       dow.push({

@@ -2,6 +2,8 @@ import {Component, Input} from '@angular/core';
 
 export interface QDepthRow {
   ao: string;
+  /** Total workouts at this AO across the trailing window. */
+  workouts: number;
   /**
    * Regular attenders — posted at ≥ ⅓ of this AO's workouts in the
    * trailing window.
@@ -12,6 +14,8 @@ export interface QDepthRow {
    * (workouts ÷ # regulars) of Qs at this AO.
    */
   regularQs: number;
+  /** The dynamic minimum-Q cutoff used for "regular Q" at this AO. */
+  regularQCutoff: number;
   /** regularQs / regularAttenders in [0, 1]; 0 when there are no regulars. */
   rate: number;
 }
@@ -55,10 +59,22 @@ export class QDepthChartComponent {
     const tier: Tier = row.regularAttenders === 0 ?
         'risk' :
         row.rate >= 0.5 ? 'healthy' : row.rate >= 0.3 ? 'watch' : 'risk';
-    const tooltip = row.regularAttenders === 0 ?
-        `${row.ao}: no regulars in the trailing window` :
-        `${row.ao}: ${pct}% — ${row.regularQs} of ${
-            row.regularAttenders} regulars Q'd their fair share`;
+
+    let tooltip: string;
+    if (row.regularAttenders === 0) {
+      tooltip = `${row.ao}: no regulars in the trailing window`;
+    } else {
+      const fairShare = row.workouts / row.regularAttenders;
+      const fairShareStr = fairShare >= 10 ?
+          fairShare.toFixed(0) :
+          fairShare.toFixed(1);
+      const cutoffWord = row.regularQCutoff === 1 ? 'workout' : 'workouts';
+      tooltip =
+          `${row.ao}: ${row.regularQs} of ${row.regularAttenders} regulars led ≥ ${
+              row.regularQCutoff} ${cutoffWord}\n` +
+          `(half of ${fairShareStr} fair share: ${row.workouts} workouts ÷ ${
+              row.regularAttenders} regulars)`;
+    }
     return {...row, pct, tier, tooltip};
   }
 }
