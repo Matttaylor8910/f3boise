@@ -26,10 +26,18 @@ const LIMIT = 10;
 /** Charts at the top of the page always reflect this lookback. */
 const TRAILING_DAYS = 90;
 
-/** "Regular attender" = posted ≥ this many times at the AO in the window. */
-const REGULAR_POSTS_THRESHOLD = 4;
-/** "Regular Q" = regular attender who also led ≥ this many workouts. */
-const REGULAR_QS_THRESHOLD = 2;
+/**
+ * "Regular attender" — posted ≥ this fraction of the AO's workouts in the
+ * trailing window (e.g. 1/3 ⇒ shows up at least a third of the time).
+ */
+const REGULAR_ATTEND_FRACTION = 1 / 3;
+/**
+ * "Regular Q" — led ≥ this fraction of their fair-share Qs at this AO,
+ * where fair-share = workouts / # of regular attenders.
+ *
+ * 1/2 means "led at least half what they'd lead if everyone Q'd equally".
+ */
+const REGULAR_Q_FAIR_SHARE_FRACTION = 1 / 2;
 
 @Component({
   selector: 'app-ao',
@@ -316,18 +324,32 @@ export class AoPage {
 
     for (const [ao, entry] of byAo) {
       if (entry.bdsCount === 0) continue;
+      const W = entry.bdsCount;
 
-      let regularAttenders = 0;
-      let regularQs = 0;
+      // Pass 1: AO-relative "regular attender" threshold.
+      const regularPostsCutoff = Math.max(1, Math.ceil(W * REGULAR_ATTEND_FRACTION));
+      const regulars: Array<{posts: number; qs: number}> = [];
       for (const stat of entry.pax.values()) {
-        if (stat.posts < REGULAR_POSTS_THRESHOLD) continue;
-        regularAttenders++;
-        if (stat.qs >= REGULAR_QS_THRESHOLD) regularQs++;
+        if (stat.posts >= regularPostsCutoff) regulars.push(stat);
       }
-      const rate =
-          regularAttenders > 0 ? regularQs / regularAttenders : 0;
 
-      qDepth.push({ao, regularAttenders, regularQs, rate});
+      // Pass 2: "regular Q" cutoff = ceil(fairShare * fraction).
+      // Fair share = workouts / number of regulars. Floor of 1 — even at
+      // very low fair share, a regular Q must have led at least once.
+      const regularsCount = regulars.length;
+      const fairShare = regularsCount > 0 ? W / regularsCount : 0;
+      const regularQsCutoff =
+          Math.max(1, Math.ceil(fairShare * REGULAR_Q_FAIR_SHARE_FRACTION));
+      const regularQsCount = regulars.filter(r => r.qs >= regularQsCutoff).length;
+
+      const rate = regularsCount > 0 ? regularQsCount / regularsCount : 0;
+
+      qDepth.push({
+        ao,
+        regularAttenders: regularsCount,
+        regularQs: regularQsCount,
+        rate,
+      });
       dow.push({
         ao,
         averages: entry.dowSum.map(

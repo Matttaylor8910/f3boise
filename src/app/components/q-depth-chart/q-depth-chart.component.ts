@@ -3,13 +3,13 @@ import {Component, Input} from '@angular/core';
 export interface QDepthRow {
   ao: string;
   /**
-   * Regular attenders: posted ≥ {@link REGULAR_POSTS_THRESHOLD} times at
-   * this AO in the trailing window.
+   * Regular attenders — posted at ≥ ⅓ of this AO's workouts in the
+   * trailing window.
    */
   regularAttenders: number;
   /**
-   * Subset of regular attenders who also led ≥ {@link REGULAR_QS_THRESHOLD}
-   * workouts at this AO in the trailing window.
+   * Subset of regular attenders who also led ≥ half their fair share
+   * (workouts ÷ # regulars) of Qs at this AO.
    */
   regularQs: number;
   /** regularQs / regularAttenders in [0, 1]; 0 when there are no regulars. */
@@ -54,11 +54,11 @@ export class QDepthChartComponent {
     const pct = Math.round(row.rate * 1000) / 10;
     const tier: Tier = row.regularAttenders === 0 ?
         'risk' :
-        row.rate >= 0.5 ? 'healthy' : row.rate >= 0.25 ? 'watch' : 'risk';
+        row.rate >= 0.5 ? 'healthy' : row.rate >= 0.3 ? 'watch' : 'risk';
     const tooltip = row.regularAttenders === 0 ?
         `${row.ao}: no regulars in the trailing window` :
         `${row.ao}: ${pct}% — ${row.regularQs} of ${
-            row.regularAttenders} regulars Q'd 2+ times`;
+            row.regularAttenders} regulars Q'd their fair share`;
     return {...row, pct, tier, tooltip};
   }
 }
