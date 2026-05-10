@@ -36,6 +36,49 @@
         </div>
       </div>
 
+      <!-- snapshot row: q depth + day-of-week heatmap + map -->
+      <div class="snapshot-grid">
+        <ion-card class="snapshot-card snapshot-q-depth">
+          <ion-card-header>
+            <ion-card-title>Q Depth per AO</ion-card-title>
+            <ion-card-subtitle>
+              Of the regulars at each AO (4+ posts in the trailing 90 days), what share also Q regularly (2+ Qs)? Low depth means a site is propped up by a small handful of contributors — key-man risk.
+            </ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            <app-q-depth-chart [data]="qDepthRows"></app-q-depth-chart>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="snapshot-card snapshot-dow">
+          <ion-card-header>
+            <ion-card-title>Day-of-Week Attendance</ion-card-title>
+            <ion-card-subtitle>
+              Average PAX per AO per day of week, trailing 90 days. Darker cells mean higher average attendance.
+            </ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            <app-day-of-week-heatmap [data]="dowRows"></app-day-of-week-heatmap>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="snapshot-card snapshot-map">
+          <ion-card-header>
+            <ion-card-title>{{ all ? 'AO map' : (isRegion ? displayName + ' AOs' : displayName) }}</ion-card-title>
+            <ion-card-subtitle>
+              {{ isRegion || all ? 'AOs that pertain to this region.' : 'Where this AO meets.' }}
+            </ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            <app-region-map
+              [regionIds]="mapRegionIds"
+              [aoNameFilter]="mapAoNameFilter"
+              [height]="320">
+            </app-region-map>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
       <div class="stats-container">
         <!-- leaderboard -->
         <div class="card-container">

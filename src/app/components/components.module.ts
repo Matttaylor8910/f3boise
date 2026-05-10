@@ -1,6 +1,7 @@
 import {CommonModule, CurrencyPipe} from '@angular/common';
 import {NgModule} from '@angular/core';
 import {FormsModule} from '@angular/forms';
+import {GoogleMapsModule} from '@angular/google-maps';
 import {RouterModule} from '@angular/router';
 import {IonicModule} from '@ionic/angular';
 
@@ -15,6 +16,7 @@ import {BestiesGridComponent} from './besties-grid/besties-grid.component';
 import {CreateChallengeModalComponent} from './create-challenge-modal/create-challenge-modal.component';
 import {CustomDateRangePopoverComponent} from './custom-date-range-popover/custom-date-range-popover.component';
 import {DateRangePickerComponent} from './date-range-picker/date-range-picker.component';
+import {DayOfWeekHeatmapComponent} from './day-of-week-heatmap/day-of-week-heatmap.component';
 import {GoogleFormModalComponent} from './google-form-modal/google-form-modal.component';
 import {HeaderComponent} from './header/header.component';
 import {LoginModalComponent} from './login-modal/login-modal.component';
@@ -22,6 +24,8 @@ import {PaxAvatarComponent} from './pax-avatar/pax-avatar.component';
 import {PaxChipComponent} from './pax-chip/pax-chip.component';
 import {PaxListItemComponent} from './pax-list-item/pax-list-item.component';
 import {PAXNameComponent} from './pax-name/pax-name.component';
+import {QDepthChartComponent} from './q-depth-chart/q-depth-chart.component';
+import {RegionMapComponent} from './region-map/region-map.component';
 import {SidebarToggleComponent} from './sidebar-toggle/sidebar-toggle.component';
 import {SidebarComponent} from './sidebar/sidebar.component';
 import {TimeFilterComponent} from './time-filter/time-filter.component';
@@ -85,12 +89,16 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     YouVsYouComponent,
     BeatdownBreakdownBannerComponent,
     GoogleFormModalComponent,
+    QDepthChartComponent,
+    DayOfWeekHeatmapComponent,
+    RegionMapComponent,
   ],
   imports: [
     IonicModule,
     CommonModule,
     FormsModule,
     RouterModule,
+    GoogleMapsModule,
   ],
   exports: [
     ActionsPopoverComponent,
@@ -131,6 +139,9 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     YouVsYouComponent,
     BeatdownBreakdownBannerComponent,
     GoogleFormModalComponent,
+    QDepthChartComponent,
+    DayOfWeekHeatmapComponent,
+    RegionMapComponent,
   ],
   providers: [
     CurrencyPipe,

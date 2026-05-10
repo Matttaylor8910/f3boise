@@ -1,0 +1,51 @@
+.region-map {
+  position: relative;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #1c2129;
+
+  google-map {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  ::ng-deep .gm-style {
+    border-radius: 12px;
+  }
+}
+
+.region-map-loading,
+.region-map-error,
+.region-map-empty {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: none;
+  color: #cbd2dc;
+  font-size: 13px;
+  background: rgba(28, 33, 41, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.region-map-error {
+  color: #ff8a8a;
+
+  ion-icon {
+    font-size: 22px;
+  }
+}
+
+.region-map-loading ion-spinner {
+  --color: #ffffff;
+}
+
+.region-map-empty {
+  background: transparent;
+}

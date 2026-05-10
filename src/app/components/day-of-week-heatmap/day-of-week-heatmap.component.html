@@ -1,0 +1,28 @@
+<div class="dow-heatmap" *ngIf="rows.length; else empty">
+  <div
+    class="dow-grid"
+    [style.--cols]="visibleDayLabels.length">
+    <div class="header-row">
+      <div class="header-cell ao-col"></div>
+      <div class="header-cell" *ngFor="let label of visibleDayLabels">
+        {{ label }}
+      </div>
+    </div>
+
+    <div class="data-row" *ngFor="let row of rows">
+      <div class="ao-col" [attr.title]="row.ao">{{ row.ao }}</div>
+      <div
+        class="cell"
+        *ngFor="let cell of row.cells"
+        [class.empty]="cell.value == null"
+        [style.--cell-alpha]="cell.intensity"
+        [attr.data-tooltip]="cell.tooltip || null">
+        <span *ngIf="cell.value != null">{{ cell.display }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #empty>
+  <div class="dow-empty">No data in the trailing 90 days.</div>
+</ng-template>

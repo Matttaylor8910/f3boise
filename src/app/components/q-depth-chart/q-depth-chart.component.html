@@ -1,0 +1,30 @@
+<div class="q-depth-chart" *ngIf="rows.length; else empty">
+  <div class="rows" role="list">
+    <div
+      class="row"
+      role="listitem"
+      *ngFor="let row of rows">
+      <div class="ao-name">{{ row.ao }}</div>
+      <div class="track" [attr.data-tooltip]="row.tooltip">
+        <div
+          class="bar"
+          [class.tier-healthy]="row.tier === 'healthy'"
+          [class.tier-watch]="row.tier === 'watch'"
+          [class.tier-risk]="row.tier === 'risk'"
+          [style.width.%]="row.pct">
+        </div>
+      </div>
+      <div class="value">{{ row.pct }}%</div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span class="legend-item"><span class="dot tier-healthy"></span> Healthy (50%+)</span>
+    <span class="legend-item"><span class="dot tier-watch"></span> Watch (25–49%)</span>
+    <span class="legend-item"><span class="dot tier-risk"></span> At risk (&lt;25%)</span>
+  </div>
+</div>
+
+<ng-template #empty>
+  <div class="q-depth-empty">No data in the trailing 90 days.</div>
+</ng-template>

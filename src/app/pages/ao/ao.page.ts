@@ -3,11 +3,16 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {ToastController} from '@ionic/angular';
 import * as moment from 'moment';
 import {DateRange} from 'src/app/components/date-range-picker/date-range-picker.component';
+import {DayOfWeekRow} from 'src/app/components/day-of-week-heatmap/day-of-week-heatmap.component';
+import {QDepthRow} from 'src/app/components/q-depth-chart/q-depth-chart.component';
 import {AuthService} from 'src/app/services/auth.service';
 import {BackblastService} from 'src/app/services/backblast.service';
+import {BOISE_REGION_IDS, NationRegionId} from 'src/app/services/f3-api.service';
 import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
 import {AoPaxStats, Backblast, BBType} from 'types';
+
+import {REGION, REGION_AGNOSTIC_AOS} from '../../../../constants';
 
 interface AoStats {
   totalUniqueQs: number;      // count of unique qs
@@ -18,6 +23,24 @@ interface AoStats {
 }
 
 const LIMIT = 10;
+
+/** Charts/map at the top of the page always reflect this lookback. */
+const TRAILING_DAYS = 90;
+
+/** "Regular attender" = posted ≥ this many times at the AO in the window. */
+const REGULAR_POSTS_THRESHOLD = 4;
+/** "Regular Q" = regular attender who also led ≥ this many workouts. */
+const REGULAR_QS_THRESHOLD = 2;
+
+const REGION_TO_F3_ID: Record<string, NationRegionId> = {
+  [REGION.CITY_OF_TREES]: BOISE_REGION_IDS.cityOfTrees,
+  [REGION.HIGH_DESERT]: BOISE_REGION_IDS.highDesert,
+  [REGION.SETTLERS]: BOISE_REGION_IDS.settlers,
+  [REGION.CANYON]: BOISE_REGION_IDS.canyon,
+};
+
+const ALL_BOISE_REGION_IDS: NationRegionId[] =
+    Object.values(BOISE_REGION_IDS) as NationRegionId[];
 
 @Component({
   selector: 'app-ao',
@@ -55,6 +78,14 @@ export class AoPage {
 
   recentBds?: Backblast[];
 
+  // Trailing-90-day region/AO snapshot — independent of the date range picker
+  qDepthRows: QDepthRow[] = [];
+  dowRows: DayOfWeekRow[] = [];
+  /** Region IDs to display in the embedded map (empty ⇒ none) */
+  mapRegionIds: NationRegionId[] = [];
+  /** AO name filter for the embedded map (single-AO pages); null otherwise */
+  mapAoNameFilter: string|null = null;
+
   // Precomputed properties instead of getters
   all = false;
   bbShort = '';
@@ -78,6 +109,22 @@ export class AoPage {
     this.updateBBProperties();
     this.all = this.name === 'all';
     this.isRegion = window.location.href.includes('/region/');
+    this.computeMapScope();
+  }
+
+  /** Scope the embedded map to either a region, a single AO, or all Boise. */
+  private computeMapScope() {
+    if (this.all) {
+      this.mapRegionIds = ALL_BOISE_REGION_IDS;
+      this.mapAoNameFilter = null;
+    } else if (this.isRegion) {
+      const id = REGION_TO_F3_ID[this.name];
+      this.mapRegionIds = id ? [id] : ALL_BOISE_REGION_IDS;
+      this.mapAoNameFilter = null;
+    } else {
+      this.mapRegionIds = ALL_BOISE_REGION_IDS;
+      this.mapAoNameFilter = this.displayName || this.name;
+    }
   }
 
   get kotterRoute(): string {
@@ -182,6 +229,9 @@ export class AoPage {
       this.bottomQs = [];
       this.noQs = [];
       this.recentBds = [];
+      // Snapshot charts use the unfiltered allData (trailing 90 days), so
+      // they may still render even when the picked range is empty.
+      this.computeTrailingSnapshots(allData);
       return;
     }
 
@@ -236,6 +286,89 @@ export class AoPage {
     setTimeout(() => {
       this.recentBds = allData.slice(0, 20);
     }, 500);
+
+    // Charts/map always show trailing-90-day snapshot, independent of the date
+    // range picker (subtitle is fixed as "trailing 90 days").
+    this.computeTrailingSnapshots(allData);
+  }
+
+  /**
+   * Computes the Q-depth and day-of-week aggregates over the trailing 90 days
+   * for whatever AOs are scoped to this page (region, single AO, or all).
+   */
+  private computeTrailingSnapshots(allData: Backblast[]): void {
+    const cutoff = moment().subtract(TRAILING_DAYS, 'days').startOf('day');
+    const recent =
+        allData.filter(bb => moment(bb.date).isSameOrAfter(cutoff, 'day'));
+
+    interface PerAo {
+      bdsCount: number;
+      // pax name → posts/Qs at this AO in window
+      pax: Map<string, {posts: number; qs: number}>;
+      // dayIndex 0..6 → {paxSum, bdsCount}
+      dowSum: Array<{paxSum: number; bds: number}>;
+    }
+
+    const byAo = new Map<string, PerAo>();
+
+    // Region-agnostic AOs (e.g. Black Ops) are excluded from per-AO charts
+    // when the page scope is broader than a single AO — they would skew the
+    // comparison. On a single-AO page we keep the AO's own data.
+    const filterAgnostic = this.all || this.isRegion;
+
+    for (const bb of recent) {
+      if (filterAgnostic && REGION_AGNOSTIC_AOS.has(bb.ao.toLowerCase())) {
+        continue;
+      }
+      const aoKey = this.utilService.normalizeName(bb.ao);
+      let entry = byAo.get(aoKey);
+      if (!entry) {
+        entry = {
+          bdsCount: 0,
+          pax: new Map(),
+          dowSum: Array.from({length: 7}, () => ({paxSum: 0, bds: 0})),
+        };
+        byAo.set(aoKey, entry);
+      }
+      entry.bdsCount++;
+      const qSet = new Set(bb.qs ?? []);
+      for (const name of bb.pax ?? []) {
+        const stat = entry.pax.get(name) ?? {posts: 0, qs: 0};
+        stat.posts++;
+        if (qSet.has(name)) stat.qs++;
+        entry.pax.set(name, stat);
+      }
+      const dow = moment(bb.date).day();  // 0..6 (Sun..Sat)
+      entry.dowSum[dow].paxSum += (bb.pax ?? []).length;
+      entry.dowSum[dow].bds++;
+    }
+
+    const qDepth: QDepthRow[] = [];
+    const dow: DayOfWeekRow[] = [];
+
+    for (const [ao, entry] of byAo) {
+      if (entry.bdsCount === 0) continue;
+
+      let regularAttenders = 0;
+      let regularQs = 0;
+      for (const stat of entry.pax.values()) {
+        if (stat.posts < REGULAR_POSTS_THRESHOLD) continue;
+        regularAttenders++;
+        if (stat.qs >= REGULAR_QS_THRESHOLD) regularQs++;
+      }
+      const rate =
+          regularAttenders > 0 ? regularQs / regularAttenders : 0;
+
+      qDepth.push({ao, regularAttenders, regularQs, rate});
+      dow.push({
+        ao,
+        averages: entry.dowSum.map(
+            d => (d.bds > 0 ? d.paxSum / d.bds : null)),
+      });
+    }
+
+    this.qDepthRows = qDepth;
+    this.dowRows = dow;
   }
 
   calculatePaxBdsPerWeek() {
@@ -374,6 +507,8 @@ export class AoPage {
     this.topQs = [];
     this.bottomQs = [];
     this.noQs = [];
+    this.qDepthRows = [];
+    this.dowRows = [];
 
     this.showMoreLeaderboard = false;
     this.showMoreTop = false;

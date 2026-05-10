@@ -11,6 +11,7 @@ import {QService} from 'src/app/services/q.service';
 import {MapPermissions, UserPermissionsService} from 'src/app/services/user-permissions.service';
 import {UtilService} from 'src/app/services/util.service';
 
+import {buildAoMarkerOptions} from './map-markers.helpers';
 import {treeLocationSortKey} from './map-tree.helpers';
 
 interface NewAoForm {
@@ -1861,128 +1862,12 @@ export class MapPage implements OnInit, OnDestroy {
   /** Keeps clustered markers visible when overlapping pins inflate zoom */
   private static readonly MULTI_PIN_MAX_ZOOM = 17;
 
-  // Per-day colors matching maps.html
-  private static readonly DAY_COLORS = [
-    '#c084fc',  // Sunday    — purple
-    '#ff6b6b',  // Monday    — red
-    '#4ecdc4',  // Tuesday   — teal
-    '#45b7d1',  // Wednesday — blue
-    '#96ceb4',  // Thursday  — green
-    '#f0a500',  // Friday    — amber
-    '#ff9ff3',  // Saturday  — pink
-  ];
-
-  private static readonly DAY_ABBREVS = ['Su', 'M', 'Tu', 'W', 'Th', 'F', 'Sa'];
-
   private buildMarkerOptions(ao: GroupedAo): google.maps.MarkerOptions {
-    const activeDays = ao.days.filter(d => d.event);
-    const closed = !!ao.closedNextDate;
-
-    if (activeDays.length === 0) {
-      const SIZE = 32, CARET_H = 7, totalH = SIZE + CARET_H;
-      const cx = SIZE / 2;
-      const fill = closed ? '#e53935' : '#2196f3';
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${
-          SIZE}" height="${totalH}">
-  <circle cx="${cx}" cy="${cx}" r="${cx - 1.5}" fill="${
-          fill}" stroke="white" stroke-width="2"
-          style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.25))"/>
-  <text x="${cx}" y="${cx + 5}" font-size="18" font-weight="700" fill="white"
-        text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,sans-serif">+</text>
-  <path d="M${cx - 5} ${SIZE} L${cx} ${totalH} L${cx + 5} ${SIZE} Z" fill="${
-          fill}"/>
-</svg>`;
-      return {
-        title: ao.name,
-        icon: {
-          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
-          scaledSize: new google.maps.Size(SIZE, totalH),
-          anchor: new google.maps.Point(cx, totalH),
-        },
-      };
-    }
-
-    const n = activeDays.length;
-    const PILL_W = 24, PILL_H = 20, PAD = 3, GAP = 2, CARET_H = 7;
-    const boxW = n * PILL_W + (n - 1) * GAP + PAD * 2;
-    const boxH = PILL_H + PAD * 2;
-    const totalH = boxH + CARET_H;
-
-    return {
-      title: ao.name,
-      icon: {
-        url: this.buildMarkerSvgUri(
-            activeDays,
-            {boxW, boxH, totalH, PILL_W, PILL_H, PAD, GAP, CARET_H},
-            closed,
-            ),
-        scaledSize: new google.maps.Size(boxW, totalH),
-        anchor: new google.maps.Point(boxW / 2, totalH),
-      },
-    };
-  }
-
-  /**
-   * Generates an SVG callout marker: one colored pill per active day,
-   * with a downward-pointing caret anchored at the location point.
-   * When `closed` is true the outer box is tinted red to signal a closure.
-   */
-  private buildMarkerSvgUri(
-      activeDays: AoDay[],
-      dim: {
-        boxW: number,
-        boxH: number,
-        totalH: number,
-        PILL_W: number,
-        PILL_H: number,
-        PAD: number,
-        GAP: number,
-        CARET_H: number
-      },
-      closed = false,
-      ): string {
-    const {boxW, boxH, totalH, PILL_W, PILL_H, PAD, GAP, CARET_H} = dim;
-
-    const pills =
-        activeDays
-            .map((d, i) => {
-              const color = MapPage.DAY_COLORS[d.dayIndex] ?? '#aaa';
-              const abbrev = MapPage.DAY_ABBREVS[d.dayIndex];
-              const x = PAD + i * (PILL_W + GAP);
-              const y = PAD;
-              const cx = x + PILL_W / 2;
-              return `<rect x="${x}" y="${y}" width="${PILL_W}" height="${
-                         PILL_H}" rx="4" fill="${color}"/>` +
-                  `<text x="${cx}" y="${
-                         y +
-                         14}" font-size="9.5" font-weight="700" fill="white" ` +
-                  `text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,sans-serif">${
-                         abbrev}</text>`;
-            })
-            .join('');
-
-    const boxFill = closed ? '#fff0f0' : 'white';
-    const boxStroke = closed ? '#e53935' : '#ccc';
-    const caretFill = closed ? '#e53935' : '#ccc';
-    const caretInnerFill = closed ? '#fff0f0' : 'white';
-
-    const cx = boxW / 2;
-    const caretOuter =
-        `M${cx - 7} ${boxH} L${cx} ${totalH} L${cx + 7} ${boxH} Z`;
-    const caretInner =
-        `M${cx - 5} ${boxH - 1} L${cx} ${totalH - 2} L${cx + 5} ${boxH - 1} Z`;
-
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${
-        boxW}" height="${totalH}">
-  <rect width="${boxW}" height="${boxH}" rx="6" fill="${boxFill}" stroke="${
-        boxStroke}" stroke-width="1.5"
-        style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.18))"/>
-  ${pills}
-  <path d="${caretOuter}" fill="${caretFill}"/>
-  <path d="${caretInner}" fill="${caretInnerFill}"/>
-</svg>`;
-
-    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+    return buildAoMarkerOptions({
+      name: ao.name,
+      days: ao.days,
+      closedNextDate: ao.closedNextDate,
+    });
   }
 
   // ── Selection ────────────────────────────────────────────────────
