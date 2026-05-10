@@ -36,7 +36,7 @@
         </div>
       </div>
 
-      <!-- snapshot row: q depth + day-of-week heatmap + map -->
+      <!-- snapshot row: q depth + day-of-week heatmap -->
       <div class="snapshot-grid">
         <ion-card class="snapshot-card snapshot-q-depth">
           <ion-card-header>
@@ -59,22 +59,6 @@
           </ion-card-header>
           <ion-card-content>
             <app-day-of-week-heatmap [data]="dowRows"></app-day-of-week-heatmap>
-          </ion-card-content>
-        </ion-card>
-
-        <ion-card class="snapshot-card snapshot-map">
-          <ion-card-header>
-            <ion-card-title>{{ all ? 'AO map' : (isRegion ? displayName + ' AOs' : displayName) }}</ion-card-title>
-            <ion-card-subtitle>
-              {{ isRegion || all ? 'AOs that pertain to this region.' : 'Where this AO meets.' }}
-            </ion-card-subtitle>
-          </ion-card-header>
-          <ion-card-content>
-            <app-region-map
-              [regionIds]="mapRegionIds"
-              [aoNameFilter]="mapAoNameFilter"
-              [height]="320">
-            </app-region-map>
           </ion-card-content>
         </ion-card>
       </div>

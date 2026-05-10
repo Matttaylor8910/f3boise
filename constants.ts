@@ -14,12 +14,14 @@ export enum AO {
   BLEACH = 'bleach',
   CAMELS_BACK = 'camels back',
   LIBERTY = 'liberty',
+  OTB_CYNTHIA_MANN = 'otb cynthia mann',
   RISE = 'rise',
 
   // high desert
   BACKYARD = 'backyard',
   GOOSE_DYNASTY = 'goose dynasty',
   INTERCEPTOR = 'interceptor',
+  OTB_GORDON_HARRIS_PARK = 'otb gordon harris park',
   REBEL = 'rebel',
   TOWER = 'tower',
 
@@ -32,6 +34,7 @@ export enum AO {
   EMMETT_GEM_ISLAND = 'emmett gem island',
   GEM = 'gem',
   OLD_GLORY = 'old glory',
+  OTB_LIBERTY_PARK = 'otb liberty park',
   SENTINELS = 'sentinels',
 
   // canyon
@@ -53,6 +56,7 @@ export const CITY_OF_TREES_AOS = new Set<string>([
   AO.BLEACH,
   AO.CAMELS_BACK,
   AO.LIBERTY,
+  AO.OTB_CYNTHIA_MANN,
   AO.RISE,
 
   // include in all
@@ -63,6 +67,7 @@ export const HIGH_DESERT_AOS = new Set<string>([
   AO.BACKYARD,
   AO.GOOSE_DYNASTY,
   AO.INTERCEPTOR,
+  AO.OTB_GORDON_HARRIS_PARK,
   AO.REBEL,
   AO.TOWER,
 
@@ -79,6 +84,7 @@ export const SETTLERS_AOS = new Set<string>([
   AO.EMMETT_GEM_ISLAND,
   AO.GEM,
   AO.OLD_GLORY,
+  AO.OTB_LIBERTY_PARK,
   AO.SENTINELS,
 
   // include in all

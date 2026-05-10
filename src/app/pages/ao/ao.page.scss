@@ -1,9 +1,7 @@
 .snapshot-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  grid-template-areas:
-    'qdepth dow'
-    'map    map';
+  grid-template-areas: 'qdepth dow';
   gap: 0;
   max-width: 1800px;
   margin: 0 auto;
@@ -29,16 +27,12 @@
 
   .snapshot-q-depth { grid-area: qdepth; }
   .snapshot-dow { grid-area: dow; }
-  .snapshot-map { grid-area: map; }
 }
 
 @media (max-width: 1100px) {
   .snapshot-grid {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'qdepth'
-      'dow'
-      'map';
+    grid-template-areas: 'qdepth' 'dow';
   }
 }
 

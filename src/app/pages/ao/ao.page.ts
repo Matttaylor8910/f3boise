@@ -7,12 +7,11 @@ import {DayOfWeekRow} from 'src/app/components/day-of-week-heatmap/day-of-week-h
 import {QDepthRow} from 'src/app/components/q-depth-chart/q-depth-chart.component';
 import {AuthService} from 'src/app/services/auth.service';
 import {BackblastService} from 'src/app/services/backblast.service';
-import {BOISE_REGION_IDS, NationRegionId} from 'src/app/services/f3-api.service';
 import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
 import {AoPaxStats, Backblast, BBType} from 'types';
 
-import {REGION, REGION_AGNOSTIC_AOS} from '../../../../constants';
+import {REGION_AGNOSTIC_AOS} from '../../../../constants';
 
 interface AoStats {
   totalUniqueQs: number;      // count of unique qs
@@ -24,23 +23,13 @@ interface AoStats {
 
 const LIMIT = 10;
 
-/** Charts/map at the top of the page always reflect this lookback. */
+/** Charts at the top of the page always reflect this lookback. */
 const TRAILING_DAYS = 90;
 
 /** "Regular attender" = posted ≥ this many times at the AO in the window. */
 const REGULAR_POSTS_THRESHOLD = 4;
 /** "Regular Q" = regular attender who also led ≥ this many workouts. */
 const REGULAR_QS_THRESHOLD = 2;
-
-const REGION_TO_F3_ID: Record<string, NationRegionId> = {
-  [REGION.CITY_OF_TREES]: BOISE_REGION_IDS.cityOfTrees,
-  [REGION.HIGH_DESERT]: BOISE_REGION_IDS.highDesert,
-  [REGION.SETTLERS]: BOISE_REGION_IDS.settlers,
-  [REGION.CANYON]: BOISE_REGION_IDS.canyon,
-};
-
-const ALL_BOISE_REGION_IDS: NationRegionId[] =
-    Object.values(BOISE_REGION_IDS) as NationRegionId[];
 
 @Component({
   selector: 'app-ao',
@@ -81,11 +70,6 @@ export class AoPage {
   // Trailing-90-day region/AO snapshot — independent of the date range picker
   qDepthRows: QDepthRow[] = [];
   dowRows: DayOfWeekRow[] = [];
-  /** Region IDs to display in the embedded map (empty ⇒ none) */
-  mapRegionIds: NationRegionId[] = [];
-  /** AO name filter for the embedded map (single-AO pages); null otherwise */
-  mapAoNameFilter: string|null = null;
-
   // Precomputed properties instead of getters
   all = false;
   bbShort = '';
@@ -109,22 +93,6 @@ export class AoPage {
     this.updateBBProperties();
     this.all = this.name === 'all';
     this.isRegion = window.location.href.includes('/region/');
-    this.computeMapScope();
-  }
-
-  /** Scope the embedded map to either a region, a single AO, or all Boise. */
-  private computeMapScope() {
-    if (this.all) {
-      this.mapRegionIds = ALL_BOISE_REGION_IDS;
-      this.mapAoNameFilter = null;
-    } else if (this.isRegion) {
-      const id = REGION_TO_F3_ID[this.name];
-      this.mapRegionIds = id ? [id] : ALL_BOISE_REGION_IDS;
-      this.mapAoNameFilter = null;
-    } else {
-      this.mapRegionIds = ALL_BOISE_REGION_IDS;
-      this.mapAoNameFilter = this.displayName || this.name;
-    }
   }
 
   get kotterRoute(): string {
@@ -287,7 +255,7 @@ export class AoPage {
       this.recentBds = allData.slice(0, 20);
     }, 500);
 
-    // Charts/map always show trailing-90-day snapshot, independent of the date
+    // Charts always show trailing-90-day snapshot, independent of the date
     // range picker (subtitle is fixed as "trailing 90 days").
     this.computeTrailingSnapshots(allData);
   }
