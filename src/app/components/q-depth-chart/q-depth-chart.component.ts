@@ -69,11 +69,7 @@ export class QDepthChartComponent {
           fairShare.toFixed(0) :
           fairShare.toFixed(1);
       const cutoffWord = row.regularQCutoff === 1 ? 'workout' : 'workouts';
-      tooltip =
-          `${row.ao}: ${row.regularQs} of ${row.regularAttenders} regulars led ≥ ${
-              row.regularQCutoff} ${cutoffWord}\n` +
-          `(half of ${fairShareStr} fair share: ${row.workouts} workouts ÷ ${
-              row.regularAttenders} regulars)`;
+      tooltip = `${row.ao}: ${row.regularQs} of ${row.regularAttenders} regulars led regularly`;
     }
     return {...row, pct, tier, tooltip};
   }
