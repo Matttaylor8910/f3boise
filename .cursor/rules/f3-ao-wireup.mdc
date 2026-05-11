@@ -1,0 +1,40 @@
+---
+description: >-
+  Use when wiring up / adding / connecting an F3 AO to Boise metro regions:
+  F3 Nation org & event endpoints, Fly scraper backblast AO names, constants
+  AO enums and *_AOS sets, normalizeName quirks, year-grid getColor cases.
+alwaysApply: false
+---
+
+# Wire up `{ao name}` (F3 Boise)
+
+When asked to wire up an AO, follow this playbook. Prefer small, focused edits.
+
+## 1. Confirm F3 Nation (source of hierarchy)
+
+Base URL `https://api.f3nation.com/v1`. Auth headers match `src/app/services/f3-api.service.ts`.
+
+- Metro region IDs live in **`BOISE_REGION_IDS`** (`settlers`: 45177, plus city-of-trees, high-desert, canyon).
+- **Child AOs under a region:** `GET /org?orgTypes=ao&statuses=active&parentOrgIds=<regionId>&pageSize=200`
+- **Workouts/events:** `GET /event?regionIds=<regionId>&statuses=active&searchTerm=<snippet>&pageSize=500` — check `regions` on each event matches the intended region.
+
+## 2. Fly scraper ↔ app string
+
+`BASE_URL` in **`constants.ts`** (`https://f3-scraper-rs.fly.dev`). Backblasts: `/back_blasts/all`.
+
+`BackblastService` runs **`normalizeName`** on each `ao` after fetch. Filters compare **`ao.toLowerCase()`** to entries in **`CITY_OF_TREES_AOS`**, **`HIGH_DESERT_AOS`**, **`SETTLERS_AOS`**, or **`CANYON_AOS`**. If Slack/scraper casing differs from the Title Case you expect (e.g. `SundayRuck` → `Sunday Ruck`), normalize is usually enough; if not, add a special case in **`UtilService.normalizeName`** (War Horse precedent).
+
+## 3. Required code changes
+
+In **`constants.ts`**:
+
+1. **`AO`** enum — value must be lowercase with spaces matching `normalizeName(..).toLowerCase()` for that AO.
+2. Add that string to exactly one metro **`*_AOS`** `Set`. Keep **`BLACK_OPS`** on any list that already includes “include in all” if that AO still belongs there.
+
+**`src/app/components/year-grid/year-grid.component.ts`:** add **`getColor`** `case AO....` so PAX year-grid legend is stable (avoid falling through to **`randomHexColorCode`**).
+
+Sidebar, Kotter, backblast region filters, wrapped, beatdown-breakdown consume **`*_AOS`** — no duplicate lists unless the codebase already maintains one-off maps for that AO.
+
+## 4. Out of scope unless asked
+
+Map admin / Nation `createOrg` flows; token rotation; renaming closed AOs — only touch **`DISCONTINUED_AOS`** or similar when explicitly requested.
