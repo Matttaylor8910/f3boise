@@ -2,6 +2,8 @@ import {Component, Input} from '@angular/core';
 
 export interface QDepthRow {
   ao: string;
+  /** Lowercase segment for `/ao/:name` (matches backblast / sidebar keys). */
+  aoRoute: string;
   /** Total workouts at this AO across the trailing window. */
   workouts: number;
   /**

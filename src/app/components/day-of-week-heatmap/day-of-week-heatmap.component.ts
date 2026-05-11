@@ -2,6 +2,8 @@ import {Component, Input, OnChanges, SimpleChanges} from '@angular/core';
 
 export interface DayOfWeekRow {
   ao: string;
+  /** Lowercase segment for `/ao/:name` (matches backblast / sidebar keys). */
+  aoRoute: string;
   /** Index 0..6 — Sunday=0, Saturday=6. Null when no workouts ran that day. */
   averages: Array<number|null>;
 }
@@ -15,6 +17,7 @@ interface DisplayCell {
 
 interface DisplayRow {
   ao: string;
+  aoRoute: string;
   cells: DisplayCell[];
 }
 
@@ -92,7 +95,7 @@ export class DayOfWeekHeatmapComponent implements OnChanges {
           `${row.ao} on ${FULL_DAY_LABELS[i]}: ${display} avg pax`;
       return {value: v, display, intensity, tooltip};
     });
-    return {ao: row.ao, cells};
+    return {ao: row.ao, aoRoute: row.aoRoute, cells};
   }
 }
 

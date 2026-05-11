@@ -4,7 +4,9 @@
       class="row"
       role="listitem"
       *ngFor="let row of rows">
-      <div class="ao-name">{{ row.ao }}</div>
+      <div class="ao-name">
+        <a [routerLink]="['/ao', row.aoRoute]">{{ row.ao }}</a>
+      </div>
       <div class="track" [attr.data-tooltip]="row.tooltip">
         <div
           class="bar"

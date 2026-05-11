@@ -10,7 +10,9 @@
     </div>
 
     <div class="data-row" *ngFor="let row of rows">
-      <div class="ao-col" [attr.title]="row.ao">{{ row.ao }}</div>
+      <div class="ao-col" [attr.title]="row.ao">
+        <a [routerLink]="['/ao', row.aoRoute]">{{ row.ao }}</a>
+      </div>
       <div
         class="cell"
         *ngFor="let cell of row.cells"

@@ -279,6 +279,8 @@ export class AoPage {
 
     interface PerAo {
       bdsCount: number;
+      /** First-seen `backblast.ao` lowercased — matches `/ao/:name` resolution. */
+      routeSegment: string;
       // pax name → posts/Qs at this AO in window
       pax: Map<string, {posts: number; qs: number}>;
       // dayIndex 0..6 → {paxSum, bdsCount}
@@ -301,6 +303,7 @@ export class AoPage {
       if (!entry) {
         entry = {
           bdsCount: 0,
+          routeSegment: bb.ao.trim().toLowerCase(),
           pax: new Map(),
           dowSum: Array.from({length: 7}, () => ({paxSum: 0, bds: 0})),
         };
@@ -346,6 +349,7 @@ export class AoPage {
 
       qDepth.push({
         ao,
+        aoRoute: entry.routeSegment,
         workouts: W,
         regularAttenders: regularsCount,
         regularQs: regularQsCount,
@@ -354,6 +358,7 @@ export class AoPage {
       });
       dow.push({
         ao,
+        aoRoute: entry.routeSegment,
         averages: entry.dowSum.map(
             d => (d.bds > 0 ? d.paxSum / d.bds : null)),
       });

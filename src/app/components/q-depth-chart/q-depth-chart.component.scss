@@ -29,6 +29,16 @@ $tier-risk: #ef4444;
     line-height: 1.2;
     word-break: break-word;
     hyphens: auto;
+
+    a {
+      color: inherit;
+      font-weight: inherit;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
   }
 
   .track {
