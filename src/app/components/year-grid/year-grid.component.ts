@@ -345,6 +345,8 @@ export class YearGridComponent implements OnInit, OnChanges {
         return '#D35400';
       case AO.SENTINELS:
         return '#686363';
+      case AO.SUNDAY_RUCK:
+        return '#795548';
       case AO.TOWER:
         return '#9CD6F1';
       case AO.THE_EDGE:

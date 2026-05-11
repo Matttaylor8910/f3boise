@@ -36,6 +36,7 @@ export enum AO {
   OLD_GLORY = 'old glory',
   OTB_LIBERTY_PARK = 'otb liberty park',
   SENTINELS = 'sentinels',
+  SUNDAY_RUCK = 'sunday ruck',
 
   // canyon
   DUCK_HUNT = 'duck hunt',
@@ -86,6 +87,7 @@ export const SETTLERS_AOS = new Set<string>([
   AO.OLD_GLORY,
   AO.OTB_LIBERTY_PARK,
   AO.SENTINELS,
+  AO.SUNDAY_RUCK,
 
   // include in all
   AO.BLACK_OPS,
