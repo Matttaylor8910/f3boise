@@ -39,6 +39,10 @@ export class UtilService {
   normalizeName(ao: string|null): string {
     if (!ao) return '';
 
+    // All-caps acronyms split into single letters (e.g. RAFO → "R A F O").
+    const compact = ao.replace(/\s+/g, '');
+    if (/^rafo$/i.test(compact)) return 'RAFO';
+
     const sections: string[] = [];
     ao.split(/(?=[A-Z])/).forEach(splitUppercase => {
       splitUppercase.split('-').forEach(splitHyphen => {

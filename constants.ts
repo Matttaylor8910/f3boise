@@ -35,6 +35,7 @@ export enum AO {
   GEM = 'gem',
   OLD_GLORY = 'old glory',
   OTB_LIBERTY_PARK = 'otb liberty park',
+  RAFO = 'rafo',
   SENTINELS = 'sentinels',
   SUNDAY_RUCK = 'sunday ruck',
 
@@ -86,6 +87,7 @@ export const SETTLERS_AOS = new Set<string>([
   AO.GEM,
   AO.OLD_GLORY,
   AO.OTB_LIBERTY_PARK,
+  AO.RAFO,
   AO.SENTINELS,
   AO.SUNDAY_RUCK,
 
