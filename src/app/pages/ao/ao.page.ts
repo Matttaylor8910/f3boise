@@ -11,7 +11,7 @@ import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
 import {AoPaxStats, Backblast, BBType} from 'types';
 
-import {REGION_AGNOSTIC_AOS} from '../../../../constants';
+import {CANYON_AOS, CITY_OF_TREES_AOS, HIGH_DESERT_AOS, REGION_AGNOSTIC_AOS, SETTLERS_AOS} from '../../../../constants';
 
 interface AoStats {
   totalUniqueQs: number;      // count of unique qs
@@ -19,6 +19,12 @@ interface AoStats {
   totalBeatdowns: number;     // count of total beatdowns at this AO
   totalPosts: number;         // total of all beatdowns * participants
   averageAttendance: number;  // total posts / total beatdowns
+}
+
+interface RegionFilterOption {
+  label: string;
+  value: string;
+  aos?: Set<string>;
 }
 
 const LIMIT = 10;
@@ -84,6 +90,14 @@ export class AoPage {
   bbSingular = '';
   bbPlural = '';
   isRegion = false;
+  selectedRegion = 'all';
+  readonly regionFilterOptions: RegionFilterOption[] = [
+    {label: 'All', value: 'all'},
+    {label: 'Canyon', value: 'canyon', aos: CANYON_AOS},
+    {label: 'City of Trees', value: 'city-of-trees', aos: CITY_OF_TREES_AOS},
+    {label: 'High Desert', value: 'high-desert', aos: HIGH_DESERT_AOS},
+    {label: 'Settlers', value: 'settlers', aos: SETTLERS_AOS},
+  ];
 
   constructor(
       public readonly utilService: UtilService,
@@ -105,6 +119,15 @@ export class AoPage {
 
   get kotterRoute(): string {
     return this.isRegion ? `/region/${this.name}/kotter` : `/ao/${this.name}/kotter`;
+  }
+
+  get scopeDisplayName(): string {
+    if (!this.all || this.selectedRegion === 'all') {
+      return this.displayName;
+    }
+
+    return this.regionFilterOptions.find(option => option.value === this.selectedRegion)
+        ?.label ?? this.displayName;
   }
 
   private updateBBProperties() {
@@ -155,6 +178,11 @@ export class AoPage {
     this.calculateStats(range);
   }
 
+  onRegionFilterChange() {
+    this.reset();
+    this.calculateStats(this.selectedRange);
+  }
+
   goToPaxPage(name: string) {
     localStorage.setItem('BBTYPE', this.bbType);
     this.router.navigateByUrl(`/pax/${name}`);
@@ -168,9 +196,10 @@ export class AoPage {
       this.reset();
     }
 
-    const allData = this.all ?
+    const allDataForScope = this.all ?
         await this.backblastService.getAllData(this.bbType) :
         await this.backblastService.getBackblastsForAo(this.name, this.bbType);
+    const allData = this.filterBySelectedRegion(allDataForScope);
 
     // sort the data by date ascending
     const data: Backblast[] = [];
@@ -517,6 +546,24 @@ export class AoPage {
     this.topQsViewByPercentage = false;
     this.bottomQsViewByPercentage = false;
     this.noQsViewByLastBd = false;
+  }
+
+  private filterBySelectedRegion(backblasts: Backblast[]): Backblast[] {
+    if (!this.all || this.selectedRegion === 'all') {
+      return backblasts;
+    }
+
+    const regionAos =
+        this.regionFilterOptions.find(option => option.value === this.selectedRegion)
+            ?.aos;
+    if (!regionAos) {
+      return backblasts;
+    }
+
+    return backblasts.filter(backblast => {
+      const ao = backblast.ao.toLowerCase();
+      return regionAos.has(ao) && !REGION_AGNOSTIC_AOS.has(ao);
+    });
   }
 
   toggleLeaderboardView() {

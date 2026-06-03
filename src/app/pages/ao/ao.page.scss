@@ -1,3 +1,12 @@
+.region-filter-card {
+  max-width: 1800px;
+  margin: 8px auto;
+
+  ion-card-content {
+    padding: 0;
+  }
+}
+
 .snapshot-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
