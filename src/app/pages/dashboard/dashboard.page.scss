@@ -33,17 +33,16 @@
   }
 }
 
-// tile cards
+// tile cards — grid tracks so each ion-card's own margins stay inside
+// its track instead of pushing past the viewport on small screens
 .tiles {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  align-items: start;
   max-width: 1500px;
   margin: 4px auto 0;
 
   .tile {
-    flex: 1;
-    min-width: 320px;
 
     ion-card-subtitle {
       text-transform: none;
@@ -193,9 +192,5 @@
 @media (max-width: 800px) {
   .pulse-row {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .tiles .tile {
-    min-width: 100%;
   }
 }
