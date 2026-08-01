@@ -1,0 +1,44 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ title }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="close()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="duos-grid-content">
+
+  <div class="duos-grid">
+    <div
+      class="duo-card"
+      *ngFor="let duo of duos; let i = index"
+    >
+      <div class="duo-rank">{{ i + 1 }}</div>
+      <div class="duo-image-container">
+        <app-pax-avatar
+          [name]="duo.name1"
+          [size]="80"
+          class="duo-avatar"
+          (click)="navigateToPax(duo.name1)">
+        </app-pax-avatar>
+        <app-pax-avatar
+          [name]="duo.name2"
+          [size]="80"
+          class="duo-avatar second"
+          (click)="navigateToPax(duo.name2)">
+        </app-pax-avatar>
+      </div>
+      <div class="duo-info">
+        <div class="duo-names">
+          <a (click)="navigateToPax(duo.name1)">{{ utilService.normalizeName(duo.name1) }}</a>
+          &
+          <a (click)="navigateToPax(duo.name2)">{{ utilService.normalizeName(duo.name2) }}</a>
+        </div>
+        <div class="duo-count">{{ duo.count }} {{ bbShort }}{{ duo.count === 1 ? '' : 's' }} together</div>
+      </div>
+    </div>
+  </div>
+</ion-content>

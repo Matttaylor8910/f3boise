@@ -1,9 +1,10 @@
 import {Component} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {ToastController} from '@ionic/angular';
+import {ModalController, ToastController} from '@ionic/angular';
 import * as moment from 'moment';
 import {DateRange} from 'src/app/components/date-range-picker/date-range-picker.component';
 import {DayOfWeekRow} from 'src/app/components/day-of-week-heatmap/day-of-week-heatmap.component';
+import {Duo, DuosGridComponent} from 'src/app/components/duos-grid/duos-grid.component';
 import {QDepthRow} from 'src/app/components/q-depth-chart/q-depth-chart.component';
 import {AuthService} from 'src/app/services/auth.service';
 import {BackblastService} from 'src/app/services/backblast.service';
@@ -13,12 +14,35 @@ import {AoPaxStats, Backblast, BBType} from 'types';
 
 import {REGION_AGNOSTIC_AOS} from '../../../../constants';
 
+/** A reference to a single beatdown, for "first BD" / "record" style rows. */
+interface BdRef {
+  date: string;
+  relativeDate: string;
+  ao: string;       // display name
+  aoRoute: string;  // lowercased route segment for /ao/:name
+  backblastId: string;
+  count: number;  // pax count at that beatdown
+}
+
 interface AoStats {
   totalUniqueQs: number;      // count of unique qs
   totalUniquePax: number;     // count of unique pax
   totalBeatdowns: number;     // count of total beatdowns at this AO
   totalPosts: number;         // total of all beatdowns * participants
   averageAttendance: number;  // total posts / total beatdowns
+  totalFngs: number;          // count of unique FNGs welcomed
+  record?: BdRef;             // highest-attendance beatdown
+  firstBd?: BdRef;
+  lastBd?: BdRef;
+  topQ?: {name: string; qs: number};
+  topDuo?: Duo;  // pair of PAX that posted together the most
+}
+
+interface PopularAo {
+  name: string;   // display name
+  route: string;  // lowercased route segment for /ao/:name
+  bds: number;
+  avgAttendance: number;
 }
 
 const LIMIT = 10;
@@ -54,6 +78,16 @@ export class AoPage {
   aoStats?: AoStats;
   paxStats?: AoPaxStats[];
 
+  // unfiltered BDs for the year grid (attendance heatmap), like the PAX page
+  yearGridBds?: Backblast[];
+
+  // top pairs of PAX that post together, for the Dynamic Duos modal
+  topDuos: Duo[] = [];
+
+  // AOs ranked by total BDs — shown when this page spans multiple AOs
+  popularAos: PopularAo[] = [];
+  showMorePopularAos = false;
+
   leaderboard: AoPaxStats[] = [];
   topQs: AoPaxStats[] = [];
   bottomQs: AoPaxStats[] = [];
@@ -84,6 +118,7 @@ export class AoPage {
   bbSingular = '';
   bbPlural = '';
   isRegion = false;
+  multiAo = false;  // page spans multiple AOs (region or all)
 
   constructor(
       public readonly utilService: UtilService,
@@ -93,6 +128,7 @@ export class AoPage {
       private readonly paxService: PaxService,
       private readonly authService: AuthService,
       private readonly toastController: ToastController,
+      private readonly modalController: ModalController,
   ) {
     this.name = this.route.snapshot.params['name'];
     this.displayName = this.utilService.normalizeName(this.name);
@@ -101,6 +137,7 @@ export class AoPage {
     this.updateBBProperties();
     this.all = this.name === 'all';
     this.isRegion = window.location.href.includes('/region/');
+    this.multiAo = this.all || this.isRegion;
   }
 
   get kotterRoute(): string {
@@ -172,6 +209,10 @@ export class AoPage {
         await this.backblastService.getAllData(this.bbType) :
         await this.backblastService.getBackblastsForAo(this.name, this.bbType);
 
+    // the year grid always shows the unfiltered history (it has its own
+    // year navigation), just like the PAX page
+    this.yearGridBds = allData;
+
     // sort the data by date ascending
     const data: Backblast[] = [];
     for (const backblast of allData) {
@@ -214,12 +255,49 @@ export class AoPage {
     const statsMap = new Map<string, AoPaxStats>();
     const uniqueQs = new Set<string>();
     const uniquePax = new Set<string>();
+    const uniqueFngs = new Set<string>();
+    const duoMap = new Map<string, Duo>();
+    const aoTotals = new Map<string, PopularAo&{posts: number}>();
     const aoStats = this.newAoStats();
 
     for (const backblast of data) {
       // update AO stats for this beatdown
       aoStats.totalBeatdowns++;
       aoStats.totalPosts += backblast.pax.length;
+
+      // track the highest-attendance beatdown
+      if (!aoStats.record || backblast.pax.length > aoStats.record.count) {
+        aoStats.record = this.toBdRef(backblast);
+      }
+
+      // tally FNGs welcomed
+      for (const fng of backblast.fngs ?? []) {
+        uniqueFngs.add(fng.toLowerCase());
+      }
+
+      // per-AO totals for the Most Popular AOs card
+      const aoName = this.utilService.normalizeName(backblast.ao);
+      const aoEntry = aoTotals.get(aoName) ?? {
+        name: aoName,
+        route: backblast.ao.trim().toLowerCase(),
+        bds: 0,
+        posts: 0,
+        avgAttendance: 0,
+      };
+      aoEntry.bds++;
+      aoEntry.posts += backblast.pax.length;
+      aoTotals.set(aoName, aoEntry);
+
+      // count every pair of PAX that posted together (dynamic duos)
+      for (let i = 0; i < backblast.pax.length; i++) {
+        for (let j = i + 1; j < backblast.pax.length; j++) {
+          const [name1, name2] = [backblast.pax[i], backblast.pax[j]];
+          const key = [name1.toLowerCase(), name2.toLowerCase()].sort().join('|');
+          const duo = duoMap.get(key) ?? {name1, name2, count: 0};
+          duo.count++;
+          duoMap.set(key, duo);
+        }
+      }
 
       for (const name of backblast.pax) {
         // update this HIM's stats
@@ -248,6 +326,29 @@ export class AoPage {
     aoStats.totalUniqueQs = uniqueQs.size;
     aoStats.totalUniquePax = uniquePax.size;
     aoStats.averageAttendance = aoStats.totalPosts / aoStats.totalBeatdowns;
+    aoStats.totalFngs = uniqueFngs.size;
+
+    // data is date ascending at this point
+    aoStats.firstBd = this.toBdRef(data[0]);
+    aoStats.lastBd = this.toBdRef(data[data.length - 1]);
+
+    // the PAX with the most Qs here
+    for (const pax of statsMap.values()) {
+      if (pax.qs > 0 && (!aoStats.topQ || pax.qs > aoStats.topQ.qs)) {
+        aoStats.topQ = {name: pax.name, qs: pax.qs};
+      }
+    }
+
+    // top pairs of PAX that post together
+    this.topDuos = Array.from(duoMap.values())
+                       .sort((a, b) => b.count - a.count)
+                       .slice(0, 10);
+    aoStats.topDuo = this.topDuos[0];
+
+    // AOs ranked by total BDs (only rendered when this page spans > 1 AO)
+    this.popularAos = Array.from(aoTotals.values())
+                          .map(ao => ({...ao, avgAttendance: ao.posts / ao.bds}))
+                          .sort((a, b) => b.bds - a.bds);
 
     // spin off some other stats
     this.aoStats = aoStats;
@@ -506,11 +607,14 @@ export class AoPage {
     this.noQs = [];
     this.qDepthRows = [];
     this.dowRows = [];
+    this.topDuos = [];
+    this.popularAos = [];
 
     this.showMoreLeaderboard = false;
     this.showMoreTop = false;
     this.showMoreBottom = false;
     this.showMoreNoQs = false;
+    this.showMorePopularAos = false;
 
     // Reset toggle states
     this.leaderboardViewByBdsPerWeek = false;
@@ -539,6 +643,36 @@ export class AoPage {
     this.calculateQsCards();
   }
 
+  async showTopDuos() {
+    if (this.topDuos.length === 0) return;
+
+    const modal = await this.modalController.create({
+      component: DuosGridComponent,
+      componentProps: {
+        duos: this.topDuos,
+        title: `${this.displayName} Dynamic Duos`,
+        bbShort: this.bbShort,
+      },
+      cssClass: 'besties-modal',
+      showBackdrop: true,
+      backdropDismiss: true,
+      presentingElement: await this.modalController.getTop(),
+    });
+
+    await modal.present();
+  }
+
+  private toBdRef(backblast: Backblast): BdRef {
+    return {
+      date: backblast.date,
+      relativeDate: this.utilService.getRelativeDate(backblast.date),
+      ao: this.utilService.normalizeName(backblast.ao),
+      aoRoute: backblast.ao.trim().toLowerCase(),
+      backblastId: backblast.id,
+      count: backblast.pax.length,
+    };
+  }
+
   private newAoStats(): AoStats {
     return {
       totalUniqueQs: 0,
@@ -546,6 +680,7 @@ export class AoPage {
       totalPosts: 0,
       totalUniquePax: 0,
       averageAttendance: 0,
+      totalFngs: 0,
     };
   }
 

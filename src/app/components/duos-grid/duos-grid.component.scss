@@ -1,0 +1,117 @@
+.duos-grid-content {
+  --background: var(--ion-background-color, #f5f5f5);
+  padding: 16px;
+}
+
+.duos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.duo-card {
+  background: var(--ion-card-background, var(--ion-background-color, white));
+  border: 3px solid var(--ion-color-primary, #007bff);
+  border-radius: 12px;
+  padding: 0;
+  text-align: center;
+  position: relative;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+    border-color: var(--ion-color-primary-shade, #0056b3);
+  }
+}
+
+.duo-rank {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--ion-color-primary, #007bff);
+  color: var(--ion-color-primary-contrast, white);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1rem;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.duo-image-container {
+  flex: 1;
+  position: relative;
+  background: linear-gradient(135deg, var(--ion-color-primary, #007bff), var(--ion-color-primary-shade, #0056b3));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+
+  .duo-avatar {
+    cursor: pointer;
+    z-index: 1;
+
+    &.second {
+      // overlap the pair of avatars slightly to sell the "duo" look
+      margin-left: -16px;
+      z-index: 0;
+    }
+  }
+}
+
+.duo-info {
+  padding: 16px;
+  background: var(--ion-card-background, var(--ion-background-color, white));
+  flex: 1;
+
+  .duo-names {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: var(--ion-text-color, #333);
+    margin-bottom: 4px;
+
+    a {
+      cursor: pointer;
+      color: var(--ion-color-primary, #007bff);
+    }
+  }
+
+  .duo-count {
+    color: var(--ion-color-step-600, var(--ion-color-medium, #666));
+    font-size: 1rem;
+    font-weight: 500;
+  }
+}
+
+@media (max-width: 768px) {
+  .duos-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .duo-card {
+    min-height: 180px;
+  }
+
+  .duo-image-container {
+    min-height: 120px;
+  }
+
+  .duo-avatar ::ng-deep ion-avatar {
+    width: 56px;
+    height: 56px;
+  }
+}

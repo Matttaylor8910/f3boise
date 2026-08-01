@@ -1,3 +1,9 @@
+.duo-info-icon {
+  margin-left: 4px;
+  color: var(--ion-color-primary);
+  vertical-align: text-top;
+}
+
 .snapshot-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

@@ -17,6 +17,7 @@ import {CreateChallengeModalComponent} from './create-challenge-modal/create-cha
 import {CustomDateRangePopoverComponent} from './custom-date-range-popover/custom-date-range-popover.component';
 import {DateRangePickerComponent} from './date-range-picker/date-range-picker.component';
 import {DayOfWeekHeatmapComponent} from './day-of-week-heatmap/day-of-week-heatmap.component';
+import {DuosGridComponent} from './duos-grid/duos-grid.component';
 import {GoogleFormModalComponent} from './google-form-modal/google-form-modal.component';
 import {HeaderComponent} from './header/header.component';
 import {LoginModalComponent} from './login-modal/login-modal.component';
@@ -60,6 +61,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     CreateChallengeModalComponent,
     CustomDateRangePopoverComponent,
     DateRangePickerComponent,
+    DuosGridComponent,
     HeaderComponent,
     LoginModalComponent,
     PaxAvatarComponent,
@@ -110,6 +112,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     BestiesGridComponent,
     CreateChallengeModalComponent,
     DateRangePickerComponent,
+    DuosGridComponent,
     HeaderComponent,
     LoginModalComponent,
     PaxAvatarComponent,

@@ -19,6 +19,13 @@
   </app-date-range-picker>
 
   <div *ngIf="aoStats; else loading">
+
+    <!-- cool year grid chart (attendance heatmap), like the PAX page -->
+    <app-year-grid
+      [bds]="yearGridBds"
+      *ngIf="yearGridBds && yearGridBds.length > 0">
+    </app-year-grid>
+
     <ng-container *ngIf="aoStats.totalBeatdowns > 0; else empty">
       <!-- ao stats -->
       <div class="stats-container">
@@ -26,12 +33,122 @@
           <ion-card>
             <ion-card-header>
               <ion-card-title>{{ displayName }} stats</ion-card-title>
-              <ion-card-subtitle>
-                {{ aoStats.totalBeatdowns }} {{ aoStats.totalBeatdowns === 1 ? bbSingular : 'total ' + bbPlural }},
-                {{ aoStats.totalUniquePax }} total unique pax,
-                {{ aoStats.averageAttendance | number:'0.1-1' }} pax post per {{ bbSingular }}
-              </ion-card-subtitle>
             </ion-card-header>
+            <ion-list>
+              <ion-item>
+                <ion-label class="ion-text-wrap">
+                  <h2>Total {{ bbShort }}s</h2>
+                </ion-label>
+                <span slot="end">
+                  {{ aoStats.totalBeatdowns }} <strong>({{ aoStats.totalPosts }} posts)</strong>
+                </span>
+              </ion-item>
+              <ion-item>
+                <ion-label class="ion-text-wrap">
+                  <h2>Avg Attendance</h2>
+                </ion-label>
+                <span slot="end">
+                  {{ aoStats.averageAttendance | number:'0.1-1' }} PAX per {{ bbSingular }}
+                </span>
+              </ion-item>
+              <ion-item *ngIf="aoStats.record">
+                <ion-label class="ion-text-wrap">
+                  <h2>Record Attendance</h2>
+                </ion-label>
+                <span slot="end">
+                  <a routerLink="/backblasts/{{ aoStats.record.backblastId }}">{{ aoStats.record.count }} PAX</a>&nbsp;{{ aoStats.record.relativeDate }}<ng-container *ngIf="multiAo"> at <a routerLink="/ao/{{ aoStats.record.aoRoute }}">{{ aoStats.record.ao }}</a></ng-container>
+                </span>
+              </ion-item>
+              <ion-item>
+                <ion-label class="ion-text-wrap">
+                  <h2>PAX Tally</h2>
+                </ion-label>
+                <span slot="end">{{ aoStats.totalUniquePax }} unique PAX</span>
+              </ion-item>
+              <ion-item>
+                <ion-label class="ion-text-wrap">
+                  <h2>Q Tally</h2>
+                </ion-label>
+                <span slot="end">
+                  {{ aoStats.totalUniqueQs }} unique Qs
+                  <strong *ngIf="aoStats.totalUniquePax > 0">
+                    ({{ aoStats.totalUniqueQs / aoStats.totalUniquePax | percent }} of PAX)
+                  </strong>
+                </span>
+              </ion-item>
+              <ion-item *ngIf="aoStats.totalFngs > 0">
+                <ion-label class="ion-text-wrap">
+                  <h2>FNGs Welcomed</h2>
+                </ion-label>
+                <span slot="end">{{ aoStats.totalFngs }} FNG{{ aoStats.totalFngs === 1 ? '' : 's' }}</span>
+              </ion-item>
+              <ion-item *ngIf="aoStats.topQ">
+                <ion-label class="ion-text-wrap">
+                  <h2>Top Q</h2>
+                </ion-label>
+                <span slot="end">
+                  {{ aoStats.topQ.qs }} Q{{ aoStats.topQ.qs === 1 ? '' : 's' }} by
+                  <a routerLink="/pax/{{ aoStats.topQ.name }}">{{ utilService.normalizeName(aoStats.topQ.name) }}</a>
+                </span>
+              </ion-item>
+              <ion-item *ngIf="aoStats.topDuo" button (click)="showTopDuos()">
+                <ion-label class="ion-text-wrap">
+                  <h2>Dynamic Duo <ion-icon name="information-circle-outline" size="small" class="duo-info-icon"></ion-icon></h2>
+                </ion-label>
+                <span slot="end">
+                  {{ aoStats.topDuo.count }} {{ bbShort }}s together:
+                  <a routerLink="/pax/{{ aoStats.topDuo.name1 }}" (click)="$event.stopPropagation()">{{ utilService.normalizeName(aoStats.topDuo.name1) }}</a>
+                  &amp;
+                  <a routerLink="/pax/{{ aoStats.topDuo.name2 }}" (click)="$event.stopPropagation()">{{ utilService.normalizeName(aoStats.topDuo.name2) }}</a>
+                </span>
+              </ion-item>
+              <ion-item *ngIf="aoStats.firstBd">
+                <ion-label class="ion-text-wrap">
+                  <h2>First {{ bbShort }}</h2>
+                </ion-label>
+                <span slot="end">
+                  {{ aoStats.firstBd.relativeDate }}<ng-container *ngIf="multiAo"> at <a routerLink="/ao/{{ aoStats.firstBd.aoRoute }}">{{ aoStats.firstBd.ao }}</a></ng-container>
+                </span>
+              </ion-item>
+              <ion-item *ngIf="aoStats.lastBd">
+                <ion-label class="ion-text-wrap">
+                  <h2>Most Recent {{ bbShort }}</h2>
+                </ion-label>
+                <span slot="end">
+                  {{ aoStats.lastBd.relativeDate }}<ng-container *ngIf="multiAo"> at <a routerLink="/ao/{{ aoStats.lastBd.aoRoute }}">{{ aoStats.lastBd.ao }}</a></ng-container>
+                </span>
+              </ion-item>
+            </ion-list>
+          </ion-card>
+        </div>
+
+        <!-- most popular aos, the region analog of the PAX page's favorite aos -->
+        <div class="card-container" *ngIf="popularAos.length > 1">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Most Popular AOs</ion-card-title>
+              <ion-card-subtitle>By total {{ bbPlural }}</ion-card-subtitle>
+            </ion-card-header>
+            <ion-list>
+              <ion-item *ngFor="let ao of popularAos | slice:0:(showMorePopularAos ? popularAos.length : limit)">
+                <ion-label class="ion-text-wrap">
+                  <h2><a routerLink="/ao/{{ ao.route }}">{{ ao.name }}</a></h2>
+                  <p>{{ ao.avgAttendance | number:'0.1-1' }} PAX per {{ bbSingular }}</p>
+                </ion-label>
+                <strong slot="end">{{ ao.bds }} {{ ao.bds === 1 ? bbSingular : bbPlural }}</strong>
+              </ion-item>
+              <ion-button
+                *ngIf="popularAos.length > limit"
+                class="show-more has-more"
+                fill="clear"
+                expand="block"
+                (click)="showMorePopularAos = !showMorePopularAos"
+              >
+                <ng-container *ngIf="!showMorePopularAos; else showLess">
+                  Show all {{ popularAos.length }}
+                </ng-container>
+              </ion-button>
+            </ion-list>
           </ion-card>
         </div>
       </div>
