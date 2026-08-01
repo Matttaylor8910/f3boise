@@ -55,6 +55,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   regions: RegionInfo[] = [];
 
+  homeItem: NavigationItem = {label: 'Home', route: '/stats', isActive: false};
+
   navigationItems: NavigationItem[] = [
     {label: 'All Stats', route: '/ao/all', isActive: false},
     {label: 'Challenges', route: '/challenges', isActive: false},
@@ -324,6 +326,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     const currentUrlLower = currentUrl.toLowerCase();
 
     // Update navigation items
+    this.homeItem.isActive = currentUrl === this.homeItem.route;
     this.navigationItems.forEach(item => {
       item.isActive = currentUrl === item.route;
     });

@@ -1,0 +1,164 @@
+<ion-header>
+  <app-beatdown-breakdown-banner></app-beatdown-breakdown-banner>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <app-sidebar-toggle></app-sidebar-toggle>
+    </ion-buttons>
+    <ion-title>F3 Boise Stats</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ng-container *ngIf="loaded; else loading">
+
+    <!-- region pulse -->
+    <div class="pulse-row">
+      <div class="pulse-tile" *ngFor="let stat of pulse">
+        <div class="pulse-value">{{ stat.value }}</div>
+        <div class="pulse-label">{{ stat.label }}</div>
+        <div class="pulse-sub">{{ stat.sub }}</div>
+      </div>
+    </div>
+
+    <div class="tiles">
+      <!-- tomorrow's beatdowns -->
+      <ion-card class="tile">
+        <ion-card-header>
+          <ion-card-title>Tomorrow's Beatdowns</ion-card-title>
+          <ion-card-subtitle>Set your alarm — here's who's leading where</ion-card-subtitle>
+        </ion-card-header>
+        <ion-list *ngIf="tomorrow.length > 0; else noTomorrow">
+          <ion-item *ngFor="let bd of tomorrow">
+            <ion-icon [name]="bd.icon" slot="start" class="ao-icon"></ion-icon>
+            <ion-label class="ion-text-wrap">
+              <h2><a routerLink="/ao/{{ bd.route }}">{{ bd.ao }}</a></h2>
+              <p *ngIf="bd.time">{{ bd.time }}</p>
+            </ion-label>
+            <span slot="end" class="q-slot" *ngIf="bd.q">
+              <app-pax-avatar [name]="bd.q" [size]="28"></app-pax-avatar>
+              <a routerLink="/pax/{{ bd.q.toLowerCase() }}">{{ utilService.normalizeName(bd.q) }}</a>
+            </span>
+            <ion-badge slot="end" color="primary" *ngIf="!bd.q">Open Q — claim it!</ion-badge>
+          </ion-item>
+        </ion-list>
+        <ng-template #noTomorrow>
+          <div class="tile-empty">No beatdowns on the calendar tomorrow. Rest up.</div>
+        </ng-template>
+        <ion-button fill="clear" size="small" class="tile-footer-link" routerLink="/q-line-up">
+          Full Q lineup
+          <ion-icon name="arrow-forward" slot="end"></ion-icon>
+        </ion-button>
+      </ion-card>
+
+      <!-- milestone watch -->
+      <ion-card class="tile">
+        <ion-card-header>
+          <ion-card-title>Milestone Watch</ion-card-title>
+          <ion-card-subtitle>PAX closing in on the next century</ion-card-subtitle>
+        </ion-card-header>
+        <ion-list *ngIf="milestoneWatch.length > 0; else noMilestones">
+          <ion-item *ngFor="let m of milestoneWatch" button detail="false" (click)="goToPax(m.name)">
+            <app-pax-avatar slot="start" [name]="m.name"></app-pax-avatar>
+            <ion-label class="ion-text-wrap">
+              <h2>
+                {{ utilService.normalizeName(m.name) }}
+                <span class="milestone-target">{{ m.needed }} away from {{ m.next }}</span>
+              </h2>
+              <div class="progress-track">
+                <div class="progress-fill" [style.width.%]="m.pct"></div>
+              </div>
+              <p>{{ m.bds }} BDs &middot; {{ m.paceLabel }}</p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+        <ng-template #noMilestones>
+          <div class="tile-empty">Nobody's on the doorstep of a century right now.</div>
+        </ng-template>
+      </ion-card>
+
+      <!-- accelerating families -->
+      <ion-card class="tile">
+        <ion-card-header>
+          <ion-card-title>Accelerating Families</ion-card-title>
+          <ion-card-subtitle>PAX growing their family trees the fastest, last 90 days</ion-card-subtitle>
+        </ion-card-header>
+        <ion-list *ngIf="familyGrowers.length > 0; else noFamilies">
+          <ion-item *ngFor="let family of familyGrowers" button detail="false" (click)="goToPax(family.name)">
+            <app-pax-avatar slot="start" [name]="family.name"></app-pax-avatar>
+            <ion-label class="ion-text-wrap">
+              <h2>{{ utilService.normalizeName(family.name) }}</h2>
+              <p>{{ family.total }} PAX brought out all time</p>
+            </ion-label>
+            <ion-badge slot="end" color="success">+{{ family.recent }}</ion-badge>
+          </ion-item>
+        </ion-list>
+        <ng-template #noFamilies>
+          <div class="tile-empty">No new family growth in the last 90 days. Time to EH somebody.</div>
+        </ng-template>
+        <ion-button fill="clear" size="small" class="tile-footer-link" routerLink="/family-tree">
+          Family tree
+          <ion-icon name="arrow-forward" slot="end"></ion-icon>
+        </ion-button>
+      </ion-card>
+    </div>
+
+    <!-- activity timeline -->
+    <div class="timeline">
+      <h1 class="timeline-title">Recent Activity</h1>
+
+      <ng-container *ngFor="let e of visibleEvents">
+        <div class="date-header" *ngIf="e.showDate">{{ e.dateLabel }}</div>
+
+        <div class="event" [class]="'event ' + e.type" (click)="goToBackblast(e)">
+          <div class="event-icon">
+            <ion-icon [name]="e.icon"></ion-icon>
+          </div>
+
+          <div class="event-body" [ngSwitch]="e.type">
+            <ng-container *ngSwitchCase="'milestone'">
+              <a routerLink="/pax/{{ e.paxName!.toLowerCase() }}" (click)="$event.stopPropagation()">{{ utilService.normalizeName(e.paxName!) }}</a>
+              hit <strong>{{ e.milestone }} beatdowns</strong>
+              at <a routerLink="/ao/{{ e.aoRoute }}" (click)="$event.stopPropagation()">{{ e.ao }}</a>
+            </ng-container>
+
+            <ng-container *ngSwitchCase="'vq'">
+              <a routerLink="/pax/{{ e.paxName!.toLowerCase() }}" (click)="$event.stopPropagation()">{{ utilService.normalizeName(e.paxName!) }}</a>
+              took their <strong>VQ</strong>
+              at <a routerLink="/ao/{{ e.aoRoute }}" (click)="$event.stopPropagation()">{{ e.ao }}</a>
+            </ng-container>
+
+            <ng-container *ngSwitchCase="'fng'">
+              Welcomed FNG
+              <a routerLink="/pax/{{ e.paxName!.toLowerCase() }}" (click)="$event.stopPropagation()">{{ utilService.normalizeName(e.paxName!) }}</a>
+              at <a routerLink="/ao/{{ e.aoRoute }}" (click)="$event.stopPropagation()">{{ e.ao }}</a>
+            </ng-container>
+
+            <ng-container *ngSwitchCase="'backblast'">
+              <span class="bb-title" *ngIf="e.title">{{ e.title }} &middot; </span>
+              <ng-container *ngFor="let q of e.qNames; let last = last">
+                <a routerLink="/pax/{{ q.toLowerCase() }}" (click)="$event.stopPropagation()">{{ utilService.normalizeName(q) }}</a><ng-container *ngIf="!last"> &amp; </ng-container>
+              </ng-container>
+              <ng-container *ngIf="e.qNames?.length === 0">Someone</ng-container>
+              Q'd at <a routerLink="/ao/{{ e.aoRoute }}" (click)="$event.stopPropagation()">{{ e.ao }}</a>
+              <span class="pax-count">&middot; {{ e.paxCount }} PAX</span>
+            </ng-container>
+          </div>
+        </div>
+      </ng-container>
+
+      <ion-infinite-scroll threshold="200px" (ionInfinite)="loadMore($event)">
+        <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Loading more...">
+        </ion-infinite-scroll-content>
+      </ion-infinite-scroll>
+    </div>
+
+  </ng-container>
+</ion-content>
+
+<!-- loading spinner -->
+<ng-template #loading>
+  <div class="spinner-container">
+    <h2>Loading...</h2>
+    <ion-spinner></ion-spinner>
+  </div>
+</ng-template>

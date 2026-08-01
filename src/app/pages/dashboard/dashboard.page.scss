@@ -1,0 +1,201 @@
+// region pulse — hero-number stat tiles
+.pulse-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  max-width: 1500px;
+  margin: 16px auto 0;
+  padding: 0 12px;
+
+  .pulse-tile {
+    background: var(--ion-card-background, var(--ion-background-color));
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: rgba(0, 0, 0, 0.12) 0px 4px 16px;
+
+    .pulse-value {
+      font-size: 2.2rem;
+      font-weight: bold;
+      line-height: 1.1;
+      color: var(--ion-text-color);
+    }
+
+    .pulse-label {
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .pulse-sub {
+      color: var(--ion-color-medium);
+      font-size: 0.8rem;
+    }
+  }
+}
+
+// tile cards
+.tiles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  max-width: 1500px;
+  margin: 4px auto 0;
+
+  .tile {
+    flex: 1;
+    min-width: 320px;
+
+    ion-card-subtitle {
+      text-transform: none;
+      line-height: 1.4;
+      margin-top: 4px;
+    }
+
+    .ao-icon {
+      color: var(--ion-color-medium);
+    }
+
+    .q-slot {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .milestone-target {
+      float: right;
+      color: var(--ion-color-medium);
+      font-size: 0.8em;
+    }
+
+    .progress-track {
+      height: 6px;
+      border-radius: 4px;
+      background: rgba(var(--ion-color-medium-rgb), 0.25);
+      margin: 6px 0;
+      overflow: hidden;
+
+      .progress-fill {
+        height: 100%;
+        border-radius: 4px;
+        background: var(--ion-color-primary);
+      }
+    }
+
+    .tile-empty {
+      padding: 16px;
+      color: var(--ion-color-medium);
+    }
+
+    .tile-footer-link {
+      margin: 4px 8px 8px;
+    }
+  }
+}
+
+// activity timeline
+.timeline {
+  max-width: 800px;
+  margin: 24px auto 0;
+  padding: 0 16px 24px;
+
+  .timeline-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+
+  .date-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 8px 0 8px 44px;
+    font-weight: 600;
+    color: var(--ion-color-medium);
+    background: var(--ion-background-color);
+  }
+
+  .event {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    position: relative;
+    cursor: pointer;
+
+    // the connecting spine of the timeline
+    &::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: rgba(var(--ion-color-medium-rgb), 0.2);
+    }
+
+    .event-icon {
+      position: relative;
+      z-index: 1;
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--ion-card-background, var(--ion-background-color));
+      border: 2px solid rgba(var(--ion-color-medium-rgb), 0.4);
+      color: var(--ion-color-medium);
+
+      ion-icon {
+        font-size: 16px;
+      }
+    }
+
+    &.milestone .event-icon {
+      border-color: var(--ion-color-warning);
+      color: var(--ion-color-warning);
+    }
+
+    &.vq .event-icon {
+      border-color: var(--ion-color-primary);
+      color: var(--ion-color-primary);
+    }
+
+    &.fng .event-icon {
+      border-color: var(--ion-color-success);
+      color: var(--ion-color-success);
+    }
+
+    .event-body {
+      padding-top: 5px;
+      line-height: 1.5;
+
+      .bb-title {
+        font-weight: 600;
+      }
+
+      .pax-count {
+        color: var(--ion-color-medium);
+      }
+    }
+
+    &.milestone .event-body,
+    &.vq .event-body {
+      font-size: 1.05em;
+    }
+
+    &:hover .event-body {
+      opacity: 0.85;
+    }
+  }
+}
+
+@media (max-width: 800px) {
+  .pulse-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .tiles .tile {
+    min-width: 100%;
+  }
+}

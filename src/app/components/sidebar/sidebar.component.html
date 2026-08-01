@@ -16,6 +16,14 @@
     <div class="sidebar-content">
     <!-- Navigation Items -->
     <div class="sidebar-section">
+      <!-- Home dashboard -->
+      <button
+        type="button"
+        class="nav-link"
+        [class.active]="homeItem.isActive"
+        (click)="navigate(homeItem.route)">
+        {{ homeItem.label }}
+      </button>
       <!-- All Stats -->
       <button
         type="button"

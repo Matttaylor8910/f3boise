@@ -109,6 +109,11 @@ const routes: Routes = [
     loadChildren: () => import('./pages/vs/vs.module').then(m => m.VsPageModule)
   },
   {
+    path: 'stats',
+    loadChildren: () => import('./pages/dashboard/dashboard.module')
+                            .then(m => m.DashboardPageModule)
+  },
+  {
     path: ':year',
     loadChildren: () =>
         import('./pages/beatdown-breakdown/beatdown-breakdown.module')
