@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, NgZone} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {ActionSheetButton, ActionSheetController, ModalController} from '@ionic/angular';
 import {BestiesGridComponent} from 'src/app/components/besties-grid/besties-grid.component';
@@ -35,6 +35,10 @@ interface AoStats {
   name: string;
   total: number;
 }
+
+/** PAX whose pages get a confetti celebration on every visit. */
+const CONFETTI_PAX = new Set(['strings']);
+const CONFETTI_DURATION_MS = 6000;
 @Component({
   selector: 'app-pax',
   templateUrl: './pax.page.html',
@@ -51,6 +55,8 @@ export class PaxPage {
   allBds?: Backblast[];
   recentBds?: Backblast[];
 
+  private confettiStop?: () => void;
+
   constructor(
       public readonly utilService: UtilService,
       private readonly route: ActivatedRoute,
@@ -58,6 +64,7 @@ export class PaxPage {
       private readonly paxService: PaxService,
       private readonly actionSheetController: ActionSheetController,
       private readonly modalController: ModalController,
+      private readonly zone: NgZone,
   ) {
     this.name = this.route.snapshot.params['name']?.toLowerCase();
 
@@ -70,6 +77,56 @@ export class PaxPage {
   ionViewDidEnter() {
     this.calculatePaxStats(this.statsType);
     this.determineShowDDButton();
+    this.maybeCelebrate();
+  }
+
+  ionViewWillLeave() {
+    // don't let the celebration rain onto the next page
+    this.confettiStop?.();
+  }
+
+  /**
+   * Certain legends get confetti falling from the sky whenever anyone
+   * visits their page.
+   */
+  private async maybeCelebrate() {
+    if (!CONFETTI_PAX.has(this.name)) return;
+
+    // canvas-confetti is a CJS module; grab the callable regardless of interop
+    const mod: any = await import('canvas-confetti');
+    const confetti = (mod.default ?? mod) as typeof import('canvas-confetti');
+    const end = Date.now() + CONFETTI_DURATION_MS;
+    let stopped = false;
+    this.confettiStop = () => {
+      stopped = true;
+      confetti.reset();
+    };
+
+    const random = (min: number, max: number) =>
+        Math.random() * (max - min) + min;
+
+    // rAF loop stays outside Angular so change detection doesn't run
+    // every frame
+    this.zone.runOutsideAngular(() => {
+      const frame = () => {
+        if (stopped || Date.now() > end) return;
+
+        // spawn a few pieces just above the viewport and let gravity work
+        confetti({
+          particleCount: 3,
+          startVelocity: 0,
+          ticks: 400,
+          origin: {x: Math.random(), y: random(-0.15, -0.05)},
+          gravity: random(0.5, 0.9),
+          scalar: random(0.7, 1.2),
+          drift: random(-0.5, 0.5),
+          disableForReducedMotion: true,
+        });
+
+        requestAnimationFrame(frame);
+      };
+      frame();
+    });
   }
 
   get toggleButtonText(): string {
