@@ -95,6 +95,7 @@ export class PaxPage {
     // canvas-confetti is a CJS module; grab the callable regardless of interop
     const mod: any = await import('canvas-confetti');
     const confetti = (mod.default ?? mod) as typeof import('canvas-confetti');
+    const flame = confetti.shapeFromText({text: '🔥', scalar: 2});
     const end = Date.now() + CONFETTI_DURATION_MS;
     let stopped = false;
     this.confettiStop = () => {
@@ -111,16 +112,18 @@ export class PaxPage {
       const frame = () => {
         if (stopped || Date.now() > end) return;
 
-        // spawn a few pieces just below the viewport; negative gravity
-        // floats them up like bubbles
+        // spawn flames just below the viewport; negative gravity sends
+        // them rising, flat keeps them upright instead of tumbling
         confetti({
-          particleCount: 3,
+          particleCount: 2,
           startVelocity: 0,
           ticks: 400,
           origin: {x: Math.random(), y: random(1.05, 1.15)},
-          gravity: random(-0.9, -0.5),
-          scalar: random(0.7, 1.2),
-          drift: random(-0.5, 0.5),
+          gravity: random(-1.1, -0.6),
+          scalar: random(1.2, 2),
+          drift: random(-0.2, 0.2),
+          shapes: [flame],
+          flat: true,
           disableForReducedMotion: true,
         });
 
