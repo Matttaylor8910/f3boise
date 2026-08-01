@@ -199,20 +199,23 @@ export class FamilyTreePage implements OnInit {
     };
   }
 
-  /** Sorts children (big families first), sets counts and depth. */
+  /** Sets counts and depth, then sorts children: biggest family first,
+   *  alphabetical for ties. */
   private finalize(node: FamilyNode, depth: number): number {
     node.depth = depth;
     node.directs = node.children.length;
     node.expanded = node.isOrigin;  // origins start open, branches closed
 
-    node.children.sort(
-        (a, b) => (b.children.length - a.children.length) ||
-            a.name.localeCompare(b.name));
-
+    // recurse first so every child's descendant count exists before sorting
     let descendants = 0;
     for (const child of node.children) {
       descendants += 1 + this.finalize(child, depth + 1);
     }
+
+    node.children.sort(
+        (a, b) => (b.descendants - a.descendants) ||
+            a.name.localeCompare(b.name));
+
     node.descendants = descendants;
     return descendants;
   }
