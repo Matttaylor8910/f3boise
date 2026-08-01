@@ -6,39 +6,146 @@
     </ion-buttons>
     <ion-title>Family Tree</ion-title>
     <ion-buttons slot="end">
-      <!-- <ion-button
-        *ngIf="mode === 'tree'"
-        (click)="toggleDirection()"
-      >
-        <ion-icon
-          slot="icon-only"
-          [name]="direction === 'horizontal' ? 'swap-vertical' : 'swap-horizontal'"
-        ></ion-icon>
-      </ion-button> -->
-      <!-- <ion-button (click)="toggleMode()">
-        <ion-icon
-          slot="icon-only"
-          [name]="mode === 'list' ? 'git-branch-outline' : 'menu'"
-        ></ion-icon>
-      </ion-button> -->
+      <ion-button (click)="setAll(true)" title="Expand all">
+        <ion-icon slot="icon-only" name="expand-outline"></ion-icon>
+      </ion-button>
+      <ion-button (click)="setAll(false)" title="Collapse all">
+        <ion-icon slot="icon-only" name="contract-outline"></ion-icon>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <div
-    *ngIf="mode === 'tree'"
-    class="page-container"
-  >
-    <ngx-org-chart
-      [nodes]="nodes"
-      [direction]="direction"
-      (itemClick)="test($event)"
-    ></ngx-org-chart>
-  </div>
-  <ion-list *ngIf="mode === 'list'">
-    <ion-item *ngFor="let pax of parentless">
-      {{ pax.name }}
-    </ion-item>
-  </ion-list>
+  <ng-container *ngIf="loaded; else loading">
+
+    <!-- tree stats -->
+    <div class="stats-row">
+      <div class="stat-tile" *ngFor="let stat of stats">
+        <div class="stat-value">{{ stat.value }}</div>
+        <div class="stat-label">{{ stat.label }}</div>
+      </div>
+    </div>
+
+    <!-- search -->
+    <div class="search-wrap">
+      <ion-searchbar
+        [value]="query"
+        (ionInput)="onSearch($event)"
+        placeholder="Find a HIM in the tree"
+        debounce="0">
+      </ion-searchbar>
+    </div>
+
+    <div class="empty-search" *ngIf="searching && !anySearchResults">
+      Nobody in the tree matches "{{ query }}"
+    </div>
+
+    <!-- one card per origin -->
+    <div class="tree-container">
+      <ng-container *ngFor="let origin of roots">
+        <ion-card class="origin-card" *ngIf="!searching || origin.searchVisible">
+          <div class="origin-header" (click)="rowTapped(origin)">
+            <div class="origin-icon">
+              <ion-icon [name]="origin.icon!"></ion-icon>
+            </div>
+            <div class="origin-text">
+              <h2>{{ origin.name }}</h2>
+              <p>{{ origin.directs }} PAX &middot; {{ origin.descendants }} in this branch</p>
+            </div>
+            <ion-icon
+              class="chevron"
+              [class.open]="origin.expanded || searching"
+              name="chevron-forward">
+            </ion-icon>
+          </div>
+
+          <div class="children root-children" *ngIf="showChildren(origin)">
+            <ng-container *ngFor="let child of visibleChildren(origin)">
+              <ng-container *ngTemplateOutlet="branch; context: {$implicit: child}"></ng-container>
+            </ng-container>
+          </div>
+        </ion-card>
+      </ng-container>
+    </div>
+
+    <!-- recursive branch -->
+    <ng-template #branch let-node>
+      <div class="node">
+        <div class="node-row" (click)="rowTapped(node)">
+          <div
+            class="chevron-wrap"
+            [class.leaf]="node.children.length === 0"
+            (click)="node.children.length > 0 ? toggle(node, $event) : null"
+          >
+            <ion-icon
+              *ngIf="node.children.length > 0"
+              class="chevron"
+              [class.open]="node.expanded || searching"
+              name="chevron-forward">
+            </ion-icon>
+            <span class="leaf-dot" *ngIf="node.children.length === 0"></span>
+          </div>
+
+          <app-pax-avatar
+            [name]="node.key"
+            [size]="30"
+            (click)="goToPax(node.key, $event)">
+          </app-pax-avatar>
+
+          <a
+            class="node-name"
+            [class.match]="node.match"
+            (click)="goToPax(node.key, $event)"
+          >{{ node.name }}</a>
+
+          <span class="family-badge" *ngIf="node.descendants > 0">
+            {{ node.descendants }}
+          </span>
+        </div>
+
+        <div class="children" *ngIf="showChildren(node)">
+          <ng-container *ngFor="let child of visibleChildren(node)">
+            <ng-container *ngTemplateOutlet="branch; context: {$implicit: child}"></ng-container>
+          </ng-container>
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- pax with no lineage recorded -->
+    <div class="tree-container" *ngIf="parentless.length > 0 && !searching">
+      <ion-card class="origin-card parentless-card">
+        <div class="origin-header" (click)="showParentless = !showParentless">
+          <div class="origin-icon">
+            <ion-icon name="leaf-outline"></ion-icon>
+          </div>
+          <div class="origin-text">
+            <h2>Missing lineage</h2>
+            <p>{{ parentless.length }} PAX we don't have an invite story for yet</p>
+          </div>
+          <ion-icon class="chevron" [class.open]="showParentless" name="chevron-forward"></ion-icon>
+        </div>
+
+        <div class="parentless-grid" *ngIf="showParentless">
+          <div
+            class="parentless-chip"
+            *ngFor="let pax of parentless"
+            (click)="goToPax(pax.name.toLowerCase())"
+          >
+            <app-pax-avatar [name]="pax.name" [size]="24"></app-pax-avatar>
+            <span>{{ utilService.normalizeName(pax.name) }}</span>
+          </div>
+        </div>
+      </ion-card>
+    </div>
+
+  </ng-container>
 </ion-content>
+
+<!-- loading spinner -->
+<ng-template #loading>
+  <div class="spinner-container">
+    <h2>Loading...</h2>
+    <ion-spinner></ion-spinner>
+  </div>
+</ng-template>

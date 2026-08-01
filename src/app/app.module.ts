@@ -8,7 +8,6 @@ import {AngularFirestoreModule} from '@angular/fire/compat/firestore';
 import {BrowserModule} from '@angular/platform-browser';
 import {RouteReuseStrategy} from '@angular/router';
 import {AnimationController, IonicModule, IonicRouteStrategy} from '@ionic/angular';
-import {NgxOrgChartModule} from 'ngx-org-chart';
 import {environment} from 'src/environments/environment';
 
 import {AppRoutingModule} from './app-routing.module';
@@ -29,7 +28,6 @@ import {ComponentsModule} from './components/components.module';
     AngularFireAnalyticsModule,
     AngularFireAuthModule,
     AngularFirestoreModule,
-    NgxOrgChartModule,
     ComponentsModule,
   ],
   providers: [

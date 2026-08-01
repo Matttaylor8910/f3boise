@@ -1,4 +1,229 @@
-.page-container {
-  padding: 16px;
-  overflow: auto;
+// hero stats
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 900px;
+  margin: 16px auto 0;
+  padding: 0 12px;
+
+  .stat-tile {
+    background: var(--ion-card-background, var(--ion-background-color));
+    border-radius: 12px;
+    padding: 14px 8px;
+    text-align: center;
+    box-shadow: rgba(0, 0, 0, 0.12) 0px 4px 16px;
+
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: bold;
+      line-height: 1.2;
+      color: var(--ion-text-color);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .stat-label {
+      color: var(--ion-color-medium);
+      font-size: 0.8rem;
+      margin-top: 2px;
+    }
+  }
+}
+
+.search-wrap {
+  max-width: 900px;
+  margin: 8px auto 0;
+  padding: 0 8px;
+}
+
+.empty-search {
+  text-align: center;
+  color: var(--ion-color-medium);
+  padding: 24px 16px;
+}
+
+.tree-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.origin-card {
+  overflow: visible;
+
+  .origin-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+
+    .origin-icon {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(var(--ion-color-primary-rgb), 0.12);
+      color: var(--ion-color-primary);
+
+      ion-icon {
+        font-size: 20px;
+      }
+    }
+
+    .origin-text {
+      flex: 1;
+      min-width: 0;
+
+      h2 {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 600;
+      }
+
+      p {
+        margin: 2px 0 0;
+        color: var(--ion-color-medium);
+        font-size: 0.85rem;
+      }
+    }
+  }
+
+  .root-children {
+    padding: 0 12px 12px;
+    margin-left: 0;
+    border-left: none;
+  }
+}
+
+// chevrons rotate open
+.chevron {
+  color: var(--ion-color-medium);
+  transition: transform 0.18s ease;
+  flex-shrink: 0;
+
+  &.open {
+    transform: rotate(90deg);
+  }
+}
+
+// tree rows
+.node {
+  .node-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px;
+    border-radius: 8px;
+    cursor: pointer;
+    animation: node-in 0.15s ease;
+
+    &:hover {
+      background: rgba(var(--ion-color-medium-rgb), 0.08);
+    }
+
+    .chevron-wrap {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+
+      .leaf-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: rgba(var(--ion-color-medium-rgb), 0.5);
+      }
+    }
+
+    app-pax-avatar {
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .node-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 500;
+      color: var(--ion-text-color);
+      text-decoration: none;
+
+      &:hover {
+        color: var(--ion-color-primary);
+      }
+
+      &.match {
+        color: var(--ion-color-primary);
+        font-weight: 700;
+      }
+    }
+
+    .family-badge {
+      flex-shrink: 0;
+      margin-left: auto;
+      background: rgba(var(--ion-color-primary-rgb), 0.12);
+      color: var(--ion-color-primary);
+      border-radius: 10px;
+      padding: 1px 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+  }
+
+  // nested branches get an indent and a connector guide
+  .children {
+    margin-left: 16px;
+    padding-left: 8px;
+    border-left: 2px solid rgba(var(--ion-color-medium-rgb), 0.2);
+  }
+}
+
+@keyframes node-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// missing lineage chips
+.parentless-card .parentless-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px 16px;
+
+  .parentless-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px 4px 4px;
+    border-radius: 16px;
+    background: rgba(var(--ion-color-medium-rgb), 0.1);
+    cursor: pointer;
+    font-size: 0.85rem;
+
+    &:hover {
+      background: rgba(var(--ion-color-primary-rgb), 0.12);
+      color: var(--ion-color-primary);
+    }
+  }
+}
+
+@media (max-width: 500px) {
+  .stats-row .stat-tile .stat-value {
+    font-size: 1.2rem;
+  }
 }
