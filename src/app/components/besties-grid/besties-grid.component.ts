@@ -28,6 +28,12 @@ export class BestiesGridComponent {
     this.router.navigate(['/pax', name]);
   }
 
+  async navigateToVs(name: string) {
+    await this.modalController.dismiss();
+    this.router.navigate(
+        ['/vs', this.paxName.toLowerCase(), name.toLowerCase()]);
+  }
+
   close() {
     this.modalController.dismiss();
   }

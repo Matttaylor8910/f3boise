@@ -1,0 +1,205 @@
+<ion-header>
+  <app-beatdown-breakdown-banner></app-beatdown-breakdown-banner>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+      <app-sidebar-toggle class="custom-back"></app-sidebar-toggle>
+    </ion-buttons>
+    <ion-title>Situational Bestie</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ng-container *ngIf="allBds; else loading">
+
+    <!-- pax pickers -->
+    <div class="picker-row">
+      <ng-container *ngFor="let slot of slots; let i = index">
+        <div class="picker">
+          <!-- selected pax chip -->
+          <div class="selected-pax" *ngIf="slot.selected; else searcher">
+            <app-pax-avatar [name]="slot.selected" [size]="72"></app-pax-avatar>
+            <a class="selected-name" routerLink="/pax/{{ slot.selected }}">
+              {{ utilService.normalizeName(slot.selected) }}
+            </a>
+            <ion-button fill="clear" size="small" color="medium" (click)="clear(slot)">
+              <ion-icon name="close-circle-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+
+          <!-- searcher with suggestions -->
+          <ng-template #searcher>
+            <ion-searchbar
+              [value]="slot.search"
+              (ionInput)="onSearchInput(slot, $event)"
+              placeholder="Pick a HIM"
+              debounce="0">
+            </ion-searchbar>
+            <ion-list class="suggestions" *ngIf="slot.suggestions.length > 0">
+              <ion-item
+                *ngFor="let name of slot.suggestions"
+                button
+                (click)="select(slot, name)">
+                <app-pax-avatar slot="start" [name]="name"></app-pax-avatar>
+                <ion-label>{{ utilService.normalizeName(name) }}</ion-label>
+              </ion-item>
+            </ion-list>
+          </ng-template>
+        </div>
+
+        <!-- the vs badge goes between the two pickers -->
+        <div class="vs-badge" *ngIf="i === 0">VS</div>
+      </ng-container>
+    </div>
+
+    <div class="lucky-row" *ngIf="!bothSelected">
+      <ion-button fill="outline" (click)="feelingLucky()">
+        <ion-icon name="dice-outline" slot="start"></ion-icon>
+        Feeling lucky
+      </ion-button>
+    </div>
+
+    <!-- same pax picked twice -->
+    <h2 class="center-container" *ngIf="samePaxSelected">
+      {{ utilService.normalizeName(name1!) }} is their own bestie, but pick two different HIMs
+    </h2>
+
+    <ng-container *ngIf="stats">
+      <!-- hero -->
+      <div class="hero">
+        <h1 *ngIf="stats.together > 0">
+          {{ stats.together }} {{ stats.together === 1 ? 'beatdown' : 'beatdowns' }} together
+        </h1>
+        <h1 *ngIf="stats.together === 0">
+          Never posted together&hellip; yet
+        </h1>
+        <p *ngIf="stats.together === 0">
+          Someone's got some EH'ing to do. Q up a beatdown and make it happen.
+        </p>
+      </div>
+
+      <div class="stats-container" *ngIf="stats.together > 0">
+        <!-- shared stats -->
+        <div class="card-container">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Together</ion-card-title>
+            </ion-card-header>
+            <ion-list>
+              <ion-item>
+                <ion-label class="ion-text-wrap">
+                  <h2>BDs Together</h2>
+                </ion-label>
+                <span slot="end">{{ stats.together }}</span>
+              </ion-item>
+              <ion-item *ngIf="stats.favoriteAo">
+                <ion-label class="ion-text-wrap">
+                  <h2>Favorite AO Together</h2>
+                </ion-label>
+                <span slot="end">
+                  {{ stats.favoriteAo.count }} at <a routerLink="/ao/{{ stats.favoriteAo.route }}">{{ stats.favoriteAo.name }}</a>
+                </span>
+              </ion-item>
+              <ion-item *ngIf="stats.first">
+                <ion-label class="ion-text-wrap">
+                  <h2>First BD Together</h2>
+                </ion-label>
+                <span slot="end">
+                  <a routerLink="/backblasts/{{ stats.first.backblastId }}">{{ stats.first.relativeDate }}</a>
+                  at <a routerLink="/ao/{{ stats.first.aoRoute }}">{{ stats.first.ao }}</a>
+                </span>
+              </ion-item>
+              <ion-item *ngIf="stats.last">
+                <ion-label class="ion-text-wrap">
+                  <h2>Most Recent BD Together</h2>
+                </ion-label>
+                <span slot="end">
+                  <a routerLink="/backblasts/{{ stats.last.backblastId }}">{{ stats.last.relativeDate }}</a>
+                  at <a routerLink="/ao/{{ stats.last.aoRoute }}">{{ stats.last.ao }}</a>
+                </span>
+              </ion-item>
+            </ion-list>
+          </ion-card>
+        </div>
+
+        <!-- head to head -->
+        <div class="card-container">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Head to Head</ion-card-title>
+            </ion-card-header>
+            <ion-list>
+              <ion-item>
+                <ion-label class="ion-text-wrap">
+                  <h2>Share of {{ utilService.normalizeName(name1!) }}'s BDs</h2>
+                </ion-label>
+                <span slot="end">
+                  {{ stats.pctA | percent }} <strong>(of {{ stats.totalA }})</strong>
+                </span>
+              </ion-item>
+              <ion-item>
+                <ion-label class="ion-text-wrap">
+                  <h2>Share of {{ utilService.normalizeName(name2!) }}'s BDs</h2>
+                </ion-label>
+                <span slot="end">
+                  {{ stats.pctB | percent }} <strong>(of {{ stats.totalB }})</strong>
+                </span>
+              </ion-item>
+              <ion-item>
+                <ion-label class="ion-text-wrap">
+                  <h2>{{ utilService.normalizeName(name1!) }} Q'd for {{ utilService.normalizeName(name2!) }}</h2>
+                </ion-label>
+                <span slot="end">{{ stats.aQedB }} {{ stats.aQedB === 1 ? 'time' : 'times' }}</span>
+              </ion-item>
+              <ion-item>
+                <ion-label class="ion-text-wrap">
+                  <h2>{{ utilService.normalizeName(name2!) }} Q'd for {{ utilService.normalizeName(name1!) }}</h2>
+                </ion-label>
+                <span slot="end">{{ stats.bQedA }} {{ stats.bQedA === 1 ? 'time' : 'times' }}</span>
+              </ion-item>
+              <ion-item *ngIf="stats.rankBForA">
+                <ion-label class="ion-text-wrap">
+                  <h2>Bestie Rank</h2>
+                </ion-label>
+                <span slot="end">
+                  {{ utilService.normalizeName(name2!) }} is {{ utilService.normalizeName(name1!) }}'s #{{ stats.rankBForA }} bestie
+                </span>
+              </ion-item>
+              <ion-item *ngIf="stats.rankAForB">
+                <ion-label class="ion-text-wrap">
+                  <h2>Bestie Rank</h2>
+                </ion-label>
+                <span slot="end">
+                  {{ utilService.normalizeName(name1!) }} is {{ utilService.normalizeName(name2!) }}'s #{{ stats.rankAForB }} bestie
+                </span>
+              </ion-item>
+            </ion-list>
+          </ion-card>
+        </div>
+      </div>
+
+      <!-- year grid of their shared beatdowns -->
+      <app-year-grid
+        [bds]="sharedBds"
+        *ngIf="sharedBds && sharedBds.length > 0">
+      </app-year-grid>
+
+      <!-- recent shared backblasts -->
+      <app-backblast-grid
+        [title]="'BDs Together'"
+        [count]="sharedBds.length"
+        [backblasts]="recentShared"
+        *ngIf="sharedBds && sharedBds.length > 0">
+      </app-backblast-grid>
+    </ng-container>
+
+  </ng-container>
+</ion-content>
+
+<!-- loading spinner -->
+<ng-template #loading>
+  <div class="spinner-container">
+    <h2>Loading...</h2>
+    <ion-spinner></ion-spinner>
+  </div>
+</ng-template>

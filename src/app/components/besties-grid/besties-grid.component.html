@@ -18,6 +18,11 @@
       (click)="navigateToPax(bestie.name)"
     >
       <div class="bestie-rank">{{ i + 1 }}</div>
+      <div
+        class="bestie-vs"
+        title="Situational Bestie breakdown"
+        (click)="navigateToVs(bestie.name); $event.stopPropagation()"
+      >VS</div>
       <div class="bestie-image-container">
         <app-pax-avatar
         [name]="bestie.name"

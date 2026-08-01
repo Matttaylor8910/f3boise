@@ -61,6 +61,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     {label: 'Backblasts', route: '/backblasts', isActive: false},
     {label: 'Calendar', route: '/calendar', isActive: false},
     {label: 'Family Tree', route: '/family-tree', isActive: false},
+    {label: 'Situational Bestie', route: '/vs', isActive: false},
     {label: 'AO Map', route: '/map', isActive: false},
     {label: 'Q Line Up', route: '/q-line-up', isActive: false},
     {label: 'Exicon', route: '/exicon', isActive: false},

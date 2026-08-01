@@ -105,6 +105,10 @@ const routes: Routes = [
     canActivate: [AdminGuard],
   },
   {
+    path: 'vs',
+    loadChildren: () => import('./pages/vs/vs.module').then(m => m.VsPageModule)
+  },
+  {
     path: ':year',
     loadChildren: () =>
         import('./pages/beatdown-breakdown/beatdown-breakdown.module')

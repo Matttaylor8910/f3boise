@@ -30,6 +30,12 @@ export class DuosGridComponent {
     this.router.navigate(['/pax', name]);
   }
 
+  async navigateToVs(duo: Duo) {
+    await this.modalController.dismiss();
+    this.router.navigate(
+        ['/vs', duo.name1.toLowerCase(), duo.name2.toLowerCase()]);
+  }
+
   close() {
     this.modalController.dismiss();
   }

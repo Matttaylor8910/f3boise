@@ -12,6 +12,29 @@
   padding: 16px;
 }
 
+.bestie-vs {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: var(--ion-color-dark, #222428);
+  color: var(--ion-color-dark-contrast, white);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-style: italic;
+  font-size: 0.75rem;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+  &:hover {
+    background: var(--ion-color-primary, #007bff);
+  }
+}
+
 .bestie-card {
   background: var(--ion-card-background, var(--ion-background-color, white));
   border: 3px solid var(--ion-color-primary, #007bff);
