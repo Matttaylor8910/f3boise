@@ -111,13 +111,14 @@ export class PaxPage {
       const frame = () => {
         if (stopped || Date.now() > end) return;
 
-        // spawn a few pieces just above the viewport and let gravity work
+        // spawn a few pieces just below the viewport; negative gravity
+        // floats them up like bubbles
         confetti({
           particleCount: 3,
           startVelocity: 0,
           ticks: 400,
-          origin: {x: Math.random(), y: random(-0.15, -0.05)},
-          gravity: random(0.5, 0.9),
+          origin: {x: Math.random(), y: random(1.05, 1.15)},
+          gravity: random(-0.9, -0.5),
           scalar: random(0.7, 1.2),
           drift: random(-0.5, 0.5),
           disableForReducedMotion: true,
