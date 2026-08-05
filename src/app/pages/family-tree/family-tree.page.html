@@ -72,7 +72,7 @@
     <!-- recursive branch -->
     <ng-template #branch let-node>
       <div class="node">
-        <div class="node-row" (click)="rowTapped(node)">
+        <div class="node-row" [class.selected]="node.key === selectedKey" (click)="rowTapped(node)">
           <div
             class="chevron-wrap"
             [class.leaf]="node.children.length === 0"

@@ -24,6 +24,8 @@ interface PaxStats {
   lastQAo?: string;
   parentLabel?: string|null;
   parentIsPax?: boolean;
+  invited?: number;
+  familySize?: number;
   bestie?: string;
   bestieCount?: number;
   paxTally?: number;
@@ -170,6 +172,10 @@ export class PaxPage {
              this.paxService.getOriginLabel(parent.type)) :
         '';
 
+    // how many PAX they've invited out per the family tree
+    const {directs: invited, descendants: familySize} =
+        await this.paxService.getInvitedFamily(this.name);
+
     this.allBds = data;
     this.recentBds = data.slice(0, 10);
     if (data.length === 0) {
@@ -245,6 +251,8 @@ export class PaxPage {
       lastQAo,
       parentLabel,
       parentIsPax,
+      invited,
+      familySize,
       bestie,
       bestieCount,
       paxTally: sorted.length,

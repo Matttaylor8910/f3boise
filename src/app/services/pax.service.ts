@@ -22,6 +22,7 @@ export class PaxService {
   allData?: Pax[];
   paxMap: Map<string, Pax> = new Map<string, Pax>();
   parentMap: Map<string, Parent> = new Map<string, Parent>();
+  childrenMap: Map<string, string[]> = new Map<string, string[]>();
 
   // if multiple callers want all the pax data, respond with this promise
   private currentPromise?: Promise<Pax[]>;
@@ -43,10 +44,43 @@ export class PaxService {
 
   async loadPaxTree(): Promise<PaxTree> {
     const tree = await this.http.get(URL + 'tree') as PaxTree;
+    this.parentMap.clear();
+    this.childrenMap.clear();
     for (const {pax_name, parent} of Object.values(tree)) {
       this.parentMap.set(pax_name, parent);
+      if (parent?.type === PaxOrigin.PAX && parent.name) {
+        const key = parent.name.toLowerCase();
+        const children = this.childrenMap.get(key) ?? [];
+        children.push(pax_name.toLowerCase());
+        this.childrenMap.set(key, children);
+      }
     }
     return tree;
+  }
+
+  /**
+   * How many PAX this HIM has invited: directs are their own invites,
+   * descendants counts their entire family tree below them.
+   */
+  async getInvitedFamily(name: string):
+      Promise<{directs: number, descendants: number}> {
+    if (this.parentMap.size === 0) await this.loadPaxTree();
+
+    const key = name.toLowerCase();
+    const directs = this.childrenMap.get(key)?.length ?? 0;
+
+    let descendants = 0;
+    const seen = new Set<string>([key]);  // guards against bad-data cycles
+    const stack = [...this.childrenMap.get(key) ?? []];
+    while (stack.length > 0) {
+      const next = stack.pop()!;
+      if (seen.has(next)) continue;
+      seen.add(next);
+      descendants++;
+      stack.push(...this.childrenMap.get(next) ?? []);
+    }
+
+    return {directs, descendants};
   }
 
   getAllData(): Promise<Pax[]> {

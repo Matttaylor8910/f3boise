@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
 import {Pax, PaxOrigin} from 'types';
@@ -45,12 +45,14 @@ export class FamilyTreePage implements OnInit {
   stats: TreeStat[] = [];
 
   query = '';
+  selectedKey = '';
 
   parentless: Pax[] = [];
   showParentless = false;
 
   constructor(
       public readonly utilService: UtilService,
+      private readonly route: ActivatedRoute,
       private readonly router: Router,
       private readonly paxService: PaxService,
   ) {}
@@ -125,7 +127,13 @@ export class FamilyTreePage implements OnInit {
         allPax.filter(pax => !seenPax.has(pax.name.toLowerCase()))
             .sort((a, b) => a.name.localeCompare(b.name));
 
+    // a pax profile can deep-link here with that pax pre-selected
+    const target = this.route.snapshot.queryParamMap.get('pax');
+    if (target) this.selectPax(target.toLowerCase());
+
     this.loaded = true;
+
+    if (this.selectedKey) this.scrollToSelected();
   }
 
   get searching(): boolean {
@@ -218,6 +226,35 @@ export class FamilyTreePage implements OnInit {
 
     node.descendants = descendants;
     return descendants;
+  }
+
+  /** Expands every branch on the path to the pax and marks them selected. */
+  private selectPax(key: string) {
+    const expandPath = (node: FamilyNode): boolean => {
+      if (node.key === key && !node.isOrigin) {
+        node.expanded = true;  // open their family too
+        return true;
+      }
+      for (const child of node.children) {
+        if (expandPath(child)) {
+          node.expanded = true;
+          return true;
+        }
+      }
+      return false;
+    };
+
+    if (this.roots.some(root => expandPath(root))) {
+      this.selectedKey = key;
+    }
+  }
+
+  private scrollToSelected() {
+    // wait for the expanded tree to render before jumping to the row
+    setTimeout(() => {
+      document.querySelector('.node-row.selected')
+          ?.scrollIntoView({block: 'center', behavior: 'smooth'});
+    }, 300);
   }
 
   private applySearch(node: FamilyNode, query: string): boolean {

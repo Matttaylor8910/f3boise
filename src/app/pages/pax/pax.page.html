@@ -119,6 +119,16 @@
                 </ion-button>
               </span>
             </ion-item>
+            <ion-item *ngIf="stats.invited">
+              <ion-label class="ion-text-wrap">
+                <h2>PAX Invited</h2>
+              </ion-label>
+              <span slot="end">
+                <a routerLink="/family-tree" [queryParams]="{pax: name}">
+                  {{ stats.invited }} PAX<ng-container *ngIf="stats.familySize && stats.familySize > stats.invited"> (family of {{ stats.familySize }})</ng-container>
+                </a>
+              </span>
+            </ion-item>
             <ion-item>
               <ion-label class="ion-text-wrap">
                 <h2>First BD</h2>

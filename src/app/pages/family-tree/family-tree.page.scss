@@ -126,6 +126,16 @@
       background: rgba(var(--ion-color-medium-rgb), 0.08);
     }
 
+    // deep-linked from a pax profile
+    &.selected {
+      background: rgba(var(--ion-color-primary-rgb), 0.12);
+
+      .node-name {
+        color: var(--ion-color-primary);
+        font-weight: 700;
+      }
+    }
+
     .chevron-wrap {
       flex-shrink: 0;
       width: 26px;
