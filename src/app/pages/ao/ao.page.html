@@ -28,7 +28,7 @@
 
     <ng-container *ngIf="aoStats.totalBeatdowns > 0; else empty">
       <!-- ao stats -->
-      <div class="stats-container">
+      <div class="card-grid wide">
         <div class="card-container">
           <ion-card>
             <ion-card-header>
@@ -93,7 +93,7 @@
               </ion-item>
               <ion-item *ngIf="aoStats.topDuo" button (click)="showTopDuos()">
                 <ion-label class="ion-text-wrap">
-                  <h2>Dynamic Duo <ion-icon name="information-circle-outline" size="small" class="duo-info-icon"></ion-icon></h2>
+                  <h2>Dynamic Duo <ion-icon name="information-circle-outline" size="small" class="info-icon"></ion-icon></h2>
                 </ion-label>
                 <span slot="end">
                   {{ aoStats.topDuo.count }} {{ bbShort }}s together:
@@ -180,7 +180,7 @@
         </ion-card>
       </div>
 
-      <div class="stats-container">
+      <div class="card-grid wide">
         <!-- leaderboard -->
         <div class="card-container">
           <ion-card>

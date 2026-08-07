@@ -52,6 +52,9 @@ export class PaxPage {
   statsType = BBType.BACKBLAST;
   ddCount = 0;
 
+  readonly limit = 5;
+  showMoreAos = false;
+
   stats?: PaxStats;
   favoriteAos?: AoStats[];
   allBds?: Backblast[];
@@ -133,6 +136,11 @@ export class PaxPage {
       };
       frame();
     });
+  }
+
+  get statsSubtitle(): string {
+    return this.statsType === BBType.DOUBLEDOWN ? 'Double downs' :
+                                                  'All-time beatdowns';
   }
 
   get toggleButtonText(): string {

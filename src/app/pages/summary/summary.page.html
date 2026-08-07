@@ -47,7 +47,7 @@
       <ion-text color="danger">Please select a valid start and end date.</ion-text>
     </div>
     <div *ngIf="dateRangeStats">
-      <div class="stats-container">
+      <div class="card-grid wide">
         <ion-card class="month-card">
           <ion-card-header>
             <ion-card-title class="space-between">
@@ -158,7 +158,7 @@
     <div class="center-container loading-fixed">
       <h1>Loading...</h1>
     </div>
-    <div class="stats-container">
+    <div class="card-grid wide">
       <ion-card class="month-card" *ngFor="let month of monthlyStats; let i = index">
         <ion-card-header>
           <ion-card-title class="space-between">

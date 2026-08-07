@@ -1,51 +1,40 @@
-ion-searchbar {
-  text-align: left;
-
-  &.desktop-toolbar {
-    width: 320px;
-  }
-}
-
-@media (max-width: 800px) {
-  .desktop-toolbar {
-    display: none;
-  }
-}
-@media (min-width: 801px) {
-  .mobile-toolbar {
-    display: none;
-  }
-}
-
-
-
-//// CHATGPT CSS ////
 .filter-section {
-  padding: 16px;
-}
+  max-width: 1800px;
+  margin: auto;
+  padding: 16px 20px 0;
 
-.filter-rule {
-  margin: 8px;
-}
+  .filter-rule {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
 
-.filter-rule ion-grid {
-  padding: 0;
-}
+    ion-select,
+    ion-input {
+      min-width: 140px;
+      background: var(--ion-color-light);
+      border-radius: 10px;
+      --padding-start: 12px;
+      --padding-end: 12px;
+    }
 
-.filter-rule ion-row {
-  --ion-grid-column-padding: 0;
-}
+    ion-select {
+      padding: 10px 12px;
+    }
 
-.filter-rule ion-col {
-  flex: 0 0 auto;
-}
+    ion-input {
+      flex: 1;
+      max-width: 320px;
+    }
 
-.filter-rule ion-select,
-.filter-rule ion-input {
-  min-width: 120px;
-}
+    ion-button {
+      margin: 0;
+    }
+  }
 
-.filter-rule ion-button {
-  padding: 0;
-  height: auto;
+  .filter-actions {
+    display: flex;
+    gap: 8px;
+  }
 }

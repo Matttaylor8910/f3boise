@@ -12,11 +12,11 @@
   <ng-container *ngIf="loaded; else loading">
 
     <!-- region pulse -->
-    <div class="pulse-row">
-      <div class="pulse-tile" *ngFor="let stat of pulse">
-        <div class="pulse-value">{{ stat.value }}</div>
-        <div class="pulse-label">{{ stat.label }}</div>
-        <div class="pulse-sub">{{ stat.sub }}</div>
+    <div class="stat-tile-row">
+      <div class="stat-tile" *ngFor="let stat of pulse">
+        <div class="stat-value">{{ stat.value }}</div>
+        <div class="stat-label">{{ stat.label }}</div>
+        <div class="stat-sub">{{ stat.sub }}</div>
       </div>
     </div>
 

@@ -7,6 +7,7 @@
     <ion-title>Q Line-up</ion-title>
     <div slot="end">
       <ion-searchbar
+        mode="ios"
         class="desktop-toolbar"
         [(ngModel)]="filterText"
         placeholder="Filter by PAX"
@@ -16,6 +17,7 @@
   </ion-toolbar>
   <ion-toolbar class="mobile-toolbar">
     <ion-searchbar
+      mode="ios"
       [(ngModel)]="filterText"
       placeholder="Filter by PAX"
       (ionChange)="applyFilter()">

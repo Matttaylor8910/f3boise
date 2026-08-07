@@ -20,7 +20,7 @@
   <ng-container *ngIf="loaded; else loading">
 
     <!-- tree stats -->
-    <div class="stats-row">
+    <div class="stat-tile-row">
       <div class="stat-tile" *ngFor="let stat of stats">
         <div class="stat-value">{{ stat.value }}</div>
         <div class="stat-label">{{ stat.label }}</div>
@@ -30,6 +30,7 @@
     <!-- search -->
     <div class="search-wrap">
       <ion-searchbar
+        mode="ios"
         [value]="query"
         (ionInput)="onSearch($event)"
         placeholder="Find a HIM in the tree"

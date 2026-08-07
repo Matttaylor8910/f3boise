@@ -1,33 +1,14 @@
-// hero stats
-.stats-row {
-  display: grid;
+// hero stats build on the global .stat-tile-row, just narrower with
+// smaller values (tiles can hold PAX names, not just numbers)
+.stat-tile-row {
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
   max-width: 900px;
-  margin: 16px auto 0;
-  padding: 0 12px;
 
   .stat-tile {
-    background: var(--ion-card-background, var(--ion-background-color));
-    border-radius: 12px;
     padding: 14px 8px;
-    text-align: center;
-    box-shadow: rgba(0, 0, 0, 0.12) 0px 4px 16px;
 
     .stat-value {
       font-size: 1.6rem;
-      font-weight: bold;
-      line-height: 1.2;
-      color: var(--ion-text-color);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .stat-label {
-      color: var(--ion-color-medium);
-      font-size: 0.8rem;
-      margin-top: 2px;
     }
   }
 }
@@ -233,7 +214,7 @@
 }
 
 @media (max-width: 500px) {
-  .stats-row .stat-tile .stat-value {
+  .stat-tile-row .stat-tile .stat-value {
     font-size: 1.2rem;
   }
 }

@@ -30,6 +30,7 @@
           <!-- searcher with suggestions -->
           <ng-template #searcher>
             <ion-searchbar
+              mode="ios"
               [value]="slot.search"
               (ionInput)="onSearchInput(slot, $event)"
               placeholder="Pick a HIM"
@@ -78,7 +79,7 @@
         </p>
       </div>
 
-      <div class="stats-container" *ngIf="stats.together > 0">
+      <div class="card-grid" *ngIf="stats.together > 0">
         <!-- shared stats -->
         <div class="card-container">
           <ion-card>

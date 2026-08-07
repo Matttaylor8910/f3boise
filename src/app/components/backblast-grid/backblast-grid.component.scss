@@ -11,20 +11,8 @@
   }
 }
 
-.centered {
-  display: flex;
-  align-items: center;
-}
-
-@media (max-width: 1200px) {
-  .stats-container .card-container {
-    min-width: 50%;
-  }
-}
-
 @media (max-width: 930px) {
-  .backblasts-container,
-  .stats-container .card-container {
+  .backblasts-container {
     min-width: 100%;
   }
 }

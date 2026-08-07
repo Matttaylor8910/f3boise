@@ -31,6 +31,9 @@
   --safe-area-inset-right: env(safe-area-inset-right, 0px);
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-inset-left: env(safe-area-inset-left, 0px);
+
+  /* F3 brand accent, used for links and highlighted actions */
+  --f3-red: #ee6059;
 }
 
 /* Fix for mobile Safari - ensure ion-content can scroll to bottom */
@@ -158,7 +161,7 @@ ion-content {
 
     ion-button {
       --ion-color-light: #fff;
-      --ion-color-secondary: #ee6059;
+      --ion-color-secondary: var(--f3-red);
     }
   }
   .section > div {
@@ -230,7 +233,7 @@ ion-content {
 }
 
 a {
-  color: #ee6059;
+  color: var(--f3-red);
   font-weight: bold;
   text-decoration: none;
   opacity: 0.8;
@@ -238,6 +241,153 @@ a {
   &:hover {
     opacity: 1;
     cursor: pointer;
+  }
+}
+
+.centered {
+  display: flex;
+  align-items: center;
+}
+
+/* Searchbars app-wide share the exicon look */
+ion-searchbar {
+  text-align: left;
+}
+
+/*
+ * Shared card grid layout: a responsive row of ion-cards, each wrapped in
+ * a .card-container. Add .wide on pages with 3+ cards that can use more
+ * room. Used by the PAX, AO, VS, and Summary pages.
+ */
+.card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 1500px;
+  margin: auto;
+
+  &.wide {
+    max-width: 1800px;
+  }
+
+  .card-container {
+    flex: 1;
+
+    // by default, hide the show more button, unless...
+    .show-more {
+      display: none;
+      --ion-color-primary: var(--f3-red);
+    }
+    // ... the list has more items than the limit
+    .show-more.has-more {
+      display: block;
+    }
+  }
+}
+
+/* Card header with title/subtitle on the left and an action on the right */
+.card-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+
+  .toggle-button {
+    margin: 0;
+    --padding-start: 8px;
+    --padding-end: 8px;
+    --padding-top: 4px;
+    --padding-bottom: 4px;
+    min-width: auto;
+    height: auto;
+    color: var(--ion-color-medium);
+    white-space: nowrap;
+
+    &:hover {
+      color: var(--ion-color-primary);
+    }
+
+    ion-icon {
+      font-size: 1.1em;
+      margin-right: 4px;
+    }
+
+    span {
+      font-size: 0.9em;
+    }
+  }
+}
+
+/* Small info icon next to tappable stat labels */
+.info-icon {
+  margin-left: 4px;
+  color: var(--ion-color-primary);
+  vertical-align: text-top;
+}
+
+/* Hero-number stat tiles (stats dashboard, family tree, ...) */
+.stat-tile-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  max-width: 1500px;
+  margin: 16px auto 0;
+  padding: 0 12px;
+
+  .stat-tile {
+    background: var(--ion-card-background, var(--ion-background-color));
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: rgba(0, 0, 0, 0.12) 0px 4px 16px;
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      line-height: 1.2;
+      color: var(--ion-text-color);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .stat-label {
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .stat-sub {
+      color: var(--ion-color-medium);
+      font-size: 0.8rem;
+    }
+  }
+}
+
+@media (max-width: 1700px) {
+  .card-grid.wide .card-container {
+    min-width: 50%;
+  }
+}
+
+@media (max-width: 1200px) {
+  .card-grid .card-container {
+    min-width: 50%;
+  }
+}
+
+@media (max-width: 850px) {
+  .card-grid .card-container {
+    min-width: 100%;
+
+    // on smaller screens, lists hide all but the top 3 items, so surface
+    // the show more button whenever there's a 4th
+    .show-more.has-4 {
+      display: block;
+    }
+  }
+
+  .stat-tile-row {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
