@@ -376,7 +376,10 @@ ion-searchbar {
 }
 
 @media (max-width: 850px) {
-  .card-grid .card-container {
+  // include the .wide variant so this rule out-specifies the 50% min-width
+  // rules above — otherwise wide grids never stack on phones
+  .card-grid .card-container,
+  .card-grid.wide .card-container {
     min-width: 100%;
 
     // on smaller screens, lists hide all but the top 3 items, so surface
