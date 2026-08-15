@@ -1,3 +1,6 @@
+<!-- comes first so the header and the page content both draw over it -->
+<app-care-bear-gym *ngIf="showCareBearGym"></app-care-bear-gym>
+
 <ion-header>
   <app-beatdown-breakdown-banner></app-beatdown-breakdown-banner>
   <ion-toolbar>
@@ -14,7 +17,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content [class.over-care-bears]="showCareBearGym">
   <ng-container *ngIf="allBds; else loading">
 
     <!-- empty state -->

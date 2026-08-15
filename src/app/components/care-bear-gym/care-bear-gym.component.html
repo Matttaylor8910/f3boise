@@ -1,0 +1,165 @@
+<div class="gym" aria-hidden="true">
+  <div class="sky"></div>
+  <div class="rainbow"></div>
+
+  <div
+    class="cloud"
+    *ngFor="let c of clouds"
+    [style.top.%]="c.top"
+    [style.--cloud-scale]="c.scale"
+    [style.--cloud-drift]="c.drift + 's'"
+    [style.--cloud-delay]="c.delay + 's'"
+  ></div>
+
+  <div class="floor"></div>
+
+  <div
+    class="bear-slot"
+    *ngFor="let b of bears"
+    [ngClass]="'ex-' + b.exercise"
+    [class.wide-only]="b.wideOnly"
+    [style.left.%]="b.left"
+    [style.top.%]="b.top"
+    [style.--scale]="b.scale"
+    [style.--rep]="b.rep + 's'"
+    [style.--delay]="b.delay + 's'"
+    [style.--fur]="b.fur"
+    [style.--tummy]="b.tummy"
+  >
+    <svg class="bear" viewBox="0 0 220 150">
+      <ellipse class="ground-shadow" cx="110" cy="143" rx="34" ry="5" />
+
+      <!-- sweat, because these bears are putting in real work -->
+      <g class="sweat">
+        <ellipse class="drop drop-l" cx="72" cy="24" rx="2.6" ry="3.6" />
+        <ellipse class="drop drop-r" cx="148" cy="21" rx="2.2" ry="3.2" />
+      </g>
+
+      <g class="bear-body">
+        <g class="legs">
+          <ellipse class="fur" cx="93" cy="126" rx="13" ry="15" />
+          <ellipse class="fur" cx="127" cy="126" rx="13" ry="15" />
+          <ellipse class="tummy" cx="93" cy="131" rx="6.5" ry="7" />
+          <ellipse class="tummy" cx="127" cy="131" rx="6.5" ry="7" />
+        </g>
+
+        <g class="upper">
+          <ellipse class="fur" cx="110" cy="99" rx="30" ry="30" />
+          <circle class="tummy" cx="110" cy="102" r="16" />
+
+          <g [ngSwitch]="b.badge">
+            <path
+              *ngSwitchCase="'heart'"
+              class="badge heart"
+              d="M110 111 q-9.5 -6.5 -9.5 -12.5 a5.2 5.2 0 0 1 9.5 -3 a5.2 5.2 0 0 1 9.5 3 q0 6 -9.5 12.5 z"
+            />
+            <path
+              *ngSwitchCase="'star'"
+              class="badge star"
+              d="M110 91 l3.5 7.2 7.9 1.1 -5.7 5.5 1.4 7.9 -7.1 -3.7 -7.1 3.7 1.4 -7.9 -5.7 -5.5 7.9 -1.1 z"
+            />
+            <g *ngSwitchCase="'rainbow'">
+              <path class="arc arc-1" d="M98 108 a12 12 0 0 1 24 0" />
+              <path class="arc arc-2" d="M102 108 a8 8 0 0 1 16 0" />
+              <path class="arc arc-3" d="M106 108 a4 4 0 0 1 8 0" />
+            </g>
+            <g *ngSwitchCase="'dumbbell'" class="badge">
+              <rect x="102" y="99.5" width="16" height="4" rx="2" />
+              <rect x="97" y="94.5" width="5.5" height="14" rx="2.5" />
+              <rect x="117.5" y="94.5" width="5.5" height="14" rx="2.5" />
+            </g>
+          </g>
+
+          <!-- both bars rack behind the head, so they draw before it -->
+          <g class="bar" *ngIf="b.exercise === 'squat'">
+            <rect class="bar-shaft" x="48" y="72" width="124" height="6" rx="3" />
+            <rect class="plate" x="42" y="62" width="12" height="26" rx="4" />
+            <rect class="plate" x="166" y="62" width="12" height="26" rx="4" />
+          </g>
+          <g class="bar press-rig" *ngIf="b.exercise === 'press'">
+            <rect class="bar-shaft" x="54" y="18" width="112" height="6" rx="3" />
+            <rect class="plate" x="48" y="8" width="12" height="26" rx="4" />
+            <rect class="plate" x="160" y="8" width="12" height="26" rx="4" />
+          </g>
+
+          <g class="head">
+            <circle class="fur" cx="90" cy="38" r="11" />
+            <circle class="fur" cx="130" cy="38" r="11" />
+            <circle class="tummy" cx="90" cy="38" r="6" />
+            <circle class="tummy" cx="130" cy="38" r="6" />
+            <circle class="fur" cx="110" cy="57" r="28" />
+            <ellipse class="tummy" cx="110" cy="67" rx="16" ry="12" />
+            <circle class="blush" cx="88" cy="66" r="6" />
+            <circle class="blush" cx="132" cy="66" r="6" />
+            <ellipse class="nose" cx="110" cy="61" rx="5.5" ry="4.2" />
+            <path class="line" d="M110 64.5 v4.5 M110 69 q-7 6.5 -12 0 M110 69 q7 6.5 12 0" />
+            <circle class="eye" cx="98" cy="52" r="3.8" />
+            <circle class="eye" cx="122" cy="52" r="3.8" />
+            <circle class="glint" cx="99.3" cy="50.6" r="1.3" />
+            <circle class="glint" cx="123.3" cy="50.6" r="1.3" />
+            <path class="line brow" d="M91 42.5 l10.5 4" />
+            <path class="line brow" d="M129 42.5 l-10.5 4" />
+          </g>
+
+          <!-- curls and lateral raises share a jointed arm -->
+          <ng-container *ngIf="b.exercise === 'curl' || b.exercise === 'raise'">
+            <g class="arm">
+              <path class="limb" d="M80 86 V100" />
+              <g class="forearm">
+                <path class="limb" d="M80 100 V118" />
+                <circle class="fur" cx="80" cy="118" r="8.5" />
+                <g class="dumbbell">
+                  <rect class="bar-shaft" x="66" y="115.5" width="28" height="5" rx="2.5" />
+                  <rect class="plate" x="60" y="109" width="9" height="18" rx="3.5" />
+                  <rect class="plate" x="91" y="109" width="9" height="18" rx="3.5" />
+                </g>
+              </g>
+            </g>
+            <g class="mirror" transform="translate(220, 0) scale(-1, 1)">
+              <g class="arm">
+                <path class="limb" d="M80 86 V100" />
+                <g class="forearm">
+                  <path class="limb" d="M80 100 V118" />
+                  <circle class="fur" cx="80" cy="118" r="8.5" />
+                  <g class="dumbbell">
+                    <rect class="bar-shaft" x="66" y="115.5" width="28" height="5" rx="2.5" />
+                    <rect class="plate" x="60" y="109" width="9" height="18" rx="3.5" />
+                    <rect class="plate" x="91" y="109" width="9" height="18" rx="3.5" />
+                  </g>
+                </g>
+              </g>
+            </g>
+          </ng-container>
+
+          <!-- the squat grip stays put while the bear drops under the bar -->
+          <ng-container *ngIf="b.exercise === 'squat'">
+            <g class="arm">
+              <path class="limb" d="M80 92 Q68 90 63 80" />
+              <circle class="fur" cx="62" cy="78" r="8" />
+            </g>
+            <g class="mirror" transform="translate(220, 0) scale(-1, 1)">
+              <g class="arm">
+                <path class="limb" d="M80 92 Q68 90 63 80" />
+                <circle class="fur" cx="62" cy="78" r="8" />
+              </g>
+            </g>
+          </ng-container>
+
+          <!-- overhead press: the arms ride up and down with the bar -->
+          <ng-container *ngIf="b.exercise === 'press'">
+            <g class="arm press-rig">
+              <path class="limb" d="M80 92 L74 21" />
+              <circle class="fur" cx="74" cy="21" r="8.5" />
+            </g>
+            <g class="mirror" transform="translate(220, 0) scale(-1, 1)">
+              <g class="arm press-rig">
+                <path class="limb" d="M80 92 L74 21" />
+                <circle class="fur" cx="74" cy="21" r="8.5" />
+              </g>
+            </g>
+          </ng-container>
+        </g>
+      </g>
+    </svg>
+  </div>
+</div>

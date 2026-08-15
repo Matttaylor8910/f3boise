@@ -13,6 +13,7 @@ import {BackblastCardComponent} from './backblast-card/backblast-card.component'
 import {BackblastGridComponent} from './backblast-grid/backblast-grid.component';
 import {BeatdownBreakdownBannerComponent} from './beatdown-breakdown-banner/beatdown-breakdown-banner.component';
 import {BestiesGridComponent} from './besties-grid/besties-grid.component';
+import {CareBearGymComponent} from './care-bear-gym/care-bear-gym.component';
 import {CreateChallengeModalComponent} from './create-challenge-modal/create-challenge-modal.component';
 import {CustomDateRangePopoverComponent} from './custom-date-range-popover/custom-date-range-popover.component';
 import {DateRangePickerComponent} from './date-range-picker/date-range-picker.component';
@@ -58,6 +59,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     BackblastCardComponent,
     BackblastGridComponent,
     BestiesGridComponent,
+    CareBearGymComponent,
     CreateChallengeModalComponent,
     CustomDateRangePopoverComponent,
     DateRangePickerComponent,
@@ -110,6 +112,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     BackblastCardComponent,
     BackblastGridComponent,
     BestiesGridComponent,
+    CareBearGymComponent,
     CreateChallengeModalComponent,
     DateRangePickerComponent,
     DuosGridComponent,

@@ -1,0 +1,422 @@
+// Sits behind the page content and never takes clicks.
+:host {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.gym {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.sky,
+.rainbow,
+.floor {
+  position: absolute;
+}
+
+.sky {
+  inset: 0;
+  background: linear-gradient(180deg, #cdeaff 0%, #e7f3ff 42%, #fdf3f8 100%);
+}
+
+.rainbow {
+  left: 50%;
+  bottom: 0;
+  width: 130%;
+  aspect-ratio: 2 / 1;
+  transform: translateX(-50%);
+  opacity: 0.45;
+  filter: blur(6px);
+  background: radial-gradient(
+    farthest-side circle at 50% 100%,
+    transparent 0 60%,
+    rgba(93, 160, 255, 0.34) 60% 64.5%,
+    rgba(120, 214, 168, 0.34) 64.5% 69%,
+    rgba(255, 214, 102, 0.38) 69% 73.5%,
+    rgba(255, 165, 96, 0.34) 73.5% 78%,
+    rgba(255, 122, 138, 0.32) 78% 82.5%,
+    transparent 82.5%
+  );
+}
+
+.floor {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 22%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(126, 176, 214, 0.22) 100%);
+}
+
+.cloud {
+  position: absolute;
+  left: 0;
+  height: 26px;
+  width: 96px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  animation: cbg-drift var(--cloud-drift) linear infinite;
+  animation-delay: var(--cloud-delay);
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    background: inherit;
+    border-radius: 50%;
+  }
+
+  &::before {
+    height: 48px;
+    width: 48px;
+    left: 14px;
+    top: -24px;
+  }
+
+  &::after {
+    height: 34px;
+    width: 34px;
+    right: 16px;
+    top: -16px;
+  }
+}
+
+@keyframes cbg-drift {
+  from {
+    transform: translateX(-40vw) scale(var(--cloud-scale));
+  }
+  to {
+    transform: translateX(140vw) scale(var(--cloud-scale));
+  }
+}
+
+.bear-slot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+.bear {
+  display: block;
+  height: calc(var(--scale) * 170px);
+  width: auto;
+}
+
+// ---------------------------------------------------------------- bear parts
+
+.fur {
+  fill: var(--fur);
+}
+
+.tummy {
+  fill: var(--tummy);
+}
+
+.limb {
+  fill: none;
+  stroke: var(--fur);
+  stroke-width: 17;
+  stroke-linecap: round;
+}
+
+.nose,
+.eye {
+  fill: #5b4550;
+}
+
+.glint {
+  fill: #ffffff;
+}
+
+.line {
+  fill: none;
+  stroke: #5b4550;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+.brow {
+  stroke-width: 3.2;
+}
+
+.blush {
+  fill: rgba(255, 118, 148, 0.32);
+}
+
+.ground-shadow {
+  fill: rgba(70, 58, 96, 0.13);
+}
+
+.badge {
+  fill: #5f7fd6;
+
+  &.heart {
+    fill: #ff5d8f;
+  }
+
+  &.star {
+    fill: #ffb703;
+  }
+}
+
+.arc {
+  fill: none;
+  stroke-width: 3.2;
+  stroke-linecap: round;
+}
+
+.arc-1 {
+  stroke: #ff6b6b;
+}
+
+.arc-2 {
+  stroke: #ffd166;
+}
+
+.arc-3 {
+  stroke: #4d96ff;
+}
+
+.bar-shaft {
+  fill: #cdd5df;
+}
+
+.plate {
+  fill: #59616f;
+}
+
+.drop {
+  fill: #7fd0f5;
+  opacity: 0;
+}
+
+// ------------------------------------------------------------------- lifting
+
+.forearm,
+.dumbbell,
+.arm,
+.legs,
+.upper,
+.press-rig {
+  transform-box: view-box;
+}
+
+.drop {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.ex-curl {
+  .forearm {
+    transform-origin: 80px 100px;
+    animation: cbg-curl var(--rep) ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+
+  .dumbbell {
+    transform-origin: 80px 118px;
+    animation: cbg-curl-level var(--rep) ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+
+  // half a rep out of phase, the way you'd actually curl a pair of dumbbells
+  .mirror .forearm,
+  .mirror .dumbbell {
+    animation-delay: calc(var(--delay) + var(--rep) / 2);
+  }
+}
+
+@keyframes cbg-curl {
+  0%,
+  100% {
+    transform: rotate(-8deg);
+  }
+  50% {
+    transform: rotate(-105deg);
+  }
+}
+
+@keyframes cbg-curl-level {
+  0%,
+  100% {
+    transform: rotate(8deg);
+  }
+  50% {
+    transform: rotate(105deg);
+  }
+}
+
+.ex-raise {
+  .arm {
+    transform-origin: 80px 86px;
+    animation: cbg-raise var(--rep) ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+
+  .dumbbell {
+    transform-origin: 80px 118px;
+    animation: cbg-raise-level var(--rep) ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+}
+
+@keyframes cbg-raise {
+  0%,
+  100% {
+    transform: rotate(4deg);
+  }
+  50% {
+    transform: rotate(80deg);
+  }
+}
+
+@keyframes cbg-raise-level {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(-80deg);
+  }
+}
+
+.ex-press .press-rig {
+  animation: cbg-press var(--rep) ease-in-out infinite;
+  animation-delay: var(--delay);
+}
+
+@keyframes cbg-press {
+  0%,
+  100% {
+    transform: translateY(13px);
+  }
+  50% {
+    transform: translateY(0);
+  }
+}
+
+.ex-squat {
+  .legs {
+    transform-origin: 110px 141px;
+    animation: cbg-squat-legs var(--rep) ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+
+  .upper {
+    animation: cbg-squat-upper var(--rep) ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+}
+
+@keyframes cbg-squat-legs {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(1.12, 0.62);
+  }
+}
+
+@keyframes cbg-squat-upper {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(12px);
+  }
+}
+
+.drop-l {
+  animation: cbg-sweat-l calc(var(--rep) * 2) ease-out infinite;
+  animation-delay: var(--delay);
+}
+
+.drop-r {
+  animation: cbg-sweat-r calc(var(--rep) * 2) ease-out infinite;
+  animation-delay: calc(var(--delay) + var(--rep));
+}
+
+@keyframes cbg-sweat-l {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+  12% {
+    opacity: 0.85;
+  }
+  60%,
+  100% {
+    opacity: 0;
+    transform: translate(-15px, -16px) scale(1);
+  }
+}
+
+@keyframes cbg-sweat-r {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+  12% {
+    opacity: 0.85;
+  }
+  60%,
+  100% {
+    opacity: 0;
+    transform: translate(15px, -16px) scale(1);
+  }
+}
+
+// -------------------------------------------------------------- adapting out
+
+// the back row only gets a spot when there's room for it
+@media (max-width: 900px) {
+  .wide-only {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .bear {
+    height: calc(var(--scale) * 120px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cloud,
+  .drop,
+  .forearm,
+  .dumbbell,
+  .arm,
+  .legs,
+  .upper,
+  .press-rig {
+    animation: none;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .sky {
+    background: linear-gradient(180deg, #1d2740 0%, #2a3252 45%, #3b3350 100%);
+  }
+
+  .rainbow {
+    opacity: 0.4;
+  }
+
+  .cloud {
+    background: rgba(190, 205, 235, 0.16);
+  }
+
+  .floor {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(10, 14, 28, 0.4) 100%);
+  }
+
+  .ground-shadow {
+    fill: rgba(0, 0, 0, 0.25);
+  }
+}

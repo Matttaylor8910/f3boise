@@ -41,6 +41,9 @@ interface AoStats {
 /** PAX whose pages get a confetti celebration on every visit. */
 const CONFETTI_PAX = new Set(['strings']);
 const CONFETTI_DURATION_MS = 6000;
+
+/** PAX whose pages swap the background for a gym full of lifting bears. */
+const CARE_BEAR_PAX = new Set(['blade']);
 @Component({
   selector: 'app-pax',
   templateUrl: './pax.page.html',
@@ -136,6 +139,10 @@ export class PaxPage {
       };
       frame();
     });
+  }
+
+  get showCareBearGym(): boolean {
+    return CARE_BEAR_PAX.has(this.name);
   }
 
   get statsSubtitle(): string {

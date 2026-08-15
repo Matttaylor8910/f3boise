@@ -1,3 +1,32 @@
+// Let the Care Bear gym show through, and float the cards over it.
+ion-content.over-care-bears {
+  --background: transparent;
+
+  // translucent enough to read the gym through, opaque enough to read the text
+  ::ng-deep ion-card {
+    --background: rgba(255, 255, 255, 0.78);
+    box-shadow: 0 6px 20px rgba(58, 48, 90, 0.16);
+  }
+
+  // the year grid has no card of its own, so give it one to sit on
+  ::ng-deep app-year-grid .chart-container {
+    background: rgba(255, 255, 255, 0.6);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  ion-content.over-care-bears {
+    ::ng-deep ion-card {
+      --background: rgba(24, 28, 42, 0.88);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    ::ng-deep app-year-grid .chart-container {
+      background: rgba(24, 28, 42, 0.82);
+    }
+  }
+}
+
 .title-container {
   display: flex;
   align-items: center;
