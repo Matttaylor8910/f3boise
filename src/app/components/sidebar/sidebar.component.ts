@@ -1,10 +1,11 @@
-import {Component, HostListener, OnDestroy, OnInit} from '@angular/core';
+import {Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {NavigationEnd, NavigationExtras, Router} from '@angular/router';
 import {ToastController} from '@ionic/angular';
 import * as moment from 'moment';
 import {filter, Subscription} from 'rxjs';
 import {AuthService} from 'src/app/services/auth.service';
 import {ChallengesService} from 'src/app/services/challenges.service';
+import {PaxService} from 'src/app/services/pax.service';
 import {SidebarService} from 'src/app/services/sidebar.service';
 import {UtilService} from 'src/app/services/util.service';
 import {Challenge} from 'types';
@@ -35,6 +36,11 @@ interface NavigationItem {
   label: string;
   route: string;
   isActive: boolean;
+}
+
+interface PaxSearchEntry {
+  name: string;
+  normalizedName: string;
 }
 
 @Component({
@@ -77,6 +83,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
   currentChallenges: Challenge[] = [];
   private challengesSubscription?: Subscription;
 
+  @ViewChild('paxSearchInput') paxSearchInput?: ElementRef<HTMLInputElement>;
+  paxSearchOpen = false;
+  paxSearchQuery = '';
+  paxSearchResults: PaxSearchEntry[] = [];
+  paxSearchLoading = false;
+  private allPaxEntries: PaxSearchEntry[] = [];
+  private readonly maxPaxResults = 30;
+
   constructor(
       private readonly sidebarService: SidebarService,
       private readonly router: Router,
@@ -84,6 +98,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       private readonly authService: AuthService,
       private readonly toastController: ToastController,
       private readonly challengesService: ChallengesService,
+      private readonly paxService: PaxService,
   ) {}
 
   ngOnInit() {
@@ -268,6 +283,54 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (window.innerWidth < 1024) {
       this.sidebarService.close();
     }
+  }
+
+  async togglePaxSearch() {
+    this.paxSearchOpen = !this.paxSearchOpen;
+    if (!this.paxSearchOpen) {
+      this.paxSearchQuery = '';
+      this.paxSearchResults = [];
+      return;
+    }
+
+    // Focus the input once it renders
+    setTimeout(() => this.paxSearchInput?.nativeElement?.focus(), 0);
+
+    if (this.allPaxEntries.length === 0) {
+      this.paxSearchLoading = true;
+      try {
+        const allPax = await this.paxService.getAllData();
+        this.allPaxEntries =
+            allPax
+                .map(pax => ({
+                       name: pax.name,
+                       normalizedName: this.utilService.normalizeName(pax.name),
+                     }))
+                .sort((a, b) => a.normalizedName.localeCompare(b.normalizedName));
+      } finally {
+        this.paxSearchLoading = false;
+      }
+    }
+    this.filterPaxResults();
+  }
+
+  filterPaxResults() {
+    const query = this.paxSearchQuery.toLowerCase().trim();
+    if (!query) {
+      this.paxSearchResults = [];
+      return;
+    }
+    this.paxSearchResults =
+        this.allPaxEntries
+            .filter(pax => pax.normalizedName.toLowerCase().includes(query))
+            .slice(0, this.maxPaxResults);
+  }
+
+  selectPax(pax: PaxSearchEntry) {
+    this.paxSearchOpen = false;
+    this.paxSearchQuery = '';
+    this.paxSearchResults = [];
+    this.navigate(`/pax/${pax.name.toLowerCase()}`);
   }
 
   navigate(route: string) {

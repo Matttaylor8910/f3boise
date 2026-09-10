@@ -14,6 +14,44 @@
   <div class="sidebar-scrollable">
     <!-- Regions Section -->
     <div class="sidebar-content">
+    <!-- Find PAX Search -->
+    <div class="sidebar-section pax-search-section">
+      <button
+        type="button"
+        class="nav-link find-pax-button"
+        [class.active]="paxSearchOpen"
+        (click)="togglePaxSearch()">
+        <ion-icon name="search"></ion-icon>
+        Find PAX
+      </button>
+      <div class="pax-search-panel" *ngIf="paxSearchOpen">
+        <input
+          #paxSearchInput
+          type="text"
+          class="pax-search-input"
+          placeholder="Search by name..."
+          [(ngModel)]="paxSearchQuery"
+          (input)="filterPaxResults()" />
+        <div class="pax-search-loading" *ngIf="paxSearchLoading">
+          <ion-spinner name="crescent"></ion-spinner>
+        </div>
+        <div class="pax-search-results" *ngIf="!paxSearchLoading">
+          <button
+            type="button"
+            class="ao-link"
+            *ngFor="let pax of paxSearchResults"
+            (click)="selectPax(pax)">
+            {{ pax.normalizedName }}
+          </button>
+          <div
+            class="pax-search-empty"
+            *ngIf="paxSearchQuery.trim() && paxSearchResults.length === 0">
+            No PAX found
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Navigation Items -->
     <div class="sidebar-section">
       <!-- Home dashboard -->

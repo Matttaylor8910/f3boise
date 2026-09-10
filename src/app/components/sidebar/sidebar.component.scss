@@ -130,6 +130,69 @@
     }
   }
 
+  .pax-search-section {
+    margin-bottom: 8px;
+
+    .find-pax-button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      ion-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  .pax-search-panel {
+    padding: 8px 16px 0;
+  }
+
+  .pax-search-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s, background-color 0.2s;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    &:focus {
+      border-color: #ee6059;
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  .pax-search-loading {
+    display: flex;
+    justify-content: center;
+    padding: 12px;
+
+    ion-spinner {
+      --color: rgba(255, 255, 255, 0.6);
+    }
+  }
+
+  .pax-search-results {
+    margin-top: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .pax-search-empty {
+    padding: 8px 24px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+  }
+
   .region-header {
     display: flex;
     align-items: center;
