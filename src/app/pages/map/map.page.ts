@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {GoogleMap} from '@angular/google-maps';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AlertController, PopoverController, ToastController} from '@ionic/angular';
@@ -7,6 +7,7 @@ import {Subscription} from 'rxjs';
 import {ActionsPopoverPageComponent} from 'src/app/components/actions-popover/actions-popover-page.component';
 import {PopoverAction,} from 'src/app/components/actions-popover/actions-popover.component';
 import {BOISE_REGION_IDS, CreateOrUpdateEventRequest, F3_REGION_WEBSITE_URL, F3ApiService, F3Event, F3Location, F3Org, NationRegionId,} from 'src/app/services/f3-api.service';
+import {PlaceSearchService, PlaceSuggestion} from 'src/app/services/place-search.service';
 import {QService} from 'src/app/services/q.service';
 import {MapPermissions, UserPermissionsService} from 'src/app/services/user-permissions.service';
 import {UtilService} from 'src/app/services/util.service';
@@ -241,6 +242,52 @@ export class MapPage implements OnInit, OnDestroy {
   aoSaveError: string|null = null;
   isDeletingAo = false;
 
+  // ── Location edit: pin coordinates ────────────────────────────────
+  /** Pin coords shown/saved by the edit-location modal. */
+  locationEditCoords: google.maps.LatLngLiteral|null = null;
+  /**
+   * Where {@link locationEditCoords} came from — drives both the save
+   * behavior and the hint under the pin row:
+   * - existing: unchanged from the stored record (address edits re-geocode
+   *   on save unless the pin was manually placed)
+   * - place: a Places search pick (authoritative for its address)
+   * - manual: dragged on the map or typed under Advanced (sticky)
+   * - address: explicit "reset from address" re-geocode
+   */
+  locationEditCoordsSource: 'existing'|'place'|'manual'|'address' = 'existing';
+  /** Sticky manual-pin flag loaded from the record's meta. */
+  locationEditPinWasManual = false;
+  locationEditAdvancedOpen = false;
+  /** Advanced lat/lng inputs (strings so partial typing doesn't fight). */
+  locationEditLatInput = '';
+  locationEditLngInput = '';
+  locationEditCoordError: string|null = null;
+  locationEditPinResetting = false;
+
+  // ── Location edit: place search ───────────────────────────────────
+  placeSearchQuery = '';
+  placeSuggestions: PlaceSuggestion[] = [];
+  placeSearchLoading = false;
+  placeDropdownOpen = false;
+  placeHighlightIndex = -1;
+  private placeSearchTimer?: number;
+  /** Guards against a stale debounce resolving over a newer query. */
+  private placeSearchSeq = 0;
+
+  // ── Location edit: drag-to-place pin mode ─────────────────────────
+  pinPlacementActive = false;
+  pinPlacementLatLng: google.maps.LatLngLiteral|null = null;
+  readonly pinPlacementMarkerOptions: google.maps.MarkerOptions = {
+    draggable: true,
+    zIndex: 10_000,
+    cursor: 'grab',
+  };
+  /**
+   * True while the modal is only *hidden* for pin placement — makes the
+   * ion-modal didDismiss handler keep the form state instead of clearing it.
+   */
+  private pinPlacementHidingModal = false;
+
   /** Full Q lineup for the next 30 days — fetched once, used for tree dots */
   private qLineupData: import('types').QLineUp[] = [];
 
@@ -362,6 +409,7 @@ export class MapPage implements OnInit, OnDestroy {
       private readonly userPermissions: UserPermissionsService,
       private readonly qService: QService,
       private readonly utilService: UtilService,
+      private readonly placeSearch: PlaceSearchService,
       private readonly route: ActivatedRoute,
       private readonly router: Router,
   ) {}
@@ -1873,6 +1921,12 @@ export class MapPage implements OnInit, OnDestroy {
   // ── Selection ────────────────────────────────────────────────────
 
   onMapClick(event: google.maps.MapMouseEvent) {
+    // Pin placement mode: clicks reposition the pending pin.
+    if (this.pinPlacementActive) {
+      const latLng = event.latLng?.toJSON();
+      if (latLng) this.pinPlacementLatLng = latLng;
+      return;
+    }
     if (this.modalOpen || this.newAoModalOpen) return;
     if (!this.permissions?.canCreate) return;
     if (!this.newAoRegionOptions.length) return;
@@ -1942,6 +1996,9 @@ export class MapPage implements OnInit, OnDestroy {
                 {addressZip: this.newAoForm.addressZip.trim()} :
                 {}),
         addressCountry: 'US',
+        // Map-click placement is a deliberate pin drop — keep it sticky
+        // against future address-derived re-geocodes.
+        meta: {pinManuallyPlaced: true},
       });
 
       // Tie org ↔ default location (API returns defaultLocationId: null until
@@ -1990,6 +2047,7 @@ export class MapPage implements OnInit, OnDestroy {
         addressCity: city,
         addressState: this.newAoForm.addressState.trim() || 'ID',
         addressZip: zip,
+        meta: {pinManuallyPlaced: true},
       });
 
       this.selectedAo = null;
@@ -2013,6 +2071,7 @@ export class MapPage implements OnInit, OnDestroy {
    * already panned/zoomed).
    */
   onMarkerClick(ao: GroupedAo) {
+    if (this.pinPlacementActive) return;
     this.applyAoSelection(ao);
   }
 
@@ -2340,6 +2399,38 @@ export class MapPage implements OnInit, OnDestroy {
         loc?.addressStreet ?? firstEv?.locationAddress ?? '';
     this.aoEditAddressCity = loc?.addressCity ?? firstEv?.locationCity ?? '';
     this.aoEditAddressZip = loc?.addressZip ?? firstEv?.locationZip ?? '';
+
+    this.locationEditPinWasManual = loc?.meta?.['pinManuallyPlaced'] === true;
+    const hasCoords = loc?.latitude != null && loc.longitude != null &&
+        loc.latitude !== 0 && loc.longitude !== 0;
+    this.setLocationEditCoords(
+        hasCoords ? {lat: loc!.latitude!, lng: loc!.longitude!} : null,
+        'existing');
+    this.locationEditAdvancedOpen = false;
+    this.locationEditCoordError = null;
+    this.locationEditPinResetting = false;
+    this.resetPlaceSearchState();
+  }
+
+  /** Single entry point so the Advanced inputs stay in sync with the pin. */
+  private setLocationEditCoords(
+      coords: google.maps.LatLngLiteral|null,
+      source: 'existing'|'place'|'manual'|'address'): void {
+    this.locationEditCoords = coords;
+    this.locationEditCoordsSource = source;
+    this.locationEditLatInput = coords ? coords.lat.toFixed(6) : '';
+    this.locationEditLngInput = coords ? coords.lng.toFixed(6) : '';
+    this.locationEditCoordError = null;
+  }
+
+  private resetPlaceSearchState(): void {
+    window.clearTimeout(this.placeSearchTimer);
+    this.placeSearchSeq++;
+    this.placeSearchQuery = '';
+    this.placeSuggestions = [];
+    this.placeSearchLoading = false;
+    this.placeDropdownOpen = false;
+    this.placeHighlightIndex = -1;
   }
 
   async openAoDetailMenu(ev: Event): Promise<void> {
@@ -2428,11 +2519,210 @@ export class MapPage implements OnInit, OnDestroy {
   }
 
   closeLocationEditModal(): void {
+    // The modal is only hidden while the user drags the pin on the map —
+    // keep the form + target so Confirm/Cancel can restore it.
+    if (this.pinPlacementHidingModal) {
+      this.locationEditModalOpen = false;
+      return;
+    }
     this.locationEditModalOpen = false;
     this.locationEditModalLocationId = null;
     this.locationEditModalRegionId = null;
     this.locationEditTreeOrgId = null;
     this.aoSaveError = null;
+    this.setLocationEditCoords(null, 'existing');
+    this.locationEditPinWasManual = false;
+    this.locationEditAdvancedOpen = false;
+    this.resetPlaceSearchState();
+  }
+
+  // ── Edit location: place search ───────────────────────────────────
+
+  get placeSearchAvailable(): boolean {
+    return this.placeSearch.available;
+  }
+
+  onPlaceSearchInput(query: string): void {
+    window.clearTimeout(this.placeSearchTimer);
+    const seq = ++this.placeSearchSeq;
+    const q = query.trim();
+    if (q.length < 3) {
+      this.placeSuggestions = [];
+      this.placeDropdownOpen = false;
+      this.placeSearchLoading = false;
+      return;
+    }
+    this.placeSearchTimer = window.setTimeout(async () => {
+      this.placeSearchLoading = true;
+      const suggestions =
+          await this.placeSearch.getSuggestions(q, this.mapCenter);
+      if (seq !== this.placeSearchSeq) return;
+      this.placeSearchLoading = false;
+      this.placeSuggestions = suggestions;
+      this.placeHighlightIndex = suggestions.length ? 0 : -1;
+      this.placeDropdownOpen = suggestions.length > 0;
+    }, 300);
+  }
+
+  onPlaceSearchFocus(): void {
+    if (this.placeSuggestions.length) this.placeDropdownOpen = true;
+  }
+
+  onPlaceSearchBlur(): void {
+    // Delay so a mousedown on a suggestion lands before the list hides.
+    window.setTimeout(() => {
+      this.placeDropdownOpen = false;
+    }, 150);
+  }
+
+  onPlaceSearchKeydown(event: KeyboardEvent): void {
+    if (!this.placeDropdownOpen || !this.placeSuggestions.length) return;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const delta = event.key === 'ArrowDown' ? 1 : -1;
+      const n = this.placeSuggestions.length;
+      this.placeHighlightIndex =
+          ((this.placeHighlightIndex + delta) % n + n) % n;
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      const pick = this.placeSuggestions[this.placeHighlightIndex];
+      if (pick) void this.selectPlaceSuggestion(pick);
+    } else if (event.key === 'Escape') {
+      this.placeDropdownOpen = false;
+    }
+  }
+
+  async selectPlaceSuggestion(suggestion: PlaceSuggestion): Promise<void> {
+    this.placeDropdownOpen = false;
+    this.placeSearchQuery = suggestion.description;
+    this.placeSearchLoading = true;
+    const details = await this.placeSearch.getDetails(suggestion.placeId);
+    this.placeSearchLoading = false;
+    if (!details) {
+      this.aoSaveError = 'Could not load that place — try another result.';
+      return;
+    }
+    this.aoSaveError = null;
+    // A POI pick (park, school) carries a display name; keep it as the
+    // location name. Plain-address picks leave the current name alone.
+    if (details.name) this.aoEditLocationName = details.name;
+    if (details.street) this.aoEditAddressStreet = details.street;
+    if (details.city) this.aoEditAddressCity = details.city;
+    if (details.zip) this.aoEditAddressZip = details.zip;
+    this.setLocationEditCoords(
+        {lat: details.lat, lng: details.lng}, 'place');
+  }
+
+  // ── Edit location: advanced coordinates ───────────────────────────
+
+  toggleLocationEditAdvanced(): void {
+    this.locationEditAdvancedOpen = !this.locationEditAdvancedOpen;
+  }
+
+  onManualCoordInput(): void {
+    const lat = Number(this.locationEditLatInput);
+    const lng = Number(this.locationEditLngInput);
+    const valid = this.locationEditLatInput.trim() !== '' &&
+        this.locationEditLngInput.trim() !== '' && Number.isFinite(lat) &&
+        Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+    if (!valid) {
+      this.locationEditCoordError =
+          'Enter a latitude (−90 to 90) and longitude (−180 to 180).';
+      return;
+    }
+    this.locationEditCoords = {lat, lng};
+    this.locationEditCoordsSource = 'manual';
+    this.locationEditCoordError = null;
+  }
+
+  /** Re-derive the pin from the typed address, clearing any manual pin. */
+  async resetPinToAddress(): Promise<void> {
+    const address = [
+      this.aoEditAddressStreet.trim(),
+      this.aoEditAddressCity.trim(),
+      'ID',
+      this.aoEditAddressZip.trim(),
+    ].filter(Boolean).join(', ');
+    if (!address) {
+      this.locationEditCoordError = 'Add a street or city first.';
+      return;
+    }
+    this.locationEditPinResetting = true;
+    const coords = await this.placeSearch.geocodeAddress(address);
+    this.locationEditPinResetting = false;
+    if (!coords) {
+      this.locationEditCoordError =
+          'Could not find that address on the map — adjust it and retry.';
+      return;
+    }
+    this.setLocationEditCoords(coords, 'address');
+    this.locationEditPinWasManual = false;
+  }
+
+  /** One-line pin status under the coordinates row. */
+  get pinStatusLabel(): string {
+    if (!this.locationEditCoords) {
+      return 'No pin yet — search a place, drag one on the map, or save to '
+          + 'derive it from the address.';
+    }
+    switch (this.locationEditCoordsSource) {
+      case 'place':
+        return 'Pin set from your place selection.';
+      case 'manual':
+        return 'Pin placed manually — address edits won’t move it.';
+      case 'address':
+        return 'Pin re-derived from the address.';
+      default:
+        return this.locationEditPinWasManual ?
+            'Pin was placed manually — address edits won’t move it.' :
+            'Pin follows the address — it re-geocodes if you change it.';
+    }
+  }
+
+  // ── Edit location: drag-to-place pin mode ─────────────────────────
+
+  startPinPlacement(): void {
+    if (this.pinPlacementActive) return;
+    this.pinPlacementHidingModal = true;
+    this.locationEditModalOpen = false;
+    this.pinPlacementActive = true;
+    this.pinPlacementLatLng =
+        this.locationEditCoords ? {...this.locationEditCoords} :
+                                  {...this.mapCenter};
+    // Give the map the full stage on mobile.
+    this.mobileSidebarExpanded = false;
+    this.animateCameraToPoint(
+        this.pinPlacementLatLng.lat, this.pinPlacementLatLng.lng);
+  }
+
+  onPinPlacementDragend(event: google.maps.MapMouseEvent): void {
+    const latLng = event.latLng?.toJSON();
+    if (latLng) this.pinPlacementLatLng = latLng;
+  }
+
+  confirmPinPlacement(): void {
+    if (this.pinPlacementLatLng) {
+      this.setLocationEditCoords({...this.pinPlacementLatLng}, 'manual');
+    }
+    this.exitPinPlacement();
+  }
+
+  cancelPinPlacement(): void {
+    this.exitPinPlacement();
+  }
+
+  private exitPinPlacement(): void {
+    this.pinPlacementActive = false;
+    this.pinPlacementLatLng = null;
+    this.mobileSidebarExpanded = true;
+    this.locationEditModalOpen = true;
+    // Past the reopen, dismissals are real closes again.
+    this.pinPlacementHidingModal = false;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.pinPlacementActive) this.cancelPinPlacement();
   }
 
   async saveAoMetaFromModal(): Promise<void> {
@@ -2521,13 +2811,16 @@ export class MapPage implements OnInit, OnDestroy {
           (aoOrgFallback && aoOrgFallback > 0 ? aoOrgFallback : locationId);
     }
 
-    const locDirty = !locRecord ||
-        newLocName !== (locRecord.locationName ?? '').trim() ||
+    const addrDirty = !locRecord ||
         street !== (locRecord.addressStreet ?? '').trim() ||
         city !== (locRecord.addressCity ?? '').trim() ||
         zip !== (locRecord.addressZip ?? '').trim();
+    const missingCoords = !locRecord?.latitude || !locRecord?.longitude;
+    const coordsDirty = this.locationEditCoordsSource !== 'existing';
+    const locDirty = addrDirty || coordsDirty ||
+        newLocName !== (locRecord?.locationName ?? '').trim();
 
-    if (!locDirty) {
+    if (!locDirty && !missingCoords) {
       this.closeLocationEditModal();
       return;
     }
@@ -2536,16 +2829,41 @@ export class MapPage implements OnInit, OnDestroy {
     this.aoSaveError = null;
 
     try {
+      // The Nation API stores lat/lng verbatim (no server-side geocoding),
+      // and pins render only from those coords. A place pick or manual
+      // drag/entry is authoritative; otherwise re-geocode when the address
+      // changed or coords are missing — unless the pin was placed manually,
+      // which stays sticky across address edits.
+      let coords = this.locationEditCoords;
+      let pinManual = this.locationEditPinWasManual;
+      switch (this.locationEditCoordsSource) {
+        case 'manual':
+          pinManual = true;
+          break;
+        case 'place':
+        case 'address':
+          pinManual = false;
+          break;
+        default:
+          if ((addrDirty || missingCoords) && (street || city) && !pinManual) {
+            coords = await this.placeSearch.geocodeAddress(
+                         [street, city, 'ID', zip].filter(Boolean).join(', ')) ??
+                coords;
+          }
+      }
+
       await this.f3Api.createLocation({
         id: locationId,
         orgId: locOrgId,
         name: newLocName || `Location ${locationId}`,
         isActive: true,
+        ...(coords ? {latitude: coords.lat, longitude: coords.lng} : {}),
         ...(street ? {addressStreet: street} : {}),
         ...(city ? {addressCity: city} : {}),
         addressState: 'ID',
         ...(zip ? {addressZip: zip} : {}),
         addressCountry: 'US',
+        meta: {...(locRecord?.meta ?? {}), pinManuallyPlaced: pinManual},
       });
 
       const L = this.rawLocations.find(l => l.id === locationId);
@@ -2554,6 +2872,11 @@ export class MapPage implements OnInit, OnDestroy {
         if (street) L.addressStreet = street;
         if (city) L.addressCity = city;
         if (zip) L.addressZip = zip;
+        if (coords) {
+          L.latitude = coords.lat;
+          L.longitude = coords.lng;
+        }
+        L.meta = {...(L.meta ?? {}), pinManuallyPlaced: pinManual};
       }
       for (const ev of this.rawEvents) {
         if (ev.locationId === locationId) {

@@ -128,6 +128,8 @@ export interface F3Location {
   addressCity: string;
   addressState: string;
   addressZip: string;
+  /** Free-form JSON blob; the map editor stores `pinManuallyPlaced` here. */
+  meta?: Record<string, unknown>|null;
 }
 
 export interface ListOrgsParams {
