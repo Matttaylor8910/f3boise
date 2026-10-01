@@ -222,7 +222,12 @@ export class MapPage implements OnInit, OnDestroy {
   creatingAo = false;
   createAoError: string|null = null;
   newAoForm: NewAoForm = this.emptyNewAoForm();
-  private pendingLatLng: google.maps.LatLngLiteral|null = null;
+  /**
+   * Which modal the shared location-form machinery (place search, pin row,
+   * Advanced coords, drag-to-place) is currently serving: the edit-location
+   * modal or the New AO modal. They never open simultaneously.
+   */
+  private locationFormContext: 'edit'|'new' = 'edit';
 
   // AO / location edit modals (detail panel)
   aoMetaModalOpen = false;
@@ -1932,26 +1937,47 @@ export class MapPage implements OnInit, OnDestroy {
     if (!this.newAoRegionOptions.length) return;
     const latLng = event.latLng?.toJSON();
     if (!latLng) return;
-    this.pendingLatLng = latLng;
     this.newAoForm = this.emptyNewAoForm();
     const opts = this.newAoRegionOptions;
     if (opts.length >= 1) {
       this.newAoForm.regionId = opts[0].id;
     }
+    // Seed the shared location-form machinery with the clicked spot — a
+    // deliberate drop, so it's sticky like a dragged pin.
+    this.locationFormContext = 'new';
+    this.resetPlaceSearchState();
+    this.locationEditAdvancedOpen = false;
+    this.locationEditPinWasManual = false;
+    this.setLocationEditCoords(latLng, 'manual');
     this.createAoError = null;
     this.newAoModalOpen = true;
   }
 
   closeNewAoModal() {
     if (this.creatingAo) return;
+    // Hidden (not closed) while the user drags the pin on the map.
+    if (this.pinPlacementHidingModal) {
+      this.newAoModalOpen = false;
+      return;
+    }
     this.newAoModalOpen = false;
-    this.pendingLatLng = null;
     this.createAoError = null;
+    this.resetNewAoLocationFormState();
+  }
+
+  /** Clears the shared location-form state the New AO modal borrowed. */
+  private resetNewAoLocationFormState(): void {
+    this.setLocationEditCoords(null, 'existing');
+    this.locationEditPinWasManual = false;
+    this.locationEditAdvancedOpen = false;
+    this.resetPlaceSearchState();
+    this.locationFormContext = 'edit';
   }
 
   async createNewAo() {
     const name = this.newAoForm.name.trim();
-    if (!name || !this.pendingLatLng) return;
+    const coords = this.locationEditCoords;
+    if (!name || !coords) return;
     const allowed = new Set(this.permissions?.creatableRegionIds ?? []);
     if (!allowed.has(this.newAoForm.regionId)) {
       this.createAoError = 'Choose a region you are allowed to create AOs in.';
@@ -1964,6 +1990,12 @@ export class MapPage implements OnInit, OnDestroy {
     }
     this.creatingAo = true;
     this.createAoError = null;
+
+    // A place pick or address re-geocode is address-derived; a map click,
+    // dragged pin, or typed coordinates is a deliberate manual drop that
+    // stays sticky across future address edits.
+    const pinManual = this.locationEditCoordsSource !== 'place' &&
+        this.locationEditCoordsSource !== 'address';
 
     try {
       // Step 1: create the org (AO node in the hierarchy)
@@ -1983,8 +2015,8 @@ export class MapPage implements OnInit, OnDestroy {
         orgId: org.id,
         name,
         isActive: true,
-        latitude: this.pendingLatLng!.lat,
-        longitude: this.pendingLatLng!.lng,
+        latitude: coords.lat,
+        longitude: coords.lng,
         ...(this.newAoForm.addressStreet.trim() ?
                 {addressStreet: this.newAoForm.addressStreet.trim()} :
                 {}),
@@ -1996,9 +2028,7 @@ export class MapPage implements OnInit, OnDestroy {
                 {addressZip: this.newAoForm.addressZip.trim()} :
                 {}),
         addressCountry: 'US',
-        // Map-click placement is a deliberate pin drop — keep it sticky
-        // against future address-derived re-geocodes.
-        meta: {pinManuallyPlaced: true},
+        meta: {pinManuallyPlaced: pinManual},
       });
 
       // Tie org ↔ default location (API returns defaultLocationId: null until
@@ -2047,7 +2077,7 @@ export class MapPage implements OnInit, OnDestroy {
         addressCity: city,
         addressState: this.newAoForm.addressState.trim() || 'ID',
         addressZip: zip,
-        meta: {pinManuallyPlaced: true},
+        meta: {pinManuallyPlaced: pinManual},
       });
 
       this.selectedAo = null;
@@ -2057,13 +2087,27 @@ export class MapPage implements OnInit, OnDestroy {
               this.aos, {locationId: location.id, orgId: org.id}) ??
           null;
 
-      this.pendingLatLng = null;
       this.newAoModalOpen = false;
+      this.resetNewAoLocationFormState();
     } catch (e: any) {
-      this.createAoError = e.message ?? 'Failed to create AO';
+      this.createAoError = this.apiErrorMessage(e, 'Failed to create AO');
     } finally {
       this.creatingAo = false;
     }
+  }
+
+  /**
+   * Prefers the API's own error body (validation details) over Angular's
+   * generic "Http failure response for … 400 OK" message.
+   */
+  private apiErrorMessage(e: any, fallback: string): string {
+    const body = e?.error;
+    const msg = typeof body === 'string' ?
+        body :
+        body?.message ?? body?.error?.message ??
+            (typeof body?.error === 'string' ? body.error : undefined);
+    if (typeof msg === 'string' && msg.trim()) return msg.trim();
+    return e?.message ?? fallback;
   }
 
   /**
@@ -2390,6 +2434,7 @@ export class MapPage implements OnInit, OnDestroy {
   }
 
   private populateLocationFormForLocationId(locationId: number): void {
+    this.locationFormContext = 'edit';
     const loc = this.rawLocations.find(l => l.id === locationId);
     const eventsHere = this.rawEvents.filter(e => e.locationId === locationId);
     const firstEv = eventsHere[0];
@@ -2599,16 +2644,30 @@ export class MapPage implements OnInit, OnDestroy {
     const details = await this.placeSearch.getDetails(suggestion.placeId);
     this.placeSearchLoading = false;
     if (!details) {
-      this.aoSaveError = 'Could not load that place — try another result.';
+      const err = 'Could not load that place — try another result.';
+      if (this.locationFormContext === 'new') this.createAoError = err;
+      else this.aoSaveError = err;
       return;
     }
-    this.aoSaveError = null;
-    // A POI pick (park, school) carries a display name; keep it as the
-    // location name. Plain-address picks leave the current name alone.
-    if (details.name) this.aoEditLocationName = details.name;
-    if (details.street) this.aoEditAddressStreet = details.street;
-    if (details.city) this.aoEditAddressCity = details.city;
-    if (details.zip) this.aoEditAddressZip = details.zip;
+    if (this.locationFormContext === 'new') {
+      this.createAoError = null;
+      // A POI pick (park, school) seeds the AO name only while it's blank —
+      // AOs usually carry their own F3 name.
+      if (details.name && !this.newAoForm.name.trim()) {
+        this.newAoForm.name = details.name;
+      }
+      if (details.street) this.newAoForm.addressStreet = details.street;
+      if (details.city) this.newAoForm.addressCity = details.city;
+      if (details.zip) this.newAoForm.addressZip = details.zip;
+    } else {
+      this.aoSaveError = null;
+      // A POI pick (park, school) carries a display name; keep it as the
+      // location name. Plain-address picks leave the current name alone.
+      if (details.name) this.aoEditLocationName = details.name;
+      if (details.street) this.aoEditAddressStreet = details.street;
+      if (details.city) this.aoEditAddressCity = details.city;
+      if (details.zip) this.aoEditAddressZip = details.zip;
+    }
     this.setLocationEditCoords(
         {lat: details.lat, lng: details.lng}, 'place');
   }
@@ -2637,11 +2696,12 @@ export class MapPage implements OnInit, OnDestroy {
 
   /** Re-derive the pin from the typed address, clearing any manual pin. */
   async resetPinToAddress(): Promise<void> {
+    const isNew = this.locationFormContext === 'new';
     const address = [
-      this.aoEditAddressStreet.trim(),
-      this.aoEditAddressCity.trim(),
+      (isNew ? this.newAoForm.addressStreet : this.aoEditAddressStreet).trim(),
+      (isNew ? this.newAoForm.addressCity : this.aoEditAddressCity).trim(),
       'ID',
-      this.aoEditAddressZip.trim(),
+      (isNew ? this.newAoForm.addressZip : this.aoEditAddressZip).trim(),
     ].filter(Boolean).join(', ');
     if (!address) {
       this.locationEditCoordError = 'Add a street or city first.';
@@ -2684,7 +2744,8 @@ export class MapPage implements OnInit, OnDestroy {
   startPinPlacement(): void {
     if (this.pinPlacementActive) return;
     this.pinPlacementHidingModal = true;
-    this.locationEditModalOpen = false;
+    if (this.locationFormContext === 'new') this.newAoModalOpen = false;
+    else this.locationEditModalOpen = false;
     this.pinPlacementActive = true;
     this.pinPlacementLatLng =
         this.locationEditCoords ? {...this.locationEditCoords} :
@@ -2715,7 +2776,8 @@ export class MapPage implements OnInit, OnDestroy {
     this.pinPlacementActive = false;
     this.pinPlacementLatLng = null;
     this.mobileSidebarExpanded = true;
-    this.locationEditModalOpen = true;
+    if (this.locationFormContext === 'new') this.newAoModalOpen = true;
+    else this.locationEditModalOpen = true;
     // Past the reopen, dismissals are real closes again.
     this.pinPlacementHidingModal = false;
   }
@@ -2768,7 +2830,7 @@ export class MapPage implements OnInit, OnDestroy {
       this.rebuildDerivedFromRaw(true);
       this.closeAoMetaModal();
     } catch (e: any) {
-      this.aoSaveError = e.message ?? 'Failed to save changes';
+      this.aoSaveError = this.apiErrorMessage(e, 'Failed to save changes');
     } finally {
       this.aoSaving = false;
     }
@@ -2890,7 +2952,7 @@ export class MapPage implements OnInit, OnDestroy {
       this.rebuildDerivedFromRaw(true);
       this.closeLocationEditModal();
     } catch (e: any) {
-      this.aoSaveError = e.message ?? 'Failed to save location';
+      this.aoSaveError = this.apiErrorMessage(e, 'Failed to save location');
     } finally {
       this.aoSaving = false;
     }

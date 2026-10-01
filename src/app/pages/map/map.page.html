@@ -182,6 +182,42 @@
         <p class="modal-subtitle">Creates an org + location in F3 Nation</p>
       </div>
 
+      <div class="form-group place-search" *ngIf="placeSearchAvailable">
+        <label>Find a place</label>
+        <div class="place-search-box">
+          <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+          <input
+            type="text"
+            [(ngModel)]="placeSearchQuery"
+            (ngModelChange)="onPlaceSearchInput($event)"
+            (focus)="onPlaceSearchFocus()"
+            (blur)="onPlaceSearchBlur()"
+            (keydown)="onPlaceSearchKeydown($event)"
+            placeholder="Search a park, school, or address…"
+            autocomplete="off"
+            role="combobox"
+            [attr.aria-expanded]="placeDropdownOpen">
+          <ion-spinner *ngIf="placeSearchLoading" name="crescent"></ion-spinner>
+        </div>
+        <div class="place-suggestions" *ngIf="placeDropdownOpen && placeSuggestions.length" role="listbox">
+          <button
+            type="button"
+            *ngFor="let s of placeSuggestions; let i = index"
+            role="option"
+            [class.highlighted]="i === placeHighlightIndex"
+            [attr.aria-selected]="i === placeHighlightIndex"
+            (mousedown)="$event.preventDefault(); selectPlaceSuggestion(s)"
+            (mousemove)="placeHighlightIndex = i">
+            <ion-icon name="location-outline" aria-hidden="true"></ion-icon>
+            <span class="place-suggestion-text">
+              <span class="place-main">{{ s.mainText }}</span>
+              <span class="place-secondary" *ngIf="s.secondaryText">{{ s.secondaryText }}</span>
+            </span>
+          </button>
+        </div>
+        <p class="modal-hint">Picking a result fills the address and map pin in one go.</p>
+      </div>
+
       <div class="form-group">
         <label>AO Name <span class="required-star">*</span></label>
         <input type="text" [(ngModel)]="newAoForm.name" placeholder="e.g. Bleach">
@@ -210,10 +246,49 @@
         </div>
       </div>
 
+      <!-- Map pin -->
+      <div class="pin-row">
+        <div class="pin-row-main">
+          <ion-icon name="pin" aria-hidden="true"></ion-icon>
+          <span class="pin-coords" *ngIf="locationEditCoords">
+            {{ locationEditCoords.lat | number:'1.5-5' }}, {{ locationEditCoords.lng | number:'1.5-5' }}
+          </span>
+          <span class="pin-coords pin-coords--empty" *ngIf="!locationEditCoords">no pin</span>
+          <button type="button" class="pin-adjust-btn" (click)="startPinPlacement()" [disabled]="creatingAo">
+            <ion-icon name="move-outline" aria-hidden="true"></ion-icon>
+            Adjust on map
+          </button>
+        </div>
+        <p class="pin-status">{{ pinStatusLabel }}</p>
+      </div>
+
+      <!-- Advanced: raw coordinates -->
+      <button type="button" class="advanced-toggle" (click)="toggleLocationEditAdvanced()">
+        <ion-icon [name]="locationEditAdvancedOpen ? 'chevron-down-outline' : 'chevron-forward-outline'" aria-hidden="true"></ion-icon>
+        Advanced
+      </button>
+      <div class="advanced-section" *ngIf="locationEditAdvancedOpen">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Latitude</label>
+            <input type="text" inputmode="decimal" [(ngModel)]="locationEditLatInput" (ngModelChange)="onManualCoordInput()" placeholder="43.61500">
+          </div>
+          <div class="form-group">
+            <label>Longitude</label>
+            <input type="text" inputmode="decimal" [(ngModel)]="locationEditLngInput" (ngModelChange)="onManualCoordInput()" placeholder="-116.35000">
+          </div>
+        </div>
+        <button type="button" class="pin-reset-btn" (click)="resetPinToAddress()" [disabled]="locationEditPinResetting || creatingAo">
+          <ion-spinner *ngIf="locationEditPinResetting" name="crescent"></ion-spinner>
+          {{ locationEditPinResetting ? 'Locating…' : 'Reset pin from address' }}
+        </button>
+      </div>
+      <div class="save-error" *ngIf="locationEditCoordError">{{ locationEditCoordError }}</div>
+
       <div class="save-error" *ngIf="createAoError">{{ createAoError }}</div>
 
       <div class="modal-buttons">
-        <button class="btn-save" (click)="createNewAo()" [disabled]="!newAoForm.name.trim() || creatingAo">
+        <button class="btn-save" (click)="createNewAo()" [disabled]="!newAoForm.name.trim() || !locationEditCoords || creatingAo || !!locationEditCoordError">
           {{ creatingAo ? 'Creating…' : 'Create AO' }}
         </button>
         <button class="btn-cancel" (click)="closeNewAoModal()" [disabled]="creatingAo">Cancel</button>

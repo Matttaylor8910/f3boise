@@ -162,6 +162,8 @@ export interface CreateOrgRequest {
   /** API rejects requests without this — use '' or your region URL */
   website: string;
   email?: string|null;
+  /** Required key since late 2026 — {@link createOrg} defaults it to null */
+  phone?: string|null;
   twitter: string;
   facebook: string;
   instagram: string;
@@ -294,9 +296,11 @@ export class F3ApiService {
   }
 
   createOrg(body: CreateOrgRequest): Promise<CreateOrgResponse> {
+    // The API 400s unless the `phone` key is present (nullable is fine).
     return firstValueFrom(
         this.http.post<CreateOrgResponse>(
-            `${F3_API_BASE}/org`, body, {headers: this.postHeaders}),
+            `${F3_API_BASE}/org`, {phone: null, ...body},
+            {headers: this.postHeaders}),
     );
   }
 
