@@ -143,6 +143,7 @@ export class BestieWebPage implements OnInit, OnDestroy {
     if (!this.web) return;
     this.graph = buildBestieGraph(this.records, Number(this.minPosts));
     this.web.setGraph(this.graph);
+    if (this.selection) this.syncUrl(null);
     this.selection = null;
     this.calculateStats();
   }
@@ -210,6 +211,7 @@ export class BestieWebPage implements OnInit, OnDestroy {
   }
 
   private onSelect(node: BestieNode|null) {
+    this.syncUrl(node?.key ?? null);
     if (!node || !this.graph) {
       this.selection = null;
       return;
@@ -242,6 +244,16 @@ export class BestieWebPage implements OnInit, OnDestroy {
       color: webColor(node.web),
       admirers,
     };
+  }
+
+  /** Mirrors the current selection into the ?pax= param so the view is shareable. */
+  private syncUrl(key: string|null) {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {pax: key},
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   private calculateStats() {
