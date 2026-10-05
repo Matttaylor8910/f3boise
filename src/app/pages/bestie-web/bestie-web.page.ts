@@ -159,10 +159,6 @@ export class BestieWebPage implements OnInit, OnDestroy {
     this.web?.fit();
   }
 
-  shake() {
-    this.web?.reheat();
-  }
-
   /** Selects a HIM and brings the view to them. */
   focus(key: string) {
     this.clearSearch();

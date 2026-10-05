@@ -330,25 +330,6 @@
     background: var(--ion-color-medium);
   }
 
-  .legend-swatches {
-    display: inline-flex;
-    gap: 2px;
-
-    i {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: hsl(212, 62%, 52%);
-
-      &:nth-child(2) {
-        background: hsl(28, 62%, 52%);
-      }
-
-      &:nth-child(3) {
-        background: hsl(150, 62%, 52%);
-      }
-    }
-  }
 }
 
 @media (max-width: 700px) {

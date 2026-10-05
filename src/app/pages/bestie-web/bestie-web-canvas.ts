@@ -171,12 +171,6 @@ export class BestieWebCanvas {
     this.requestFrame();
   }
 
-  /** Gives the layout another shake. */
-  reheat() {
-    this.layout?.reheat(0.5);
-    this.requestFrame();
-  }
-
   private centerOn(node: BestieNode) {
     if (this.width === 0) {
       // not laid out yet, centre once the canvas gets its size
