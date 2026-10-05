@@ -109,6 +109,11 @@ const routes: Routes = [
     loadChildren: () => import('./pages/vs/vs.module').then(m => m.VsPageModule)
   },
   {
+    path: 'bestie-web',
+    loadChildren: () => import('./pages/bestie-web/bestie-web.module')
+                            .then(m => m.BestieWebPageModule)
+  },
+  {
     path: 'stats',
     loadChildren: () => import('./pages/dashboard/dashboard.module')
                             .then(m => m.DashboardPageModule)

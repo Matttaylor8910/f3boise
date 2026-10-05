@@ -1,0 +1,146 @@
+<ion-header>
+  <app-beatdown-breakdown-banner></app-beatdown-breakdown-banner>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <app-sidebar-toggle></app-sidebar-toggle>
+    </ion-buttons>
+    <ion-title>Bestie Web</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="fit()" title="Fit the whole web on screen">
+        <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
+      </ion-button>
+      <ion-button (click)="shake()" title="Give the web a shake">
+        <ion-icon slot="icon-only" name="shuffle-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- web stats -->
+  <div class="stat-tile-row" *ngIf="loaded">
+    <div class="stat-tile" *ngFor="let stat of stats">
+      <div class="stat-value">{{ stat.value }}</div>
+      <div class="stat-label">{{ stat.label }}</div>
+    </div>
+  </div>
+
+  <!-- search and post filter -->
+  <div class="controls" *ngIf="loaded">
+    <div class="search-wrap">
+      <ion-searchbar
+        mode="ios"
+        [value]="query"
+        (ionInput)="onSearch($event)"
+        (ionClear)="clearSearch()"
+        placeholder="Find a HIM on the web"
+        debounce="0">
+      </ion-searchbar>
+
+      <div class="search-results" *ngIf="searchResults.length > 0">
+        <button
+          type="button"
+          class="search-result"
+          *ngFor="let result of searchResults"
+          (click)="focus(result.key)">
+          <app-pax-avatar [name]="result.key" [size]="28"></app-pax-avatar>
+          <span class="result-name">{{ result.name }}</span>
+          <span class="result-posts">{{ result.posts }} {{ result.posts === 1 ? 'BD' : 'BDs' }}</span>
+        </button>
+      </div>
+      <div class="empty-search" *ngIf="query.trim() && searchResults.length === 0">
+        Nobody on the web matches "{{ query }}"
+      </div>
+    </div>
+
+    <ion-segment
+      mode="ios"
+      class="min-posts"
+      [ngModel]="minPosts"
+      (ngModelChange)="onMinPostsChange($event)">
+      <ion-segment-button *ngFor="let option of minPostsOptions" [value]="option.value">
+        <ion-label>{{ option.label }}</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+
+  <!-- the web itself -->
+  <div class="web-card">
+    <canvas #canvas></canvas>
+
+    <div class="web-loading" *ngIf="!loaded">
+      <h2>Spinning the web...</h2>
+      <ion-spinner></ion-spinner>
+    </div>
+
+    <div class="web-hint" *ngIf="loaded && !selection">
+      Tap a HIM to light up their web &middot; drag to pan &middot; pinch or scroll to zoom
+    </div>
+
+    <!-- who you tapped -->
+    <div class="selection-panel" *ngIf="selection">
+      <ion-button fill="clear" size="small" class="close-button" (click)="closeSelection()">
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
+
+      <div class="selection-header">
+        <app-pax-avatar [name]="selection.key" [size]="48" [clickable]="true"></app-pax-avatar>
+        <div class="selection-text">
+          <h2>
+            <span class="web-dot" [style.background]="selection.color"></span>
+            {{ selection.name }}
+          </h2>
+          <p>{{ selection.posts }} {{ selection.posts === 1 ? 'BD' : 'BDs' }} &middot; web of {{ selection.webSize }} PAX</p>
+        </div>
+      </div>
+
+      <div class="bestie-line">
+        <ion-icon name="arrow-forward" class="arrow"></ion-icon>
+        <span>
+          Bestie is
+          <a (click)="focus(selection.bestieKey)">{{ selection.bestieName }}</a>
+          ({{ selection.bestieCount }} {{ selection.bestieCount === 1 ? 'BD' : 'BDs' }} together)
+        </span>
+        <span class="mutual-badge" *ngIf="selection.mutual" title="They call each other bestie">
+          <ion-icon name="heart"></ion-icon> mutual
+        </span>
+      </div>
+
+      <div class="admirers" *ngIf="selection.admirers.length > 0">
+        <p class="admirers-title">
+          Bestie to {{ selection.admirers.length }} {{ selection.admirers.length === 1 ? 'HIM' : 'PAX' }}
+        </p>
+        <div class="admirer-chips">
+          <button
+            type="button"
+            class="admirer-chip"
+            *ngFor="let admirer of selection.admirers"
+            (click)="focus(admirer.key)">
+            {{ admirer.name }}
+            <span class="admirer-count">{{ admirer.count }}</span>
+          </button>
+        </div>
+      </div>
+      <p class="admirers-title" *ngIf="selection.admirers.length === 0">
+        Nobody calls {{ selection.name }} their bestie yet
+      </p>
+
+      <div class="selection-actions">
+        <ion-button size="small" fill="outline" (click)="goToPax(selection.key)">
+          PAX page
+        </ion-button>
+        <ion-button size="small" fill="outline" (click)="goToVs(selection.key, selection.bestieKey)">
+          VS {{ selection.bestieName }}
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- how to read it -->
+  <div class="legend" *ngIf="loaded">
+    <span class="legend-item"><span class="legend-arrow">&rarr;</span> points at their bestie</span>
+    <span class="legend-item"><span class="legend-arrow mutual">&harr;</span> mutual besties</span>
+    <span class="legend-item"><span class="legend-circle"></span> bigger = more PAX call them bestie</span>
+    <span class="legend-item"><span class="legend-swatches"><i></i><i></i><i></i></span> one colour per web</span>
+  </div>
+</ion-content>

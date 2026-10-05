@@ -24,3 +24,5 @@ etc
 https://f3boise.com/q-line-up  
 https://f3boise.com/backblasts  
 https://f3boise.com/ao/all/kotter  
+https://f3boise.com/family-tree  
+https://f3boise.com/bestie-web  

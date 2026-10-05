@@ -34,6 +34,12 @@ export class BestiesGridComponent {
         ['/vs', this.paxName.toLowerCase(), name.toLowerCase()]);
   }
 
+  async navigateToWeb() {
+    await this.modalController.dismiss();
+    this.router.navigate(
+        ['/bestie-web'], {queryParams: {pax: this.paxName.toLowerCase()}});
+  }
+
   close() {
     this.modalController.dismiss();
   }

@@ -2,6 +2,9 @@
   <ion-toolbar>
     <ion-title>{{ utilService.normalizeName(paxName) }}'s Top {{ besties.length }}</ion-title>
     <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="navigateToWeb()" title="See the bestie web">
+        <ion-icon name="git-network-outline" slot="icon-only"></ion-icon>
+      </ion-button>
       <ion-button fill="clear" (click)="close()">
         <ion-icon name="close" slot="icon-only"></ion-icon>
       </ion-button>
