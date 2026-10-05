@@ -23,13 +23,50 @@
       padding: 10px 12px;
     }
 
-    ion-input {
+    .value-wrap {
+      position: relative;
       flex: 1;
       max-width: 320px;
+      min-width: 160px;
+    }
+
+    .date-input {
+      flex: 0 1 200px;
     }
 
     ion-button {
       margin: 0;
+    }
+  }
+
+  .suggestions {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    z-index: 20;
+    margin-top: 4px;
+    background: var(--ion-card-background, var(--ion-background-color));
+    border-radius: 10px;
+    box-shadow: rgba(0, 0, 0, 0.18) 0px 6px 20px;
+    overflow: hidden;
+
+    .suggestion {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      color: var(--ion-text-color);
+      font-size: 0.95rem;
+      cursor: pointer;
+      text-align: left;
+
+      &:hover {
+        background: rgba(var(--ion-color-primary-rgb), 0.12);
+      }
     }
   }
 

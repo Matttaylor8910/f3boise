@@ -13,26 +13,53 @@
   <div class="filter-section">
     <div *ngFor="let rule of filterState.rules; let i = index" class="filter-rule">
       <!-- Field Dropdown -->
-      <ion-select [(ngModel)]="rule.field" interface="popover">
-        <ion-select-option value="qs">Qs</ion-select-option>
-        <ion-select-option value="pax">PAX</ion-select-option>
-        <ion-select-option value="ao">AO</ion-select-option>
+      <ion-select
+        [ngModel]="rule.field"
+        (ngModelChange)="onFieldChange(rule, $event)"
+        interface="popover">
+        <ion-select-option *ngFor="let field of fields" [value]="field.value">
+          {{ field.label }}
+        </ion-select-option>
       </ion-select>
 
       <!-- Operator Dropdown -->
-      <ion-select [(ngModel)]="rule.operator" interface="popover">
-        <ion-select-option *ngIf="rule.field !== 'ao'" value="includes">includes</ion-select-option>
-        <ion-select-option *ngIf="rule.field !== 'ao'" value="does not include">does not include</ion-select-option>
-        <ion-select-option *ngIf="rule.field === 'ao'" value="is">is</ion-select-option>
-        <ion-select-option *ngIf="rule.field === 'ao'" value="is not">is not</ion-select-option>
+      <ion-select
+        [ngModel]="rule.operator"
+        (ngModelChange)="onOperatorChange(rule, $event)"
+        interface="popover">
+        <ion-select-option *ngFor="let operator of fieldConfig(rule).operators" [value]="operator">
+          {{ operator }}
+        </ion-select-option>
       </ion-select>
 
-      <!-- Value Input -->
-      <ion-input
-        [(ngModel)]="rule.value"
-        placeholder="Enter value"
-        (keyup.enter)="applyFilter()"
-      ></ion-input>
+      <!-- Value Input with typeahead -->
+      <div class="value-wrap" *ngIf="rule.field !== 'date'; else dateInput">
+        <ion-input
+          [value]="rule.value"
+          [placeholder]="fieldConfig(rule).placeholder"
+          (ionInput)="onValueInput(rule, $event)"
+          (ionBlur)="hideSuggestions(rule)"
+        ></ion-input>
+
+        <div class="suggestions" *ngIf="rule.suggestions.length > 0">
+          <button
+            type="button"
+            class="suggestion"
+            *ngFor="let name of rule.suggestions"
+            (mousedown)="selectSuggestion(rule, name)">
+            <app-pax-avatar *ngIf="rule.field !== 'ao'" [name]="name" [size]="28"></app-pax-avatar>
+            <span>{{ utilService.normalizeName(name) }}</span>
+          </button>
+        </div>
+      </div>
+      <ng-template #dateInput>
+        <ion-input
+          class="date-input"
+          type="date"
+          [ngModel]="rule.value"
+          (ngModelChange)="onDateChange(rule, $event)"
+        ></ion-input>
+      </ng-template>
 
       <!-- Remove Filter Button -->
       <ion-button fill="clear" color="medium" (click)="removeFilterRule(i)">
@@ -44,10 +71,6 @@
       <ion-button fill="outline" size="small" (click)="addFilterRule()">
         <ion-icon name="add-outline" slot="start"></ion-icon>
         Add Filter
-      </ion-button>
-      <ion-button size="small" *ngIf="filterState.rules.length > 0" (click)="applyFilter()">
-        <ion-icon name="search-outline" slot="start"></ion-icon>
-        Search
       </ion-button>
     </div>
   </div>
