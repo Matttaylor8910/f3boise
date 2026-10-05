@@ -50,15 +50,27 @@
       </div>
     </div>
 
-    <ion-segment
-      mode="ios"
-      class="min-posts"
-      [ngModel]="minPosts"
-      (ngModelChange)="onMinPostsChange($event)">
-      <ion-segment-button *ngFor="let option of minPostsOptions" [value]="option.value">
-        <ion-label>{{ option.label }}</ion-label>
-      </ion-segment-button>
-    </ion-segment>
+    <div class="segment-stack">
+      <ion-segment
+        mode="ios"
+        class="time-range"
+        [ngModel]="timeRange"
+        (ngModelChange)="onTimeRangeChange($event)">
+        <ion-segment-button *ngFor="let option of timeRangeOptions" [value]="option.value">
+          <ion-label>{{ option.label }}</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+
+      <ion-segment
+        mode="ios"
+        class="min-posts"
+        [ngModel]="minPosts"
+        (ngModelChange)="onMinPostsChange($event)">
+        <ion-segment-button *ngFor="let option of minPostsOptions" [value]="option.value">
+          <ion-label>{{ option.label }}</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
   </div>
 
   <!-- the web itself -->

@@ -32,9 +32,13 @@
     }
   }
 
-  .min-posts {
+  .segment-stack {
     flex: 0 1 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
     margin-top: 6px;
+    min-width: 0;
   }
 }
 

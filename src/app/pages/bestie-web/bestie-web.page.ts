@@ -1,8 +1,10 @@
 import {Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
+import * as moment from 'moment';
 import {BackblastService} from 'src/app/services/backblast.service';
 import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
+import {Backblast} from 'types';
 
 import {BestieGraph, BestieNode, BestieRecord, buildBestieGraph, computeBesties} from './bestie-graph';
 import {BestieWebCanvas, webColor, WebTheme} from './bestie-web-canvas';
@@ -49,6 +51,18 @@ const MIN_POSTS_OPTIONS: MinPostsOption[] = [
   {label: '100+ BDs', value: '100'},
 ];
 
+interface TimeRangeOption {
+  label: string;
+  value: string;  // days back from today, '' = all time
+}
+
+const TIME_RANGE_OPTIONS: TimeRangeOption[] = [
+  {label: 'All time', value: ''},
+  {label: 'Past year', value: '365'},
+  {label: '90 days', value: '90'},
+  {label: '30 days', value: '30'},
+];
+
 const DEFAULT_MIN_POSTS = '5';
 const MAX_SEARCH_RESULTS = 8;
 
@@ -67,11 +81,15 @@ export class BestieWebPage implements OnInit, OnDestroy {
   readonly minPostsOptions = MIN_POSTS_OPTIONS;
   minPosts = DEFAULT_MIN_POSTS;
 
+  readonly timeRangeOptions = TIME_RANGE_OPTIONS;
+  timeRange = '';
+
   query = '';
   searchResults: SearchResult[] = [];
 
   selection: Selection|null = null;
 
+  private backblasts: Backblast[] = [];
   private records = new Map<string, BestieRecord>();
   private graph?: BestieGraph;
   private web?: BestieWebCanvas;
@@ -114,7 +132,8 @@ export class BestieWebPage implements OnInit, OnDestroy {
     }
     this.web.setAvatars(avatars);
 
-    this.records = computeBesties(backblasts);
+    this.backblasts = backblasts;
+    this.recomputeRecords();
     this.loaded = true;
 
     // a pax profile can deep-link here with that HIM pre-selected
@@ -138,13 +157,20 @@ export class BestieWebPage implements OnInit, OnDestroy {
     this.colorScheme?.removeEventListener?.('change', this.onSchemeChange);
   }
 
-  /** Builds the web for the current post filter. */
+  /** Builds the web for the current time range and post filter. */
   rebuild() {
     if (!this.web) return;
     this.graph = buildBestieGraph(this.records, Number(this.minPosts));
     this.web.setGraph(this.graph);
-    if (this.selection) this.syncUrl(null);
-    this.selection = null;
+
+    // keep the selected HIM lit up if they survived the filter change
+    const key = this.selection?.key;
+    if (key && this.graph.nodeMap.has(key)) {
+      this.web.select(key);
+    } else {
+      if (this.selection) this.syncUrl(null);
+      this.selection = null;
+    }
     this.calculateStats();
   }
 
@@ -152,6 +178,25 @@ export class BestieWebPage implements OnInit, OnDestroy {
     if (value === this.minPosts) return;
     this.minPosts = value;
     this.rebuild();
+  }
+
+  onTimeRangeChange(value: string) {
+    if (value === this.timeRange) return;
+    this.timeRange = value;
+    this.recomputeRecords();
+    this.rebuild();
+  }
+
+  /** Recomputes everyone's bestie from the backblasts in the time range. */
+  private recomputeRecords() {
+    const days = Number(this.timeRange);
+    let backblasts = this.backblasts;
+    if (days > 0) {
+      // ISO dates compare lexicographically
+      const cutoff = moment().subtract(days, 'days').format('YYYY-MM-DD');
+      backblasts = backblasts.filter(backblast => backblast.date >= cutoff);
+    }
+    this.records = computeBesties(backblasts);
   }
 
   fit() {
