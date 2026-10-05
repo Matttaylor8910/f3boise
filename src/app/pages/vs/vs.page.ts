@@ -98,6 +98,14 @@ export class VsPage implements OnInit {
         this.name1!.toLowerCase() === this.name2!.toLowerCase();
   }
 
+  get pageTitle(): string {
+    if (this.bothSelected && !this.samePaxSelected) {
+      return `${this.utilService.normalizeName(this.name1!)} vs ${
+          this.utilService.normalizeName(this.name2!)}`;
+    }
+    return 'Head to Head';
+  }
+
   private resolveName(param?: string): string|undefined {
     if (!param) return undefined;
     return this.namesByLower.get(decodeURIComponent(param).toLowerCase());
