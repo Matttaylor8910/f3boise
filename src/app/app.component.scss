@@ -33,4 +33,10 @@ ion-app {
     flex: 1;
     min-height: 0;
   }
+
+  // the banner already pads for the status bar, so the page header below it
+  // shouldn't add the notch inset a second time
+  &.has-update-banner {
+    --ion-safe-area-top: 0px;
+  }
 }

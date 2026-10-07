@@ -1,7 +1,8 @@
 <ion-app>
   <div class="app-container">
     <app-sidebar></app-sidebar>
-    <div class="main-content">
+    <div class="main-content" [class.has-update-banner]="updateReady$ | async">
+      <app-update-banner></app-update-banner>
       <ion-router-outlet class="app-outlet"></ion-router-outlet>
       <app-tab-bar></app-tab-bar>
     </div>

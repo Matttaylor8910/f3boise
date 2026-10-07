@@ -32,6 +32,7 @@ import {SidebarToggleComponent} from './sidebar-toggle/sidebar-toggle.component'
 import {SidebarComponent} from './sidebar/sidebar.component';
 import {TabBarComponent} from './tab-bar/tab-bar.component';
 import {TimeFilterComponent} from './time-filter/time-filter.component';
+import {UpdateBannerComponent} from './update-banner/update-banner.component';
 import {UserMenuPopoverComponent} from './user-menu-popover/user-menu-popover.component';
 import {WorkoutsNavComponent} from './workouts-nav/workouts-nav.component';
 import {BestieGuessComponent} from './wrapped/bestie-guess/bestie-guess.component';
@@ -76,6 +77,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     SidebarToggleComponent,
     TabBarComponent,
     TimeFilterComponent,
+    UpdateBannerComponent,
     UserMenuPopoverComponent,
     WorkoutsNavComponent,
     YearGridComponent,
@@ -130,6 +132,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     SidebarToggleComponent,
     TabBarComponent,
     TimeFilterComponent,
+    UpdateBannerComponent,
     UserMenuPopoverComponent,
     WorkoutsNavComponent,
     YearGridComponent,

@@ -7,6 +7,7 @@ import {AngularFireAuthModule} from '@angular/fire/compat/auth';
 import {AngularFirestoreModule} from '@angular/fire/compat/firestore';
 import {BrowserModule} from '@angular/platform-browser';
 import {RouteReuseStrategy} from '@angular/router';
+import {ServiceWorkerModule} from '@angular/service-worker';
 import {AnimationController, IonicModule, IonicRouteStrategy} from '@ionic/angular';
 import {environment} from 'src/environments/environment';
 
@@ -29,6 +30,14 @@ import {ComponentsModule} from './components/components.module';
     AngularFireAuthModule,
     AngularFirestoreModule,
     ComponentsModule,
+    // Register right away rather than waiting for Angular to report "stable":
+    // Firestore's live listeners keep it from ever settling, so the default
+    // strategy would wait the full 30s and a short first visit never got the
+    // app shell cached for the next launch.
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: environment.production,
+      registrationStrategy: 'registerImmediately',
+    }),
   ],
   providers: [
     ScreenTrackingService,
