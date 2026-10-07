@@ -1,4 +1,17 @@
-<ion-content [scrollY]="false" fullscreen>
+<ion-header>
+  <app-beatdown-breakdown-banner></app-beatdown-breakdown-banner>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <app-sidebar-toggle></app-sidebar-toggle>
+    </ion-buttons>
+    <ion-title>AO Map</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <app-workouts-nav></app-workouts-nav>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [scrollY]="false">
 
   <div *ngIf="initialLoading" class="loading-overlay">
     <ion-spinner name="crescent"></ion-spinner>

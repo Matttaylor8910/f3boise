@@ -1,11 +1,37 @@
 .workouts-nav {
-  padding: 8px 12px;
+  display: flex;
+  gap: 2px;
+  margin: 8px auto;
+  padding: 3px;
   max-width: 640px;
-  margin: 0 auto;
+  border-radius: 10px;
+  background: rgba(var(--ion-color-medium-rgb), 0.18);
 
-  ion-segment-button {
+  .view {
+    flex: 1;
+    min-width: 0;
     min-height: 36px;
+    padding: 6px 4px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    font-family: inherit;
     font-size: 13px;
-    text-transform: none;
+    font-weight: 600;
+    color: var(--ion-text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: background-color 0.15s;
+
+    &:hover {
+      background: rgba(var(--ion-color-medium-rgb), 0.15);
+    }
+
+    &.selected {
+      background: var(--ion-card-background, var(--ion-background-color));
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    }
   }
 }

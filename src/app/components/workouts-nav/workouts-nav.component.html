@@ -1,10 +1,11 @@
-<div class="workouts-nav">
-  <ion-segment mode="ios" [value]="current">
-    <ion-segment-button
-      *ngFor="let view of views"
-      [value]="view.route"
-      (click)="go(view.route)">
-      <ion-label>{{ view.label }}</ion-label>
-    </ion-segment-button>
-  </ion-segment>
-</div>
+<nav class="workouts-nav" aria-label="Workouts">
+  <button
+    type="button"
+    class="view"
+    *ngFor="let view of views"
+    [class.selected]="view.route === current"
+    [attr.aria-current]="view.route === current ? 'page' : null"
+    (click)="go(view.route)">
+    {{ view.label }}
+  </button>
+</nav>
