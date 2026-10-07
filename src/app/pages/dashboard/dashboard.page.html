@@ -17,6 +17,7 @@
         <div class="personal-header">
           <app-pax-avatar [name]="pax.name" [size]="44"></app-pax-avatar>
           <div class="personal-title">
+            <p class="eyebrow">Welcome back</p>
             <h1>{{ utilService.normalizeName(pax.name) }}</h1>
           </div>
           <ion-button fill="clear" size="small" routerLink="/pax/{{ pax.name.toLowerCase() }}">
