@@ -1,94 +1,295 @@
-.full-height-container {
-  max-height: 100%;
-  overflow: visible;
+// ── tokens: the grid's own palette, light and dark
+:host {
+  --grid-line: rgba(var(--ion-color-medium-rgb), 0.22);
+  --grid-head: var(--ion-card-background, var(--ion-background-color));
+  --grid-weekend: rgba(var(--ion-color-medium-rgb), 0.06);
+  --grid-today: rgba(238, 96, 89, 0.08);
+  --taken-bg: #2e7d32;
+  --taken-fg: #fff;
+  --open-fg: var(--ion-color-medium);
+  --soon-fg: var(--f3-red, #ee6059);
+  --closed-bg: rgba(var(--ion-color-medium-rgb), 0.14);
 }
 
-.hidden {
-  display: none;
+@media (prefers-color-scheme: dark) {
+  :host {
+    --grid-line: rgba(255, 255, 255, 0.1);
+    --grid-weekend: rgba(255, 255, 255, 0.03);
+    --grid-today: rgba(238, 96, 89, 0.14);
+    --taken-bg: #2f8f36;
+  }
 }
 
-.table-container {
-  flex-direction: column;
-  align-items: center;
-  overflow-x: auto;
-  overflow-y: auto;
-  width: 100%;
-  flex: 1;
+.lineup {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding-bottom: 24px;
+}
 
-  table {
-    border-collapse: initial;
-    border-spacing: 3px;
-    margin: auto;
-    width: max-content;
-    min-width: 100%;
+// ── intro
+.lineup-intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 12px;
 
-    th {
-      position: sticky;
-      top: 0;
-    }
+  .lineup-intro-text {
+    flex: 1;
+    min-width: 0;
+  }
 
-    th, td {
-      background: #333;
-      padding: 8px;
-      text-align: center;
-      min-width: 150px;
-      max-width: 300px;
+  h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+  }
 
-      &.warning {
-        border: 2px solid var(--ion-color-danger);
-      }
-      &.transparent {
-        opacity: .3;
-      }
-      &.taken {
-        background: #2a532a;
-      }
-      &.hide-text {
-        opacity: .2;
-      }
-      a {
-        color: #fff;
-      }
+  p {
+    margin: 4px 0 0;
+    color: var(--ion-color-medium);
+    font-size: 14px;
+    line-height: 1.4;
+
+    a {
+      font-weight: 600;
+      text-decoration: none;
     }
   }
 
-  // positioning garbage to keep the load more button centered
-  table {
-    margin-bottom: 100px;
-    position: relative;
-    z-index: 1;
-    background: #121212;
+  app-slack-link {
+    flex-shrink: 0;
+    margin-top: 2px;
   }
-  .load-more-container {
-    position: fixed;
-    left: 0;
-    bottom: 20px; // some offset for the scroll bars
-    height: 80px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
+
+  @media (max-width: 599px) {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+
+  .legend-item {
+    display: inline-flex;
     align-items: center;
+    gap: 6px;
+  }
+
+  .swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    box-sizing: border-box;
+
+    &.taken { background: var(--taken-bg); }
+    &.open { border: 1.5px dashed var(--open-fg); }
+    &.soon { border: 1.5px dashed var(--soon-fg); }
+    &.closed { background: var(--closed-bg); }
   }
 }
 
-@media (prefers-color-scheme: light) {
-  .table-container table {
-    background: #fff;
+// ── the grid
+.grid-scroller {
+  overflow: auto;
+  max-height: calc(100vh - 260px);
+  min-height: 240px;
+  border-top: 1px solid var(--grid-line);
+  border-bottom: 1px solid var(--grid-line);
+  -webkit-overflow-scrolling: touch;
+}
 
-    th, td {
-      background-color: #ccc;
+.grid {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: max-content;
+  min-width: 100%;
 
-      &.taken {
-        background: #4e964e;
-      }
-      &.transparent {
-        opacity: .3;
-      }
-    }
-    th a {
-      color: #000;
+  th, td {
+    padding: 6px 6px;
+    border-bottom: 1px solid var(--grid-line);
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 10px 8px;
+    background: var(--grid-head);
+    border-bottom: 2px solid var(--grid-line);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+
+    a {
+      color: var(--ion-text-color);
+      text-decoration: none;
     }
   }
+
+  td {
+    min-width: 118px;
+    max-width: 180px;
+  }
+
+  // the date column stays put while the AOs scroll
+  .date-col {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    min-width: 72px;
+    padding-left: 12px;
+    background: var(--grid-head);
+    border-right: 1px solid var(--grid-line);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  thead .date-col {
+    z-index: 3;
+  }
+
+  tbody .date-col {
+    .dow {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--ion-color-medium);
+    }
+
+    .day {
+      display: block;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+  }
+
+  tr.weekend td,
+  tr.weekend .date-col {
+    background: var(--grid-weekend);
+  }
+
+  tr.today {
+    td, .date-col {
+      background: var(--grid-today);
+    }
+
+    .date-col .dow {
+      color: var(--f3-red, #ee6059);
+    }
+  }
+
+  // the sticky date column needs a solid base under its tints
+  tbody .date-col {
+    background-image: linear-gradient(var(--grid-head), var(--grid-head));
+  }
+  tr.weekend .date-col {
+    background-image: linear-gradient(var(--grid-weekend), var(--grid-weekend));
+  }
+  tr.today .date-col {
+    background-image: linear-gradient(var(--grid-today), var(--grid-today));
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  td.dimmed .cell {
+    opacity: 0.25;
+  }
+}
+
+// ── cells
+.cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 34px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+
+  & + & {
+    margin-top: 4px;
+  }
+
+  &.taken {
+    background: var(--taken-bg);
+    color: var(--taken-fg);
+    padding-left: 4px;
+
+    app-pax-avatar {
+      flex-shrink: 0;
+    }
+
+    .name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  &.open {
+    background: none;
+    border: 1.5px dashed var(--open-fg);
+    color: var(--open-fg);
+    cursor: pointer;
+
+    ion-icon {
+      font-size: 14px;
+    }
+
+    &.soon {
+      border-color: var(--soon-fg);
+      color: var(--soon-fg);
+      border-style: solid;
+    }
+  }
+
+  &.closed {
+    background: var(--closed-bg);
+    color: var(--ion-color-medium);
+    font-weight: 500;
+  }
+}
+
+// ── the rest
+.empty {
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--ion-color-medium);
+
+  ion-icon {
+    font-size: 36px;
+  }
+
+  p {
+    margin: 8px 0 0;
+  }
+}
+
+.load-more {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
 }
 
 // show/hide the right toolbars for the right screen widths
@@ -101,9 +302,4 @@
   .mobile-toolbar {
     display: none;
   }
-}
-.center-container app-slack-link {
-  display: block;
-  margin: 4px auto 12px;
-  text-align: center;
 }

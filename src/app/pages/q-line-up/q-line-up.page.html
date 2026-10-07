@@ -29,52 +29,86 @@
 </ion-header>
 
 <ion-content>
-  <div class="full-height-container flex-column">
-    <div class="center-container">
-      <h2>
-        If you want to sign up to Q, use the <a href="https://docs.google.com/document/d/1hPpxsF7Zi2frYCTAs4skRielxEF23XcSSdXpje-LMzM" target="_blank">/post-q-sheet</a> command in slack
-      </h2>
+  <div class="lineup">
+    <!-- how to sign up, and what the colours mean -->
+    <div class="lineup-intro">
+      <div class="lineup-intro-text">
+        <h1>Who's got the Q</h1>
+        <p>
+          Tap an open slot to claim it in Slack, or run
+          <a href="https://docs.google.com/document/d/1hPpxsF7Zi2frYCTAs4skRielxEF23XcSSdXpje-LMzM" target="_blank" rel="noopener">/post-q-sheet</a>
+          in the AO channel.
+        </p>
+        <div class="legend">
+          <span class="legend-item"><span class="swatch taken"></span>Q'd</span>
+          <span class="legend-item"><span class="swatch open"></span>Open</span>
+          <span class="legend-item"><span class="swatch soon"></span>Needs a Q soon</span>
+          <span class="legend-item"><span class="swatch closed"></span>Closed</span>
+        </div>
+      </div>
       <app-slack-link></app-slack-link>
     </div>
-    <div class="table-container">
-      <table [class.hidden]="everythingHidden">
-        <tr>
-          <th>Date</th>
-          <th *ngFor="let ao of aos" [class.hidden]="ao.hidden">
-            <a routerLink="/ao/{{ao.name}}">{{ utilService.normalizeName(ao.name) }}</a>
-          </th>
-        </tr>
-        <tr *ngFor="let row of dates" [class.hidden]="row.hidden">
-          <td>{{ row.displayDate }}</td>
-          <td
-            [class.taken]="col.taken"
-            [class.warning]="col.warning"
-            [class.transparent]="col.transparent"
-            [class.hide-text]="col.hideText"
-            [class.hidden]="col.hidden"
-            *ngFor="let col of row.cols"
-          >
-            <!-- if closed, show that message -->
-            <span *ngIf="col.closed">
-              {{ col.text }}
-            </span>
-            <!-- if we have Qs, show names and link to pax pages -->
-            <span *ngIf="!col.closed && col.qs?.length">
-              <div *ngFor="let q of col.qs">
-                <a routerLink="/pax/{{q}}">{{ utilService.normalizeName(q) }}</a>
-              </div>
-            </span>
-          </td>
-        </tr>
+
+    <div class="grid-scroller" *ngIf="!everythingHidden; else nothing">
+      <table class="grid">
+        <thead>
+          <tr>
+            <th class="date-col">Date</th>
+            <th *ngFor="let ao of aos" [class.hidden]="ao.hidden">
+              <a routerLink="/ao/{{ ao.name }}">{{ utilService.normalizeName(ao.name) }}</a>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let row of dates"
+            [class.hidden]="row.hidden"
+            [class.today]="row.isToday"
+            [class.weekend]="row.isWeekend">
+            <th class="date-col" scope="row">
+              <span class="dow">{{ row.isToday ? 'Today' : row.dow }}</span>
+              <span class="day">{{ row.day }}</span>
+            </th>
+            <td *ngFor="let col of row.cols" [class.hidden]="col.hidden" [class.dimmed]="col.hideText">
+              <!-- the AO is closed that day -->
+              <span class="cell closed" *ngIf="col.closed">{{ col.text || 'Closed' }}</span>
+
+              <!-- someone has the Q -->
+              <ng-container *ngIf="!col.closed && col.taken">
+                <a class="cell taken" *ngFor="let q of col.qs" routerLink="/pax/{{ q.toLowerCase() }}">
+                  <app-pax-avatar [name]="q" [size]="22"></app-pax-avatar>
+                  <span class="name">{{ utilService.normalizeName(q) }}</span>
+                </a>
+              </ng-container>
+
+              <!-- the AO meets but nobody's signed up: a tap away from Slack -->
+              <button
+                type="button"
+                class="cell open"
+                [class.soon]="col.warning"
+                *ngIf="!col.closed && !col.taken && !col.transparent"
+                (click)="claim(col)">
+                <ion-icon name="logo-slack"></ion-icon>
+                {{ col.warning ? 'Needs a Q' : 'Open' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
       </table>
-      <h3 class="center-container" *ngIf="everythingHidden">
-        Nothing to see for "{{ filterText }}"
-      </h3>
-      <div class="load-more-container">
-        <ion-button fill="clear" (click)="loadMore()">
-          Load {{ days }} more days
-        </ion-button>
+    </div>
+
+    <ng-template #nothing>
+      <div class="empty">
+        <ion-icon name="search-outline"></ion-icon>
+        <p>Nothing on the line-up for "{{ filterText }}"</p>
       </div>
+    </ng-template>
+
+    <div class="load-more">
+      <ion-button fill="outline" size="small" (click)="loadMore()">
+        Load {{ days }} more days
+        <ion-icon name="chevron-down" slot="end"></ion-icon>
+      </ion-button>
     </div>
   </div>
 </ion-content>

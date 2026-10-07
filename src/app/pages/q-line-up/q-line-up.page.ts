@@ -2,11 +2,17 @@ import {Component} from '@angular/core';
 import * as moment from 'moment';
 import {QService} from 'src/app/services/q.service';
 import {UtilService} from 'src/app/services/util.service';
+import {openSlack} from 'src/app/util/slack';
 import {QLineUp} from 'types';
 
 interface DateRow {
   date: string;
-  displayDate: string;
+  /** Short weekday, e.g. "Thu". */
+  dow: string;
+  /** Month/day, e.g. "10/8". */
+  day: string;
+  isToday: boolean;
+  isWeekend: boolean;
   cols: QCell[];
   qs: Set<string>;
   hidden: boolean;
@@ -128,11 +134,7 @@ export class QLineUpPage {
   }
 
   addDate(date: string, cols: QCell[]) {
-    let displayDate = moment(date).format('ddd, M/D');
-    if (date === moment().format(FORMAT)) {
-      displayDate = `Today, ${moment(date).format('M/D')}`
-    }
-
+    const m = moment(date);
     const qs = new Set<string>();
     cols.forEach(col => {
       col.qs?.forEach(q => {
@@ -140,7 +142,21 @@ export class QLineUpPage {
       });
     });
 
-    this.dates.push({date, displayDate, cols, qs, hidden: false});
+    this.dates.push({
+      date,
+      dow: m.format('ddd'),
+      day: m.format('M/D'),
+      isToday: date === moment().format(FORMAT),
+      isWeekend: m.day() === 0 || m.day() === 6,
+      cols,
+      qs,
+      hidden: false,
+    });
+  }
+
+  /** An open slot: straight to the AO's Slack channel to claim it. */
+  claim(cell: QCell) {
+    openSlack(cell.ao);
   }
 
   applyFilter() {
