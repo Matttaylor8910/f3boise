@@ -154,6 +154,11 @@ export class QLineUpPage {
     });
   }
 
+  /** AO columns currently shown, which sizes the grid. */
+  get visibleAoCount(): number {
+    return this.aos.filter(ao => !ao.hidden).length;
+  }
+
   /** An open slot: straight to the AO's Slack channel to claim it. */
   claim(cell: QCell) {
     openSlack(cell.ao);

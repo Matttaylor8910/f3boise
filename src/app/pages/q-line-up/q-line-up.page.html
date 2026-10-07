@@ -50,7 +50,7 @@
     </div>
 
     <div class="grid-scroller" *ngIf="!everythingHidden; else nothing">
-      <table class="grid">
+      <table class="grid" [style.--ao-count]="visibleAoCount">
         <thead>
           <tr>
             <th class="date-col">Date</th>

@@ -106,10 +106,14 @@
 }
 
 .grid {
+  // every AO column the same width: at least 140px each, and when there's
+  // room the leftover is shared equally rather than handed to the widest
+  --date-col-w: 84px;
+  --ao-col-w: 140px;
   border-collapse: separate;
   border-spacing: 0;
-  width: max-content;
-  min-width: 100%;
+  table-layout: fixed;
+  width: max(100%, calc(var(--date-col-w) + var(--ao-count, 1) * var(--ao-col-w)));
 
   th, td {
     padding: 6px 6px;
@@ -136,8 +140,7 @@
   }
 
   td {
-    min-width: 118px;
-    max-width: 180px;
+    overflow: hidden;
   }
 
   // the date column stays put while the AOs scroll
@@ -145,7 +148,7 @@
     position: sticky;
     left: 0;
     z-index: 1;
-    min-width: 72px;
+    width: var(--date-col-w);
     padding-left: 12px;
     background: var(--grid-head);
     border-right: 1px solid var(--grid-line);
