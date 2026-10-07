@@ -253,6 +253,10 @@
                 <div class="progress-fill" [style.width.%]="m.pct"></div>
               </div>
               <p>{{ m.bds }} BDs &middot; {{ m.paceLabel }}</p>
+              <p class="milestone-tomorrow" *ngIf="m.tomorrowAo">
+                <ion-icon name="flame"></ion-icon>
+                HC'd for {{ m.tomorrowAo }} tomorrow &middot; should hit {{ m.next }} there
+              </p>
             </ion-label>
           </ion-item>
         </ion-list>

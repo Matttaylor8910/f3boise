@@ -33,6 +33,20 @@
       font-size: 0.8em;
     }
 
+    .milestone-tomorrow {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 2px;
+      color: var(--f3-red, #ee6059);
+      font-weight: 600;
+
+      ion-icon {
+        flex-shrink: 0;
+        font-size: 16px;
+      }
+    }
+
     .progress-track {
       height: 6px;
       border-radius: 4px;

@@ -9,6 +9,7 @@ import {BackblastService} from 'src/app/services/backblast.service';
 import {ChallengesService} from 'src/app/services/challenges.service';
 import {CurrentPaxService, MyAo} from 'src/app/services/current-pax.service';
 import {PaxService} from 'src/app/services/pax.service';
+import {PreblastHcService} from 'src/app/services/preblast-hc.service';
 import {QService} from 'src/app/services/q.service';
 import {UtilService} from 'src/app/services/util.service';
 import {WorkoutService} from 'src/app/services/workout.service';
@@ -101,6 +102,8 @@ interface MilestoneWatchItem {
   needed: number;
   pct: number;
   paceLabel: string;
+  /** Display name of the AO they've HC'd for tomorrow, when one BD away. */
+  tomorrowAo?: string;
 }
 
 interface FamilyGrower {
@@ -169,6 +172,7 @@ export class DashboardPage implements OnInit, OnDestroy {
       private readonly currentPaxService: CurrentPaxService,
       private readonly qService: QService,
       private readonly challengesService: ChallengesService,
+      private readonly preblastHcService: PreblastHcService,
       private readonly modalController: ModalController,
   ) {}
 
@@ -204,6 +208,9 @@ export class DashboardPage implements OnInit, OnDestroy {
 
     // tomorrow's list is ready now, so the personal filter of it can run
     this.filterTomorrowMine();
+
+    // hits the network, so let the page render first
+    await this.markMilestonesDueTomorrow();
   }
 
   async openLoginModal() {
@@ -589,6 +596,29 @@ export class DashboardPage implements OnInit, OnDestroy {
 
     this.milestoneWatch =
         watch.sort((a, b) => a.needed - b.needed || b.bds - a.bds).slice(0, 8);
+  }
+
+  /**
+   * A PAX one BD away who has HC'd for tomorrow's preblast gets a note saying
+   * where the milestone should land.
+   */
+  private async markMilestonesDueTomorrow() {
+    const oneAway = this.milestoneWatch.filter(m => m.needed === 1);
+    if (oneAway.length === 0) return;
+
+    const tomorrow = moment().add(1, 'day').format('YYYY-MM-DD');
+    const hcs = await this.preblastHcService.getHcs(tomorrow);
+    if (hcs.size === 0) return;
+
+    for (const item of oneAway) {
+      const lower = item.name.toLowerCase();
+      for (const [ao, pax] of hcs) {
+        if (pax.has(lower)) {
+          item.tomorrowAo = this.utilService.normalizeName(ao);
+          break;
+        }
+      }
+    }
   }
 
   private async calculateFamilyGrowers(allBds: Backblast[]) {
