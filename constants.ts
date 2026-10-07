@@ -43,7 +43,7 @@ export enum AO {
   DUCK_HUNT = 'duck hunt',
   IRON_MOUNTAIN = 'iron mountain',
   LIBERTY_PARK = 'liberty park',
-  RUCKERSHIP = 'ruckership',
+  OTB_RUCKERSHIP_CANYON = 'otb ruckership canyon',
   THE_EDGE = 'the edge',
   WAR_HORSE = 'war horse',
 
@@ -100,7 +100,7 @@ export const CANYON_AOS = new Set<string>([
   AO.DUCK_HUNT,
   AO.IRON_MOUNTAIN,
   AO.LIBERTY_PARK,
-  AO.RUCKERSHIP,
+  AO.OTB_RUCKERSHIP_CANYON,
   AO.THE_EDGE,
   AO.WAR_HORSE,
 

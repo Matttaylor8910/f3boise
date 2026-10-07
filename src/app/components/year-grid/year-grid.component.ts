@@ -348,7 +348,7 @@ export class YearGridComponent implements OnInit, OnChanges {
         return '#E0C248';
       case AO.RISE:
         return '#F39C12';
-      case AO.RUCKERSHIP:
+      case AO.OTB_RUCKERSHIP_CANYON:
         return '#FF8C00';
       case AO.RUCKERSHIP_EAST:
         return '#E67E22';
