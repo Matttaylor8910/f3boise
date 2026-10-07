@@ -1,5 +1,5 @@
 <div class="hc-popover">
-  <div class="title">{{ names.length }} HC'd</div>
+  <div class="title">{{ names.length }} {{ names.length === 1 ? 'HC' : 'HCs' }}</div>
   <ion-list lines="none">
     <ion-item button detail="false" *ngFor="let name of names" (click)="goToPax(name)">
       <app-pax-avatar slot="start" [name]="name" [size]="32"></app-pax-avatar>
