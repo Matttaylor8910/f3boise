@@ -92,6 +92,8 @@ export class TomorrowPage implements OnInit, OnDestroy {
     for (const bd of this.all) {
       bd.hcs = Array.from(hcs.get(bd.route) ?? []).sort();
     }
+    // the region subtitles count HCs, so refresh them
+    this.buildGroups();
   }
 
   private toBd(workout: Workout, tomorrowDay: string): TomorrowBd {
@@ -132,7 +134,7 @@ export class TomorrowPage implements OnInit, OnDestroy {
       if (bds.length > 0) {
         groups.push({
           title: region.name,
-          subtitle: `${bds.length} beatdown${bds.length === 1 ? '' : 's'}`,
+          subtitle: this.groupSubtitle(bds),
           route: region.route,
           bds,
         });
@@ -141,10 +143,31 @@ export class TomorrowPage implements OnInit, OnDestroy {
 
     const other = this.all.filter(bd => bd.region === 'Other');
     if (other.length > 0) {
-      groups.push({title: 'Elsewhere', subtitle: '', route: null, bds: other});
+      groups.push({
+        title: 'Elsewhere',
+        subtitle: this.groupSubtitle(other),
+        route: null,
+        bds: other,
+      });
     }
 
     this.groups = groups;
+  }
+
+  /** "3 beatdowns · 7 HCs": how much of the region is already committed. */
+  private groupSubtitle(bds: TomorrowBd[]): string {
+    const count = bds.length;
+    const hcs = bds.reduce((sum, bd) => sum + this.committedCount(bd), 0);
+    const parts = [`${count} beatdown${count === 1 ? '' : 's'}`];
+    if (hcs > 0) parts.push(`${hcs} HC${hcs === 1 ? '' : 's'}`);
+    return parts.join(' \u00b7 ');
+  }
+
+  /** The Q plus everyone who HC'd, the same count the pill under each shows. */
+  private committedCount(bd: TomorrowBd): number {
+    const q = bd.q?.trim().toLowerCase();
+    const others = bd.hcs.filter(name => name.toLowerCase() !== q).length;
+    return (q ? 1 : 0) + others;
   }
 
   private formatTime(time: string): string {
