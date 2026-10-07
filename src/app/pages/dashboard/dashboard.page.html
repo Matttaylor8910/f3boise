@@ -18,11 +18,6 @@
           <app-pax-avatar [name]="pax.name" [size]="44"></app-pax-avatar>
           <div class="personal-title">
             <h1>{{ utilService.normalizeName(pax.name) }}</h1>
-            <p *ngIf="tomorrowMine.length > 0">
-              {{ tomorrowMine.length === 1 ? 'One of your AOs posts tomorrow.' : tomorrowMine.length + ' of your AOs post tomorrow.' }}
-              <ng-container *ngIf="openSlots.length > 0">An open Q slot is waiting for you.</ng-container>
-            </p>
-            <p *ngIf="tomorrowMine.length === 0">Nothing at your AOs tomorrow. Try somewhere new?</p>
           </div>
           <ion-button fill="clear" size="small" routerLink="/pax/{{ pax.name.toLowerCase() }}">
             Full stats
