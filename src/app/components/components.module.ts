@@ -32,6 +32,7 @@ import {PAXNameComponent} from './pax-name/pax-name.component';
 import {QDepthChartComponent} from './q-depth-chart/q-depth-chart.component';
 import {RegionMapComponent} from './region-map/region-map.component';
 import {SidebarToggleComponent} from './sidebar-toggle/sidebar-toggle.component';
+import {SlackLinkComponent} from './slack-link/slack-link.component';
 import {SidebarComponent} from './sidebar/sidebar.component';
 import {TabBarComponent} from './tab-bar/tab-bar.component';
 import {TimeFilterComponent} from './time-filter/time-filter.component';
@@ -81,6 +82,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     PAXNameComponent,
     SidebarComponent,
     SidebarToggleComponent,
+    SlackLinkComponent,
     TabBarComponent,
     TimeFilterComponent,
     UpdateBannerComponent,
@@ -139,6 +141,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     PAXNameComponent,
     SidebarComponent,
     SidebarToggleComponent,
+    SlackLinkComponent,
     TabBarComponent,
     TimeFilterComponent,
     UpdateBannerComponent,

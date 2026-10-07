@@ -77,7 +77,7 @@
                   <app-pax-avatar [name]="bd.q" [size]="28"></app-pax-avatar>
                   <a routerLink="/pax/{{ bd.q.toLowerCase() }}">{{ utilService.normalizeName(bd.q) }}</a>
                 </span>
-                <ion-badge slot="end" color="primary" *ngIf="!bd.q">Open Q</ion-badge>
+                <app-slack-link slot="end" *ngIf="!bd.q" [ao]="bd.route" label="Claim the Q"></app-slack-link>
               </ion-item>
             </ion-list>
             <ion-button fill="clear" size="small" class="tile-footer-link" routerLink="/tomorrow">
@@ -98,16 +98,19 @@
                   <h2><a routerLink="/ao/{{ slot.route }}">{{ slot.ao }}</a></h2>
                   <p>{{ slot.dateLabel }}</p>
                 </ion-label>
-                <ion-badge slot="end" color="primary">Open Q</ion-badge>
+                <app-slack-link slot="end" [ao]="slot.route" label="Claim it"></app-slack-link>
               </ion-item>
             </ion-list>
             <ng-template #noSlots>
               <div class="tile-empty">Every slot at your AOs has a Q for the next two weeks.</div>
             </ng-template>
-            <ion-button fill="clear" size="small" class="tile-footer-link" routerLink="/q-line-up">
-              Full Q lineup
-              <ion-icon name="arrow-forward" slot="end"></ion-icon>
-            </ion-button>
+            <div class="tile-footer">
+              <ion-button fill="clear" size="small" class="tile-footer-link" routerLink="/q-line-up">
+                Full Q lineup
+                <ion-icon name="arrow-forward" slot="end"></ion-icon>
+              </ion-button>
+              <app-slack-link fill="clear"></app-slack-link>
+            </div>
           </ion-card>
 
           <!-- where they stand in the current challenges -->
@@ -221,16 +224,19 @@
               <app-pax-avatar [name]="bd.q" [size]="28"></app-pax-avatar>
               <a routerLink="/pax/{{ bd.q.toLowerCase() }}">{{ utilService.normalizeName(bd.q) }}</a>
             </span>
-            <ion-badge slot="end" color="primary" *ngIf="!bd.q">Open Q — claim it!</ion-badge>
+            <app-slack-link slot="end" *ngIf="!bd.q" [ao]="bd.route" label="Claim the Q"></app-slack-link>
           </ion-item>
         </ion-list>
         <ng-template #noTomorrow>
           <div class="tile-empty">No beatdowns on the calendar tomorrow. Rest up.</div>
         </ng-template>
-        <ion-button fill="clear" size="small" class="tile-footer-link" routerLink="/q-line-up">
-          Full Q lineup
-          <ion-icon name="arrow-forward" slot="end"></ion-icon>
-        </ion-button>
+        <div class="tile-footer">
+          <ion-button fill="clear" size="small" class="tile-footer-link" routerLink="/q-line-up">
+            Full Q lineup
+            <ion-icon name="arrow-forward" slot="end"></ion-icon>
+          </ion-button>
+          <app-slack-link fill="clear"></app-slack-link>
+        </div>
       </ion-card>
 
       <!-- milestone watch -->

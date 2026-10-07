@@ -14,10 +14,13 @@
 <ion-content>
   <ng-container *ngIf="loaded; else loading">
     <div class="page-intro">
-      <h1>Tomorrow, {{ tomorrowLabel }}</h1>
-      <p *ngIf="groups.length > 0">
-        {{ openCount === 0 ? 'Every beatdown has a Q.' : openCount + ' slot' + (openCount === 1 ? '' : 's') + ' still need a Q. Sign up with /post-q-sheet in Slack.' }}
-      </p>
+      <div class="page-intro-text">
+        <h1>Tomorrow, {{ tomorrowLabel }}</h1>
+        <p *ngIf="groups.length > 0">
+          {{ openCount === 0 ? 'Every beatdown has a Q.' : openCount + ' slot' + (openCount === 1 ? '' : 's') + ' still need a Q. Sign up with /post-q-sheet in Slack.' }}
+        </p>
+      </div>
+      <app-slack-link></app-slack-link>
     </div>
 
     <div class="tiles" *ngIf="groups.length > 0; else noBds">
@@ -42,7 +45,7 @@
               <app-pax-avatar [name]="bd.q" [size]="28"></app-pax-avatar>
               <a routerLink="/pax/{{ bd.q.toLowerCase() }}">{{ utilService.normalizeName(bd.q) }}</a>
             </span>
-            <ion-badge slot="end" color="primary" *ngIf="!bd.q">Open Q</ion-badge>
+            <app-slack-link slot="end" *ngIf="!bd.q" [ao]="bd.route" label="Claim the Q"></app-slack-link>
           </ion-item>
         </ion-list>
         <ion-button fill="clear" size="small" class="tile-footer-link" *ngIf="group.route" [routerLink]="group.route">
