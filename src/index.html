@@ -62,7 +62,9 @@
   <!-- Apple Web App Meta Tags -->
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <!-- Keep the status bar opaque: black-translucent makes iOS draw a light
+       scrim gradient over the top of the installed app (same fix as Dionysus). -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <meta name="apple-mobile-web-app-title" content="F3 Boise" />
 
   <!-- Microsoft Tiles -->
