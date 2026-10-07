@@ -1,0 +1,65 @@
+<ion-header>
+  <app-beatdown-breakdown-banner></app-beatdown-breakdown-banner>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <app-sidebar-toggle></app-sidebar-toggle>
+    </ion-buttons>
+    <ion-title>Workouts</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <app-workouts-nav></app-workouts-nav>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ng-container *ngIf="loaded; else loading">
+    <div class="page-intro">
+      <h1>Tomorrow, {{ tomorrowLabel }}</h1>
+      <p *ngIf="groups.length > 0">
+        {{ openCount === 0 ? 'Every beatdown has a Q.' : openCount + ' slot' + (openCount === 1 ? '' : 's') + ' still need a Q. Sign up with /post-q-sheet in Slack.' }}
+      </p>
+    </div>
+
+    <div class="tiles" *ngIf="groups.length > 0; else noBds">
+      <ion-card class="tile" *ngFor="let group of groups">
+        <ion-card-header>
+          <ion-card-title>{{ group.title }}</ion-card-title>
+          <ion-card-subtitle *ngIf="group.subtitle">{{ group.subtitle }}</ion-card-subtitle>
+        </ion-card-header>
+        <ion-list>
+          <ion-item *ngFor="let bd of group.bds">
+            <ion-icon [name]="bd.icon" slot="start" class="ao-icon"></ion-icon>
+            <ion-label class="ion-text-wrap">
+              <h2><a routerLink="/ao/{{ bd.route }}">{{ bd.ao }}</a></h2>
+              <p>
+                <span *ngIf="bd.time">{{ bd.time }}</span>
+                <span *ngIf="bd.time && bd.address"> &middot; </span>
+                <span *ngIf="bd.address">{{ bd.address }}</span>
+              </p>
+            </ion-label>
+            <span slot="end" class="q-slot" *ngIf="bd.q">
+              <app-pax-avatar [name]="bd.q" [size]="28"></app-pax-avatar>
+              <a routerLink="/pax/{{ bd.q.toLowerCase() }}">{{ utilService.normalizeName(bd.q) }}</a>
+            </span>
+            <ion-badge slot="end" color="primary" *ngIf="!bd.q">Open Q</ion-badge>
+          </ion-item>
+        </ion-list>
+        <ion-button fill="clear" size="small" class="tile-footer-link" *ngIf="group.route" [routerLink]="group.route">
+          {{ group.title }} stats
+          <ion-icon name="arrow-forward" slot="end"></ion-icon>
+        </ion-button>
+      </ion-card>
+    </div>
+
+    <ng-template #noBds>
+      <div class="tile-empty">No beatdowns on the calendar tomorrow. Rest up.</div>
+    </ng-template>
+  </ng-container>
+</ion-content>
+
+<ng-template #loading>
+  <div class="spinner-container">
+    <h2>Loading...</h2>
+    <ion-spinner></ion-spinner>
+  </div>
+</ng-template>

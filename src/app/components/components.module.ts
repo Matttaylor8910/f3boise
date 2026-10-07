@@ -30,8 +30,10 @@ import {QDepthChartComponent} from './q-depth-chart/q-depth-chart.component';
 import {RegionMapComponent} from './region-map/region-map.component';
 import {SidebarToggleComponent} from './sidebar-toggle/sidebar-toggle.component';
 import {SidebarComponent} from './sidebar/sidebar.component';
+import {TabBarComponent} from './tab-bar/tab-bar.component';
 import {TimeFilterComponent} from './time-filter/time-filter.component';
 import {UserMenuPopoverComponent} from './user-menu-popover/user-menu-popover.component';
+import {WorkoutsNavComponent} from './workouts-nav/workouts-nav.component';
 import {BestieGuessComponent} from './wrapped/bestie-guess/bestie-guess.component';
 import {CombinedBreakdownComponent} from './wrapped/combined-breakdown/combined-breakdown.component';
 import {DayBreakdownComponent} from './wrapped/day-breakdown/day-breakdown.component';
@@ -72,8 +74,10 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     PAXNameComponent,
     SidebarComponent,
     SidebarToggleComponent,
+    TabBarComponent,
     TimeFilterComponent,
     UserMenuPopoverComponent,
+    WorkoutsNavComponent,
     YearGridComponent,
     StatCardComponent,
     LeadershipImpactComponent,
@@ -124,8 +128,10 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     PAXNameComponent,
     SidebarComponent,
     SidebarToggleComponent,
+    TabBarComponent,
     TimeFilterComponent,
     UserMenuPopoverComponent,
+    WorkoutsNavComponent,
     YearGridComponent,
     StatCardComponent,
     LeadershipImpactComponent,

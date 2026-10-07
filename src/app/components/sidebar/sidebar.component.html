@@ -12,174 +12,126 @@
 
   <!-- Scrollable content wrapper -->
   <div class="sidebar-scrollable">
-    <!-- Regions Section -->
     <div class="sidebar-content">
-    <!-- Find PAX Search -->
-    <div class="sidebar-section pax-search-section">
-      <button
-        type="button"
-        class="nav-link find-pax-button"
-        [class.active]="paxSearchOpen"
-        (click)="togglePaxSearch()">
-        <ion-icon name="search"></ion-icon>
-        Find PAX
-      </button>
-      <div class="pax-search-panel" *ngIf="paxSearchOpen">
-        <input
-          #paxSearchInput
-          type="text"
-          class="pax-search-input"
-          placeholder="Search by name..."
-          [(ngModel)]="paxSearchQuery"
-          (input)="filterPaxResults()" />
-        <div class="pax-search-loading" *ngIf="paxSearchLoading">
-          <ion-spinner name="crescent"></ion-spinner>
-        </div>
-        <div class="pax-search-results" *ngIf="!paxSearchLoading">
-          <button
-            type="button"
-            class="ao-link"
-            *ngFor="let pax of paxSearchResults"
-            (click)="selectPax(pax)">
-            {{ pax.normalizedName }}
-          </button>
-          <div
-            class="pax-search-empty"
-            *ngIf="paxSearchQuery.trim() && paxSearchResults.length === 0">
-            No PAX found
+
+      <!-- Search PAX and AOs -->
+      <div class="sidebar-section pax-search-section">
+        <button
+          type="button"
+          class="nav-link find-pax-button"
+          [class.active]="paxSearchOpen"
+          (click)="togglePaxSearch()">
+          <ion-icon name="search"></ion-icon>
+          Find a PAX or AO
+        </button>
+        <div class="pax-search-panel" *ngIf="paxSearchOpen">
+          <input
+            #paxSearchInput
+            type="text"
+            class="pax-search-input"
+            placeholder="Search by name..."
+            [(ngModel)]="paxSearchQuery"
+            (input)="filterPaxResults()" />
+          <div class="pax-search-loading" *ngIf="paxSearchLoading">
+            <ion-spinner name="crescent"></ion-spinner>
+          </div>
+          <div class="pax-search-results" *ngIf="!paxSearchLoading">
+            <button
+              type="button"
+              class="ao-link search-result"
+              *ngFor="let entry of paxSearchResults"
+              (click)="selectPax(entry)">
+              <span>{{ entry.normalizedName }}</span>
+              <span class="result-kind">{{ entry.kind }}</span>
+            </button>
+            <div
+              class="pax-search-empty"
+              *ngIf="paxSearchQuery.trim() && paxSearchResults.length === 0">
+              No PAX or AO found
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Navigation Items -->
-    <div class="sidebar-section">
-      <!-- Home dashboard -->
-      <button
-        type="button"
-        class="nav-link"
-        [class.active]="homeItem.isActive"
-        (click)="navigate(homeItem.route)">
-        {{ homeItem.label }}
-      </button>
-      <!-- All Stats -->
-      <button
-        type="button"
-        class="nav-link"
-        [class.active]="allStatsItem.isActive"
-        (click)="navigate(allStatsItem.route)">
-        {{ allStatsItem.label }}
-      </button>
-      <!-- Double Downs link styled like AOs -->
-      <button
-        type="button"
-        class="ao-link"
-        style="padding-left: 40px;"
-        [class.active]="doubleDownsActive"
-        (click)="navigate('/dd/all')">
-        Double Downs
-      </button>
-      <!-- Challenges -->
-      <button
-        type="button"
-        class="nav-link"
-        [class.active]="otherNavigationItems[0].isActive"
-        (click)="navigate(otherNavigationItems[0].route)">
-        {{ otherNavigationItems[0].label }}
-      </button>
-      <!-- Current Challenges links styled like AOs -->
-      <button
-        type="button"
-        class="ao-link"
-        style="padding-left: 40px;"
-        *ngFor="let challenge of currentChallenges"
-        [class.active]="isChallengeActive(challenge)"
-        (click)="navigate('/challenges/' + challenge.id)">
-        {{ challenge.name }}
-      </button>
-      <!-- Other navigation items (skip Challenges since we handled it above) -->
-      <button
-        type="button"
-        class="nav-link"
-        *ngFor="let item of otherNavigationItems.slice(1)"
-        [class.active]="item.isActive"
-        (click)="navigate(item.route)">
-        {{ item.label }}
-      </button>
-    </div>
-
-    <!-- Regions Section -->
-    <div class="sidebar-section" *ngFor="let region of regions">
-      <div class="region-header">
-        <button
-          type="button"
-          class="region-link"
-          [class.active]="region.isActive"
-          (click)="navigate(region.route)">
-          {{ region.name }}
-        </button>
-        <ion-button
-          fill="clear"
-          class="collapse-toggle"
-          (click)="toggleRegionCollapse(region, $event)">
-          <ion-icon
-            [name]="region.collapsed ? 'chevron-down' : 'chevron-up'"
-            slot="icon-only">
-          </ion-icon>
-        </ion-button>
+      <!-- The daily stuff -->
+      <div class="sidebar-section">
+        <ng-container *ngFor="let item of mainItems">
+          <button
+            type="button"
+            class="nav-link with-icon"
+            [class.active]="item.isActive"
+            (click)="navigate(item.route)">
+            <ion-icon [name]="item.icon"></ion-icon>
+            {{ item.label }}
+          </button>
+          <!-- Current challenges nest under Challenges -->
+          <ng-container *ngIf="item.route === '/challenges'">
+            <button
+              type="button"
+              class="ao-link nested"
+              *ngFor="let challenge of currentChallenges"
+              [class.active]="isChallengeActive(challenge)"
+              (click)="navigate('/challenges/' + challenge.id)">
+              {{ challenge.name }}
+            </button>
+          </ng-container>
+        </ng-container>
       </div>
-      <div class="ao-list" [class.collapsed]="region.collapsed">
+
+      <!-- The signed-in PAX's own AOs -->
+      <div class="sidebar-section" *ngIf="pax">
+        <div class="group-title">My AOs</div>
         <button
           type="button"
           class="ao-link"
-          *ngFor="let ao of region.aos"
-          [class.active]="ao.isActive"
+          *ngFor="let ao of myAos"
+          [class.active]="isMyAoActive(ao)"
           (click)="navigate('/ao/' + ao.name)">
           {{ ao.normalizedName }}
         </button>
-      </div>
-    </div>
-
-    <!-- Other AO Sections (Region Agnostic and Discontinued) -->
-    <div class="sidebar-section" *ngFor="let section of otherAOSections">
-      <div class="region-header">
+        <div class="ao-link muted" *ngIf="myAos.length === 0">
+          Post at a few AOs and they'll show up here
+        </div>
         <button
           type="button"
-          class="region-link other-ao-section"
-          disabled>
-          {{ section.title }}
-        </button>
-        <ion-button
-          fill="clear"
-          class="collapse-toggle"
-          (click)="toggleOtherAOSectionCollapse(section, $event)">
-          <ion-icon
-            [name]="section.collapsed ? 'chevron-down' : 'chevron-up'"
-            slot="icon-only">
-          </ion-icon>
-        </ion-button>
-      </div>
-      <div class="ao-list" [class.collapsed]="section.collapsed">
-        <button
-          type="button"
-          class="ao-link"
-          *ngFor="let ao of section.aos"
-          [class.active]="ao.isActive"
-          (click)="navigate('/ao/' + ao.name)">
-          {{ ao.normalizedName }}
+          class="ao-link muted"
+          (click)="navigate('/aos')">
+          All AOs and regions
         </button>
       </div>
-    </div>
 
-    <div class="sidebar-section">
-      <ion-button
-        color="light"
-        fill="clear"
-        (click)="navigate('/')">
-        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
-        Back to the main site
-      </ion-button>
-    </div>
+      <!-- Explore and About, collapsible -->
+      <div class="sidebar-section" *ngFor="let group of groups">
+        <div class="region-header">
+          <button
+            type="button"
+            class="group-title as-button"
+            (click)="toggleGroup(group, $event)">
+            {{ group.title }}
+          </button>
+          <ion-button
+            fill="clear"
+            class="collapse-toggle"
+            (click)="toggleGroup(group, $event)">
+            <ion-icon
+              [name]="group.collapsed ? 'chevron-down' : 'chevron-up'"
+              slot="icon-only">
+            </ion-icon>
+          </ion-button>
+        </div>
+        <div class="ao-list" [class.collapsed]="group.collapsed">
+          <button
+            type="button"
+            class="nav-link with-icon secondary"
+            *ngFor="let item of group.items"
+            [class.active]="item.isActive"
+            (click)="navigate(item.route)">
+            <ion-icon [name]="item.icon"></ion-icon>
+            {{ item.label }}
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 

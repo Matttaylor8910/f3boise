@@ -1,0 +1,50 @@
+.page-intro {
+  max-width: 1500px;
+  margin: 16px auto 0;
+  padding: 0 16px;
+
+  h1 {
+    font-weight: bold;
+    margin: 0;
+  }
+
+  p {
+    margin: 4px 0 0;
+    color: var(--ion-color-medium);
+  }
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  align-items: start;
+  max-width: 1500px;
+  margin: 4px auto 0;
+
+  .tile {
+    ion-card-subtitle {
+      text-transform: none;
+      margin-top: 4px;
+    }
+
+    .ao-icon {
+      color: var(--ion-color-medium);
+    }
+
+    .q-slot {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tile-footer-link {
+      margin: 4px 8px 8px;
+    }
+  }
+}
+
+.tile-empty {
+  padding: 24px 16px;
+  color: var(--ion-color-medium);
+  text-align: center;
+}

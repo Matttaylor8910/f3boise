@@ -4,12 +4,194 @@
     <ion-buttons slot="start">
       <app-sidebar-toggle></app-sidebar-toggle>
     </ion-buttons>
-    <ion-title>F3 Boise Stats</ion-title>
+    <ion-title>{{ pax ? 'Home' : 'F3 Boise' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
   <ng-container *ngIf="loaded; else loading">
+
+    <!-- ===== the viewer's own corner of the page ===== -->
+    <ng-container *ngIf="pax && personalLoaded && myWeek; else claimPax">
+      <div class="personal">
+        <div class="personal-header">
+          <app-pax-avatar [name]="pax.name" [size]="44"></app-pax-avatar>
+          <div class="personal-title">
+            <h1>{{ utilService.normalizeName(pax.name) }}</h1>
+            <p *ngIf="tomorrowMine.length > 0">
+              {{ tomorrowMine.length === 1 ? 'One of your AOs posts tomorrow.' : tomorrowMine.length + ' of your AOs post tomorrow.' }}
+              <ng-container *ngIf="openSlots.length > 0">An open Q slot is waiting for you.</ng-container>
+            </p>
+            <p *ngIf="tomorrowMine.length === 0">Nothing at your AOs tomorrow. Try somewhere new?</p>
+          </div>
+          <ion-button fill="clear" size="small" routerLink="/pax/{{ pax.name.toLowerCase() }}">
+            Full stats
+            <ion-icon name="arrow-forward" slot="end"></ion-icon>
+          </ion-button>
+        </div>
+
+        <div class="stat-tile-row personal-tiles">
+          <div class="stat-tile">
+            <div class="stat-value">{{ myWeek.postsThisYear }}</div>
+            <div class="stat-label">Posts</div>
+            <div class="stat-sub">this year</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-value">{{ myWeek.qsThisYear }}</div>
+            <div class="stat-label">Qs</div>
+            <div class="stat-sub">this year</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-value">{{ myWeek.streakWeeks }}</div>
+            <div class="stat-label">Week streak</div>
+            <div class="stat-sub">{{ myWeek.streakWeeks === 1 ? 'week' : 'weeks' }} in a row with a post</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-value last-seen">{{ myWeek.lastSeen }}</div>
+            <div class="stat-label">Last seen</div>
+            <div class="stat-sub" *ngIf="myWeek.lastAo">
+              at <a routerLink="/ao/{{ myWeek.lastAoRoute }}">{{ myWeek.lastAo }}</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="my-aos" *ngIf="myAos.length > 0">
+          <span class="my-aos-label">Your AOs</span>
+          <ion-chip *ngFor="let ao of myAos" (click)="goToAo(ao.name)">
+            <ion-label>{{ ao.normalizedName }}</ion-label>
+          </ion-chip>
+        </div>
+
+        <div class="tiles">
+          <!-- tomorrow, filtered to where they post -->
+          <ion-card class="tile" *ngIf="tomorrowMine.length > 0">
+            <ion-card-header>
+              <ion-card-title>Tomorrow at your AOs</ion-card-title>
+              <ion-card-subtitle>Set your alarm</ion-card-subtitle>
+            </ion-card-header>
+            <ion-list>
+              <ion-item *ngFor="let bd of tomorrowMine">
+                <ion-icon [name]="bd.icon" slot="start" class="ao-icon"></ion-icon>
+                <ion-label class="ion-text-wrap">
+                  <h2><a routerLink="/ao/{{ bd.route }}">{{ bd.ao }}</a></h2>
+                  <p *ngIf="bd.time">{{ bd.time }}</p>
+                </ion-label>
+                <span slot="end" class="q-slot" *ngIf="bd.q">
+                  <app-pax-avatar [name]="bd.q" [size]="28"></app-pax-avatar>
+                  <a routerLink="/pax/{{ bd.q.toLowerCase() }}">{{ utilService.normalizeName(bd.q) }}</a>
+                </span>
+                <ion-badge slot="end" color="primary" *ngIf="!bd.q">Open Q</ion-badge>
+              </ion-item>
+            </ion-list>
+            <ion-button fill="clear" size="small" class="tile-footer-link" routerLink="/tomorrow">
+              All of tomorrow's beatdowns
+              <ion-icon name="arrow-forward" slot="end"></ion-icon>
+            </ion-button>
+          </ion-card>
+
+          <!-- open Q slots at their AOs -->
+          <ion-card class="tile">
+            <ion-card-header>
+              <ion-card-title>Open Q slots at your AOs</ion-card-title>
+              <ion-card-subtitle>Next 14 days. Sign up with /post-q-sheet in Slack.</ion-card-subtitle>
+            </ion-card-header>
+            <ion-list *ngIf="openSlots.length > 0; else noSlots">
+              <ion-item *ngFor="let slot of openSlots">
+                <ion-label class="ion-text-wrap">
+                  <h2><a routerLink="/ao/{{ slot.route }}">{{ slot.ao }}</a></h2>
+                  <p>{{ slot.dateLabel }}</p>
+                </ion-label>
+                <ion-badge slot="end" color="primary">Open Q</ion-badge>
+              </ion-item>
+            </ion-list>
+            <ng-template #noSlots>
+              <div class="tile-empty">Every slot at your AOs has a Q for the next two weeks.</div>
+            </ng-template>
+            <ion-button fill="clear" size="small" class="tile-footer-link" routerLink="/q-line-up">
+              Full Q lineup
+              <ion-icon name="arrow-forward" slot="end"></ion-icon>
+            </ion-button>
+          </ion-card>
+
+          <!-- where they stand in the current challenges -->
+          <ion-card class="tile" *ngIf="standings.length > 0">
+            <ion-card-header>
+              <ion-card-title>Your challenges</ion-card-title>
+              <ion-card-subtitle>Where you stand right now</ion-card-subtitle>
+            </ion-card-header>
+            <ion-list>
+              <ion-item *ngFor="let s of standings" button detail="false" routerLink="/challenges/{{ s.id }}">
+                <ion-label class="ion-text-wrap">
+                  <h2>
+                    {{ s.name }}
+                    <span class="milestone-target" *ngIf="s.joined && s.rank > 0">#{{ s.rank }} of {{ s.total }}</span>
+                  </h2>
+                  <ng-container *ngIf="s.joined; else notJoined">
+                    <div class="progress-track" *ngIf="s.goal">
+                      <div class="progress-fill" [style.width.%]="s.pct"></div>
+                    </div>
+                    <p>
+                      {{ s.value }} {{ s.metricLabel }}<ng-container *ngIf="s.goal"> of {{ s.goal }}</ng-container>
+                    </p>
+                  </ng-container>
+                  <ng-template #notJoined>
+                    <p>You haven't joined this one yet. Tap to join.</p>
+                  </ng-template>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+          </ion-card>
+
+          <!-- what's new where they post -->
+          <ion-card class="tile" *ngIf="recentMine.length > 0">
+            <ion-card-header>
+              <ion-card-title>New at your AOs</ion-card-title>
+              <ion-card-subtitle>The latest backblasts where you post</ion-card-subtitle>
+            </ion-card-header>
+            <ion-list>
+              <ion-item *ngFor="let bb of recentMine" button detail="false" routerLink="/backblasts/{{ bb.id }}">
+                <ion-label class="ion-text-wrap">
+                  <h2>{{ bb.title || bb.ao }}</h2>
+                  <p>
+                    {{ bb.ao }} &middot; {{ bb.dateLabel }}
+                    <ng-container *ngIf="bb.qs.length > 0"> &middot; Q
+                      <ng-container *ngFor="let q of bb.qs; let last = last">{{ utilService.normalizeName(q) }}<ng-container *ngIf="!last"> &amp; </ng-container></ng-container>
+                    </ng-container>
+                  </p>
+                </ion-label>
+                <ion-note slot="end">{{ bb.paxCount }} PAX</ion-note>
+              </ion-item>
+            </ion-list>
+            <ion-button fill="clear" size="small" class="tile-footer-link" routerLink="/backblasts">
+              All backblasts
+              <ion-icon name="arrow-forward" slot="end"></ion-icon>
+            </ion-button>
+          </ion-card>
+        </div>
+      </div>
+
+      <h1 class="section-title">Around the region</h1>
+    </ng-container>
+
+    <!-- signed out, or signed in but not matched to a PAX -->
+    <ng-template #claimPax>
+      <ion-card class="claim-card" *ngIf="!pax">
+        <ion-card-header>
+          <ion-card-title>{{ user ? 'Link your PAX' : 'Already a PAX?' }}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ng-container *ngIf="!user">
+            Sign in to see your streak, your AOs, tomorrow's Q and the open slots you could fill.
+            <div class="claim-actions">
+              <ion-button color="primary" (click)="openLoginModal()">Sign in</ion-button>
+            </div>
+          </ng-container>
+          <ng-container *ngIf="user">
+            We couldn't match your email to a PAX. Ask Backslash in Slack to link it and this page becomes yours.
+          </ng-container>
+        </ion-card-content>
+      </ion-card>
+    </ng-template>
 
     <!-- region pulse -->
     <div class="stat-tile-row">

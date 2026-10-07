@@ -1,0 +1,10 @@
+<div class="workouts-nav">
+  <ion-segment mode="ios" [value]="current">
+    <ion-segment-button
+      *ngFor="let view of views"
+      [value]="view.route"
+      (click)="go(view.route)">
+      <ion-label>{{ view.label }}</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+</div>

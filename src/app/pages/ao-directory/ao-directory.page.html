@@ -1,0 +1,136 @@
+<ion-header>
+  <app-beatdown-breakdown-banner></app-beatdown-breakdown-banner>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <app-sidebar-toggle></app-sidebar-toggle>
+    </ion-buttons>
+    <ion-title>Stats</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      mode="ios"
+      [(ngModel)]="query"
+      placeholder="Find a PAX or an AO"
+      [debounce]="150"
+      (ionInput)="search()"
+      (ionClear)="clearSearch()">
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="directory">
+
+    <!-- search results replace the directory while typing -->
+    <ng-container *ngIf="query.trim(); else browse">
+      <ion-card class="section-card">
+        <ion-card-header>
+          <ion-card-title>Results</ion-card-title>
+          <ion-card-subtitle *ngIf="!searchLoading">
+            {{ results.length === 0 ? 'Nothing matches "' + query.trim() + '"' : results.length + (results.length === 1 ? ' match' : ' matches') }}
+          </ion-card-subtitle>
+        </ion-card-header>
+        <div class="search-loading" *ngIf="searchLoading">
+          <ion-spinner name="crescent"></ion-spinner>
+        </div>
+        <ion-list *ngIf="!searchLoading && results.length > 0">
+          <ion-item *ngFor="let result of results" button detail="true" (click)="go(result.route)">
+            <ion-icon slot="start" [name]="result.kind === 'PAX' ? 'person-outline' : 'location-outline'" class="result-icon"></ion-icon>
+            <ion-label>
+              <h2>{{ result.name }}</h2>
+              <p>{{ result.kind }}</p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-card>
+    </ng-container>
+
+    <ng-template #browse>
+      <!-- the signed-in PAX's own AOs -->
+      <ion-card class="section-card" *ngIf="pax">
+        <ion-card-header>
+          <ion-card-title>My AOs</ion-card-title>
+          <ion-card-subtitle>Where {{ utilService.normalizeName(pax.name) }} posts most, last 90 days</ion-card-subtitle>
+        </ion-card-header>
+        <div class="chip-row">
+          <ion-chip *ngFor="let ao of myAos" (click)="go('/ao/' + ao.name)">
+            <ion-label>{{ ao.normalizedName }}</ion-label>
+          </ion-chip>
+          <ion-chip outline (click)="go('/pax/' + pax.name.toLowerCase())">
+            <ion-icon name="person-outline"></ion-icon>
+            <ion-label>My stats</ion-label>
+          </ion-chip>
+        </div>
+      </ion-card>
+
+      <!-- region-wide views -->
+      <ion-card class="section-card">
+        <ion-list>
+          <ion-item button detail="true" (click)="go('/ao/all')">
+            <ion-icon slot="start" name="globe-outline" class="result-icon"></ion-icon>
+            <ion-label>
+              <h2>All of Boise</h2>
+              <p>Every AO and region, all time</p>
+            </ion-label>
+          </ion-item>
+          <ion-item button detail="true" (click)="go('/dd/all')">
+            <ion-icon slot="start" name="layers-outline" class="result-icon"></ion-icon>
+            <ion-label>
+              <h2>Double Downs</h2>
+              <p>Stats for the second workout of the day</p>
+            </ion-label>
+          </ion-item>
+          <ion-item button detail="true" (click)="go('/ao/all/kotter')">
+            <ion-icon slot="start" name="call-outline" class="result-icon"></ion-icon>
+            <ion-label>
+              <h2>Kotter report</h2>
+              <p>Who hasn't posted in a while and could use a call</p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-card>
+
+      <!-- every region and its AOs -->
+      <div class="tiles">
+        <ion-card class="section-card" *ngFor="let region of regions">
+          <ion-card-header>
+            <ion-card-title>
+              <a [routerLink]="region.route">{{ region.name }}</a>
+            </ion-card-title>
+            <ion-card-subtitle>{{ region.aos.length }} AOs &middot; <a [routerLink]="region.route">region stats</a></ion-card-subtitle>
+          </ion-card-header>
+          <ion-list>
+            <ion-item *ngFor="let ao of region.aos" button detail="false" (click)="go(ao.route)">
+              <ion-label>{{ ao.normalizedName }}</ion-label>
+            </ion-item>
+          </ion-list>
+        </ion-card>
+      </div>
+
+      <!-- the odd ones out -->
+      <ion-card class="section-card">
+        <ion-list>
+          <ion-item *ngFor="let ao of regionAgnostic" button detail="true" (click)="go(ao.route)">
+            <ion-label>
+              <h2>{{ ao.normalizedName }}</h2>
+              <p>Region agnostic, counts toward every region</p>
+            </ion-label>
+          </ion-item>
+          <ion-item button detail="false" (click)="showDiscontinued = !showDiscontinued">
+            <ion-label>
+              <h2>Discontinued AOs</h2>
+              <p>Closed, but their history is still here</p>
+            </ion-label>
+            <ion-icon slot="end" [name]="showDiscontinued ? 'chevron-up' : 'chevron-down'"></ion-icon>
+          </ion-item>
+          <ng-container *ngIf="showDiscontinued">
+            <ion-item *ngFor="let ao of discontinued" button detail="false" class="nested" (click)="go(ao.route)">
+              <ion-label>{{ ao.normalizedName }}</ion-label>
+            </ion-item>
+          </ng-container>
+        </ion-list>
+      </ion-card>
+    </ng-template>
+
+  </div>
+</ion-content>

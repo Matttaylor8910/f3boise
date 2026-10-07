@@ -200,6 +200,72 @@
     padding-right: 8px;
   }
 
+  // section labels ("My AOs", "Explore", "About F3")
+  .group-title {
+    display: block;
+    flex: 1;
+    text-align: left;
+    padding: 14px 24px 6px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    font-family: inherit;
+    width: 100%;
+
+    &.as-button {
+      cursor: pointer;
+
+      &:hover {
+        color: rgba(255, 255, 255, 0.8);
+      }
+    }
+  }
+
+  .nav-link.with-icon {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    ion-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+      opacity: 0.85;
+    }
+
+    &.secondary {
+      font-weight: 500;
+      font-size: 15px;
+      padding-top: 9px;
+      padding-bottom: 9px;
+    }
+  }
+
+  .ao-link.nested {
+    padding-left: 56px;
+  }
+
+  .ao-link.muted {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+  }
+
+  .search-result {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    .result-kind {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.4);
+    }
+  }
+
   .region-link,
   .nav-link {
     display: block;

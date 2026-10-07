@@ -12,33 +12,25 @@ ion-app {
 
 .app-container {
   display: flex;
-  min-height: 100vh; /* Fallback for browsers that don't support dvh */
-  min-height: 100dvh; /* Use dynamic viewport height for mobile Safari */
+  height: 100vh; /* Fallback for browsers that don't support dvh */
+  height: 100dvh; /* Use dynamic viewport height for mobile Safari */
   width: 100%;
   position: relative;
   overflow-x: hidden;
 }
 
+// the routed page fills the column above the mobile tab bar
 .main-content {
   flex: 1;
   min-width: 0; // Prevent overflow
-  transition: margin-left 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
   position: relative;
   z-index: 1;
-}
 
-// On mobile, when sidebar is open, shift content
-@media (max-width: 1023px) {
-  .main-content {
-    margin-left: 0;
-  }
-}
-
-// On desktop, sidebar is part of flex layout
-@media (min-width: 1024px) {
-  .main-content {
+  .app-outlet {
+    position: relative;
     flex: 1;
-    min-width: 0;
-    z-index: 1;
+    min-height: 0;
   }
 }

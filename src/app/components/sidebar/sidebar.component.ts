@@ -5,42 +5,35 @@ import * as moment from 'moment';
 import {filter, Subscription} from 'rxjs';
 import {AuthService} from 'src/app/services/auth.service';
 import {ChallengesService} from 'src/app/services/challenges.service';
+import {CurrentPaxService, MyAo} from 'src/app/services/current-pax.service';
 import {PaxService} from 'src/app/services/pax.service';
 import {SidebarService} from 'src/app/services/sidebar.service';
 import {UtilService} from 'src/app/services/util.service';
-import {Challenge} from 'types';
+import {Challenge, Pax} from 'types';
 
-import {CANYON_AOS, CITY_OF_TREES_AOS, DISCONTINUED_AOS, HIGH_DESERT_AOS, REGION_AGNOSTIC_AOS, SETTLERS_AOS} from '../../../../constants';
-
-interface AoInfo {
-  name: string;
-  normalizedName: string;
-  isActive: boolean;
-}
-
-interface RegionInfo {
-  name: string;
-  route: string;
-  aos: AoInfo[];
-  isActive: boolean;
-  collapsed: boolean;
-}
-
-interface OtherAOSection {
-  title: string;
-  aos: AoInfo[];
-  collapsed: boolean;
-}
+import {CANYON_AOS, CITY_OF_TREES_AOS, HIGH_DESERT_AOS, REGION_AGNOSTIC_AOS, SETTLERS_AOS} from '../../../../constants';
 
 interface NavigationItem {
   label: string;
   route: string;
+  icon: string;
+  /** URL prefixes that count as "inside" this item. */
+  matches: string[];
   isActive: boolean;
 }
 
-interface PaxSearchEntry {
+interface NavGroup {
+  key: string;
+  title: string;
+  items: NavigationItem[];
+  collapsed: boolean;
+}
+
+interface SearchEntry {
   name: string;
   normalizedName: string;
+  kind: 'PAX'|'AO';
+  route: string;
 }
 
 @Component({
@@ -59,37 +52,141 @@ export class SidebarComponent implements OnInit, OnDestroy {
   // Routes that should hide sidebar (public static pages and special views)
   private staticPages = ['/', '/fng', '/workouts'];
 
-  regions: RegionInfo[] = [];
-
-  homeItem: NavigationItem = {label: 'Home', route: '/stats', isActive: false};
-
-  navigationItems: NavigationItem[] = [
-    {label: 'All Stats', route: '/ao/all', isActive: false},
-    {label: 'Challenges', route: '/challenges', isActive: false},
-    {label: 'Backblasts', route: '/backblasts', isActive: false},
-    {label: 'Calendar', route: '/calendar', isActive: false},
-    {label: 'Family Tree', route: '/family-tree', isActive: false},
-    {label: 'Head to Head', route: '/vs', isActive: false},
-    {label: 'Bestie Web', route: '/bestie-web', isActive: false},
-    {label: 'AO Map', route: '/map', isActive: false},
-    {label: 'Q Line Up', route: '/q-line-up', isActive: false},
-    {label: 'Exicon', route: '/exicon', isActive: false},
+  /** The things people check on daily or weekly. */
+  mainItems: NavigationItem[] = [
+    {
+      label: 'Home',
+      route: '/stats',
+      icon: 'home-outline',
+      matches: ['/stats'],
+      isActive: false,
+    },
+    {
+      label: 'Workouts',
+      route: '/tomorrow',
+      icon: 'location-outline',
+      matches: ['/tomorrow', '/q-line-up', '/calendar', '/map'],
+      isActive: false,
+    },
+    {
+      label: 'Stats',
+      route: '/aos',
+      icon: 'stats-chart-outline',
+      matches: ['/aos', '/ao/', '/region/', '/dd/'],
+      isActive: false,
+    },
+    {
+      label: 'Backblasts',
+      route: '/backblasts',
+      icon: 'document-text-outline',
+      matches: ['/backblasts'],
+      isActive: false,
+    },
+    {
+      label: 'Challenges',
+      route: '/challenges',
+      icon: 'trophy-outline',
+      matches: ['/challenges'],
+      isActive: false,
+    },
   ];
 
-  allStatsItem: NavigationItem = this.navigationItems[0];
-  otherNavigationItems: NavigationItem[] = this.navigationItems.slice(1);
+  /** The fun stuff and the public site, grouped and collapsible. */
+  groups: NavGroup[] = [
+    {
+      key: 'explore',
+      title: 'Explore',
+      collapsed: false,
+      items: [
+        {
+          label: 'Family Tree',
+          route: '/family-tree',
+          icon: 'git-network-outline',
+          matches: ['/family-tree'],
+          isActive: false,
+        },
+        {
+          label: 'Bestie Web',
+          route: '/bestie-web',
+          icon: 'people-outline',
+          matches: ['/bestie-web'],
+          isActive: false,
+        },
+        {
+          label: 'Head to Head',
+          route: '/vs',
+          icon: 'swap-horizontal-outline',
+          matches: ['/vs'],
+          isActive: false,
+        },
+        {
+          label: `${new Date().getFullYear()} in Review`,
+          route: `/${new Date().getFullYear()}`,
+          icon: 'sparkles-outline',
+          matches: [`/${new Date().getFullYear()}`],
+          isActive: false,
+        },
+        {
+          label: 'Random Backblast',
+          route: '/lucky',
+          icon: 'shuffle-outline',
+          matches: ['/lucky'],
+          isActive: false,
+        },
+      ],
+    },
+    {
+      key: 'about',
+      title: 'About F3',
+      collapsed: true,
+      items: [
+        {
+          label: 'Main site',
+          route: '/',
+          icon: 'globe-outline',
+          matches: ['/'],
+          isActive: false,
+        },
+        {
+          label: 'New here? (FNG)',
+          route: '/fng',
+          icon: 'hand-right-outline',
+          matches: ['/fng'],
+          isActive: false,
+        },
+        {
+          label: 'Workouts & schedule',
+          route: '/workouts',
+          icon: 'calendar-outline',
+          matches: ['/workouts'],
+          isActive: false,
+        },
+        {
+          label: 'Exicon',
+          route: '/exicon',
+          icon: 'book-outline',
+          matches: ['/exicon'],
+          isActive: false,
+        },
+      ],
+    },
+  ];
 
-  otherAOSections: OtherAOSection[] = [];
-  doubleDownsActive = false;
   currentChallenges: Challenge[] = [];
   private challengesSubscription?: Subscription;
+
+  pax?: Pax;
+  myAos: MyAo[] = [];
+  activeAo = '';
+  private paxSubscription?: Subscription;
 
   @ViewChild('paxSearchInput') paxSearchInput?: ElementRef<HTMLInputElement>;
   paxSearchOpen = false;
   paxSearchQuery = '';
-  paxSearchResults: PaxSearchEntry[] = [];
+  paxSearchResults: SearchEntry[] = [];
   paxSearchLoading = false;
-  private allPaxEntries: PaxSearchEntry[] = [];
+  private allPaxEntries: SearchEntry[] = [];
+  private aoEntries: SearchEntry[] = [];
   private readonly maxPaxResults = 30;
 
   constructor(
@@ -100,117 +197,36 @@ export class SidebarComponent implements OnInit, OnDestroy {
       private readonly toastController: ToastController,
       private readonly challengesService: ChallengesService,
       private readonly paxService: PaxService,
+      private readonly currentPaxService: CurrentPaxService,
   ) {}
 
   ngOnInit() {
     // Handle email link sign-in (check on every page load)
     this.handleEmailLinkSignIn();
 
-    // Initialize regions with normalized AO names
-    // Filter out region-agnostic AOs from region lists
-    const regionAgnosticSet = REGION_AGNOSTIC_AOS;
-    const filterOutRegionAgnostic = (ao: string) => !regionAgnosticSet.has(ao);
+    // Every AO is searchable alongside PAX
+    const allAos = new Set<string>([
+      ...CITY_OF_TREES_AOS,
+      ...HIGH_DESERT_AOS,
+      ...SETTLERS_AOS,
+      ...CANYON_AOS,
+      ...REGION_AGNOSTIC_AOS,
+    ]);
+    this.aoEntries = Array.from(allAos)
+                         .map((ao): SearchEntry => ({
+                                name: ao,
+                                normalizedName: this.utilService.normalizeName(ao),
+                                kind: 'AO',
+                                route: `/ao/${ao}`,
+                              }))
+                         .sort((a, b) => a.normalizedName.localeCompare(b.normalizedName));
 
-    const regionData = [
-      {
-        name: 'City of Trees',
-        route: '/region/city-of-trees',
-        aos: Array.from(CITY_OF_TREES_AOS)
-                 .filter(filterOutRegionAgnostic)
-                 .map(ao => ({
-                        name: ao,
-                        normalizedName: this.utilService.normalizeName(ao),
-                        isActive: false,
-                      })),
-        isActive: false,
-      },
-      {
-        name: 'High Desert',
-        route: '/region/high-desert',
-        aos: Array.from(HIGH_DESERT_AOS)
-                 .filter(filterOutRegionAgnostic)
-                 .map(ao => ({
-                        name: ao,
-                        normalizedName: this.utilService.normalizeName(ao),
-                        isActive: false,
-                      })),
-        isActive: false,
-      },
-      {
-        name: 'Settlers',
-        route: '/region/settlers',
-        aos: Array.from(SETTLERS_AOS)
-                 .filter(filterOutRegionAgnostic)
-                 .map(ao => ({
-                        name: ao,
-                        normalizedName: this.utilService.normalizeName(ao),
-                        isActive: false,
-                      })),
-        isActive: false,
-      },
-      {
-        name: 'Canyon',
-        route: '/region/canyon',
-        aos: Array.from(CANYON_AOS)
-                 .filter(filterOutRegionAgnostic)
-                 .map(ao => ({
-                        name: ao,
-                        normalizedName: this.utilService.normalizeName(ao),
-                        isActive: false,
-                      })),
-        isActive: false,
-      },
-    ];
-
-    // Sort regions alphabetically
-    regionData.sort((a, b) => a.name.localeCompare(b.name));
-
-    // Load collapsed state from localStorage and apply to regions
-    this.regions = regionData.map(region => {
-      const storageKey = `sidebar-region-collapsed-${region.route}`;
-      const collapsedState = localStorage.getItem(storageKey);
+    // Remember which groups the viewer collapsed
+    this.groups = this.groups.map(group => {
+      const stored = localStorage.getItem(`sidebar-group-collapsed-${group.key}`);
       return {
-        ...region,
-        collapsed: collapsedState === 'true',
-      };
-    });
-
-    // Initialize other AO sections (region-agnostic and discontinued)
-    this.otherAOSections = [
-      {
-        title: 'Region Agnostic',
-        aos: Array.from(REGION_AGNOSTIC_AOS)
-                 .sort()
-                 .map(ao => ({
-                        name: ao,
-                        normalizedName: this.utilService.normalizeName(ao),
-                        isActive: false,
-                      })),
-        collapsed: false,  // Default: expanded
-      },
-      {
-        title: 'Discontinued',
-        aos: Array.from(DISCONTINUED_AOS)
-                 .sort()
-                 .map(ao => ({
-                        name: ao,
-                        normalizedName: this.utilService.normalizeName(ao),
-                        isActive: false,
-                      })),
-        collapsed: true,  // Default: collapsed
-      },
-    ];
-
-    // Load collapsed state for other AO sections from localStorage
-    this.otherAOSections = this.otherAOSections.map(section => {
-      const storageKey = `sidebar-section-collapsed-${
-          section.title.toLowerCase().replace(/\s+/g, '-')}`;
-      const collapsedState = localStorage.getItem(storageKey);
-      // If there's a stored value, use it; otherwise use the default
-      return {
-        ...section,
-        collapsed: collapsedState !== null ? collapsedState === 'true' :
-                                             section.collapsed,
+        ...group,
+        collapsed: stored !== null ? stored === 'true' : group.collapsed,
       };
     });
 
@@ -240,6 +256,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
     // Load current challenges
     this.loadCurrentChallenges();
+
+    // Pin the signed-in PAX's own AOs
+    this.paxSubscription =
+        this.currentPaxService.pax$.subscribe(async (pax: Pax|undefined) => {
+          this.pax = pax;
+          this.myAos = pax ? await this.currentPaxService.getMyAos(pax.name) :
+                             [];
+        });
   }
 
   checkMobile() {
@@ -262,6 +286,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.subscription?.unsubscribe();
     this.routerSubscription?.unsubscribe();
     this.challengesSubscription?.unsubscribe();
+    this.paxSubscription?.unsubscribe();
     if (this.resizeListener) {
       window.removeEventListener('resize', this.resizeListener);
     }
@@ -303,9 +328,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
         const allPax = await this.paxService.getAllData();
         this.allPaxEntries =
             allPax
-                .map(pax => ({
+                .map((pax): SearchEntry => ({
                        name: pax.name,
                        normalizedName: this.utilService.normalizeName(pax.name),
+                       kind: 'PAX',
+                       route: `/pax/${pax.name.toLowerCase()}`,
                      }))
                 .sort((a, b) => a.normalizedName.localeCompare(b.normalizedName));
       } finally {
@@ -321,17 +348,20 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.paxSearchResults = [];
       return;
     }
-    this.paxSearchResults =
-        this.allPaxEntries
-            .filter(pax => pax.normalizedName.toLowerCase().includes(query))
-            .slice(0, this.maxPaxResults);
+    const matches = (entry: SearchEntry) =>
+        entry.normalizedName.toLowerCase().includes(query);
+    // AOs first (there are only a few), then PAX
+    this.paxSearchResults = [
+      ...this.aoEntries.filter(matches),
+      ...this.allPaxEntries.filter(matches),
+    ].slice(0, this.maxPaxResults);
   }
 
-  selectPax(pax: PaxSearchEntry) {
+  selectPax(entry: SearchEntry) {
     this.paxSearchOpen = false;
     this.paxSearchQuery = '';
     this.paxSearchResults = [];
-    this.navigate(`/pax/${pax.name.toLowerCase()}`);
+    this.navigate(entry.route);
   }
 
   navigate(route: string) {
@@ -345,23 +375,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.close();
   }
 
-  toggleRegionCollapse(region: RegionInfo, event: Event) {
-    event.stopPropagation();  // Prevent navigation when clicking toggle button
-    region.collapsed = !region.collapsed;
-
-    // Save to localStorage
-    const storageKey = `sidebar-region-collapsed-${region.route}`;
-    localStorage.setItem(storageKey, String(region.collapsed));
-  }
-
-  toggleOtherAOSectionCollapse(section: OtherAOSection, event: Event) {
-    event.stopPropagation();  // Prevent navigation when clicking toggle button
-    section.collapsed = !section.collapsed;
-
-    // Save to localStorage
-    const storageKey = `sidebar-section-collapsed-${
-        section.title.toLowerCase().replace(/\s+/g, '-')}`;
-    localStorage.setItem(storageKey, String(section.collapsed));
+  toggleGroup(group: NavGroup, event: Event) {
+    event.stopPropagation();
+    group.collapsed = !group.collapsed;
+    localStorage.setItem(
+        `sidebar-group-collapsed-${group.key}`, String(group.collapsed));
   }
 
   private loadCurrentChallenges() {
@@ -385,86 +403,35 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return currentUrl === `/challenges/${challenge.id}`;
   }
 
+  isMyAoActive(ao: MyAo): boolean {
+    return this.activeAo === ao.name;
+  }
+
   private updateActiveStates() {
     const currentUrl = this.router.url.split('?')[0];  // Remove query params
-    const currentUrlLower = currentUrl.toLowerCase();
+    const lower = currentUrl.toLowerCase();
 
-    // Update navigation items
-    this.homeItem.isActive = currentUrl === this.homeItem.route;
-    this.navigationItems.forEach(item => {
-      item.isActive = currentUrl === item.route;
+    const isInside = (item: NavigationItem) => item.matches.some(prefix => {
+      if (prefix === '/') return lower === '/';
+      const dir = prefix.endsWith('/') ? prefix : prefix + '/';
+      return lower === prefix || lower.startsWith(dir);
     });
 
-    // Update Double Downs active state
-    this.doubleDownsActive = currentUrl === '/dd/all';
-
-    // First, reset all regions, AOs, and other AO sections
-    for (const region of this.regions) {
-      region.isActive = false;
-      region.aos.forEach(ao => {
-        ao.isActive = false;
-      });
-    }
-    for (const section of this.otherAOSections) {
-      section.aos.forEach(ao => {
-        ao.isActive = false;
-      });
+    this.mainItems.forEach(item => item.isActive = isInside(item));
+    for (const group of this.groups) {
+      group.items.forEach(item => item.isActive = isInside(item));
     }
 
-    // Check if we're on an AO page
-    if (currentUrlLower.startsWith('/ao/')) {
-      // Get the AO name from URL - router.url should already be decoded, but
-      // handle both cases
-      let aoNameFromUrl =
-          currentUrlLower.replace('/ao/', '').split('?')[0].trim();
-
-      // Try to decode if it's still encoded (handles %20, etc.)
+    // Highlight the pinned AO when viewing its page
+    this.activeAo = '';
+    if (lower.startsWith('/ao/')) {
+      let aoNameFromUrl = lower.replace('/ao/', '').split('/')[0].trim();
       try {
         aoNameFromUrl = decodeURIComponent(aoNameFromUrl);
       } catch (e) {
         // If decoding fails, use as-is (already decoded)
       }
-
-      // Normalize: replace + with space and lowercase
-      const normalizedAoName =
-          aoNameFromUrl.replace(/\+/g, ' ').toLowerCase().trim();
-
-      // Find which region or other AO section contains this AO
-      // Only highlight the AO, not its parent region
-      let found = false;
-      for (const region of this.regions) {
-        const aoFound = region.aos.find(ao => {
-          const normalizedAoInList = ao.name.toLowerCase().trim();
-          return normalizedAoInList === normalizedAoName;
-        });
-        if (aoFound) {
-          // Don't set region.isActive = true, only highlight the AO
-          aoFound.isActive = true;
-          found = true;
-          break;  // Found it, no need to continue
-        }
-      }
-      // If not found in regions, check other AO sections
-      if (!found) {
-        for (const section of this.otherAOSections) {
-          const aoFound = section.aos.find(ao => {
-            const normalizedAoInList = ao.name.toLowerCase().trim();
-            return normalizedAoInList === normalizedAoName;
-          });
-          if (aoFound) {
-            aoFound.isActive = true;
-            break;
-          }
-        }
-      }
-    } else {
-      // Check if we're on a region page
-      for (const region of this.regions) {
-        if (currentUrl.startsWith(region.route)) {
-          region.isActive = true;
-          break;
-        }
-      }
+      this.activeAo = aoNameFromUrl.replace(/\+/g, ' ').toLowerCase().trim();
     }
   }
 

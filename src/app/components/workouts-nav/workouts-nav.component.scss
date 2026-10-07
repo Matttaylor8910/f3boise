@@ -1,0 +1,11 @@
+.workouts-nav {
+  padding: 8px 12px;
+  max-width: 640px;
+  margin: 0 auto;
+
+  ion-segment-button {
+    min-height: 36px;
+    font-size: 13px;
+    text-transform: none;
+  }
+}

@@ -119,6 +119,16 @@ const routes: Routes = [
                             .then(m => m.DashboardPageModule)
   },
   {
+    path: 'tomorrow',
+    loadChildren: () => import('./pages/tomorrow/tomorrow.module')
+                            .then(m => m.TomorrowPageModule)
+  },
+  {
+    path: 'aos',
+    loadChildren: () => import('./pages/ao-directory/ao-directory.module')
+                            .then(m => m.AoDirectoryPageModule)
+  },
+  {
     path: ':year',
     loadChildren: () =>
         import('./pages/beatdown-breakdown/beatdown-breakdown.module')

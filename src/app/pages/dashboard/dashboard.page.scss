@@ -155,3 +155,72 @@
     }
   }
 }
+
+// ===== the personal section =====
+.personal {
+  max-width: 1500px;
+  margin: 0 auto;
+
+  .personal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 16px 0;
+
+    .personal-title {
+      flex: 1;
+      min-width: 0;
+
+      h1 {
+        margin: 0;
+        font-weight: bold;
+        font-size: 1.5rem;
+      }
+
+      p {
+        margin: 2px 0 0;
+        color: var(--ion-color-medium);
+      }
+    }
+  }
+
+  .personal-tiles .stat-value.last-seen {
+    font-size: 1.4rem;
+    line-height: 1.7;
+  }
+
+  .my-aos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 12px 0;
+
+    .my-aos-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--ion-color-medium);
+      margin-right: 4px;
+    }
+
+    ion-chip {
+      cursor: pointer;
+    }
+  }
+}
+
+.section-title {
+  max-width: 1500px;
+  margin: 24px auto 0;
+  padding: 0 16px;
+  font-weight: bold;
+}
+
+.claim-card {
+  max-width: 1500px;
+  margin: 16px auto 0;
+
+  .claim-actions {
+    margin-top: 12px;
+  }
+}

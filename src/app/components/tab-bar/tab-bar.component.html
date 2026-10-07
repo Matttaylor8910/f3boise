@@ -1,0 +1,15 @@
+<nav class="tab-bar" *ngIf="visible" aria-label="Main">
+  <button
+    type="button"
+    class="tab"
+    *ngFor="let tab of tabs"
+    [class.active]="tab.isActive"
+    (click)="go(tab)">
+    <ion-icon [name]="tab.isActive ? tab.activeIcon : tab.icon"></ion-icon>
+    <span>{{ tab.label }}</span>
+  </button>
+  <button type="button" class="tab" (click)="openMenu()">
+    <ion-icon name="ellipsis-horizontal"></ion-icon>
+    <span>More</span>
+  </button>
+</nav>
