@@ -252,11 +252,14 @@
               <div class="progress-track">
                 <div class="progress-fill" [style.width.%]="m.pct"></div>
               </div>
-              <p>{{ m.bds }} BDs &middot; {{ m.paceLabel }}</p>
-              <p class="milestone-tomorrow" *ngIf="m.tomorrowAo">
+              <!-- an HC for tomorrow beats the pace guess -->
+              <p class="milestone-tomorrow" *ngIf="m.tomorrowAo; else pace">
                 <ion-icon name="flame"></ion-icon>
-                HC'd for {{ m.tomorrowAo }} tomorrow &middot; should hit {{ m.next }} there
+                {{ m.bds }} BDs &middot; HC'd for {{ m.tomorrowAo }} tomorrow, should hit {{ m.next }} there
               </p>
+              <ng-template #pace>
+                <p>{{ m.bds }} BDs &middot; {{ m.paceLabel }}</p>
+              </ng-template>
             </ion-label>
           </ion-item>
         </ion-list>
