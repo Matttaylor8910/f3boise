@@ -152,8 +152,11 @@ export class SummaryPage implements OnInit {
     const paxVQedAos = new Map<string, Set<string>>();
 
     // oldest first, on a copy: the service's array is shared with every
-    // other page, and reversing it in place broke the dashboard
-    for (const backblast of [...allData].reverse()) {
+    // other page (reversing it in place once broke the dashboard), and
+    // sorting rather than reversing means its order never matters here
+    const oldestFirst =
+        [...allData].sort((a, b) => a.date.localeCompare(b.date));
+    for (const backblast of oldestFirst) {
       const month = moment(backblast.date).format('MMMM YYYY');
       const monthStats = monthlyStats.get(month) ?? this.newMonthlyStats(month);
 
