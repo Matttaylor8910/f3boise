@@ -1,9 +1,10 @@
 import {Injectable} from '@angular/core';
 import {Workout} from 'types';
 
-import {BASE_URL} from '../../../constants';
+import {BASE_URL, WORKOUT_AO_ALIASES} from '../../../constants';
 
 import {HttpService} from './http.service';
+import {UtilService} from './util.service';
 
 const URL = `${BASE_URL}/region/workouts`;
 
@@ -24,7 +25,18 @@ export class WorkoutService {
 
   constructor(
       private readonly http: HttpService,
+      private readonly utilService: UtilService,
   ) {}
+
+  /**
+   * The backblast AO name (lowercase, e.g. "otb cynthia mann") for a workout
+   * from the scraper, so a workout can be matched to its region and linked to
+   * its AO page even when the scraper names it differently.
+   */
+  aoKey(workout: Workout): string {
+    const key = this.utilService.normalizeName(workout.name).toLowerCase();
+    return WORKOUT_AO_ALIASES.get(key) ?? key;
+  }
 
   async loadAllData(): Promise<Workout[]> {
     this.allData = (await this.http.get(URL) as Workout[])

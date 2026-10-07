@@ -118,3 +118,10 @@ export const DISCONTINUED_AOS = new Set<string>([
   AO.RUCKERSHIP_EAST,
   AO.RUCKERSHIP_WEST,
 ]);
+
+// Workouts whose name in the scraper's /region/workouts feed differs from the
+// AO name used in backblasts. Keys are the workout name normalized and
+// lowercased, values are the backblast AO name.
+export const WORKOUT_AO_ALIASES = new Map<string, string>([
+  ['cynthia mann', AO.OTB_CYNTHIA_MANN],
+]);

@@ -491,9 +491,10 @@ export class DashboardPage implements OnInit, OnDestroy {
         workouts.filter(workout => workout.is_tomorrow && !workout.closed)
             .map(workout => {
               const times = (workout.workout_dates as any)[tomorrowDay] ?? [];
+              const key = this.workoutService.aoKey(workout);
               return {
-                ao: this.utilService.normalizeName(workout.name),
-                route: workout.name.trim().toLowerCase(),
+                ao: this.utilService.normalizeName(key),
+                route: key,
                 q: workout.tomorrows_q,
                 time: times.length > 0 ? this.formatTime(times[0]) : '',
                 icon: workout.icon,

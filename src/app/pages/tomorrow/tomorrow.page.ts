@@ -85,11 +85,11 @@ export class TomorrowPage implements OnInit, OnDestroy {
 
   private toBd(workout: Workout, tomorrowDay: string): TomorrowBd {
     const times = (workout.workout_dates as any)[tomorrowDay] ?? [];
-    const key = this.utilService.normalizeName(workout.name).toLowerCase();
+    const key = this.workoutService.aoKey(workout);
     const region = REGIONS.find(r => r.aos.has(key));
     return {
-      ao: this.utilService.normalizeName(workout.name),
-      route: workout.name.trim().toLowerCase(),
+      ao: this.utilService.normalizeName(key),
+      route: key,
       q: workout.tomorrows_q,
       time: times.length > 0 ? this.formatTime(times[0]) : '',
       address: workout.address,
