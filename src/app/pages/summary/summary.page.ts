@@ -151,7 +151,9 @@ export class SummaryPage implements OnInit {
     const paxQCount = new Map<string, number>();
     const paxVQedAos = new Map<string, Set<string>>();
 
-    for (const backblast of allData.reverse()) {
+    // oldest first, on a copy: the service's array is shared with every
+    // other page, and reversing it in place broke the dashboard
+    for (const backblast of [...allData].reverse()) {
       const month = moment(backblast.date).format('MMMM YYYY');
       const monthStats = monthlyStats.get(month) ?? this.newMonthlyStats(month);
 

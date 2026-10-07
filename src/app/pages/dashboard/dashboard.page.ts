@@ -198,7 +198,7 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   async ionViewDidEnter() {
     const [allBds] = await Promise.all([
-      this.backblastService.getAllData(),
+      this.loadAllBds(),
       this.loadTomorrow(),
     ]);
 
@@ -248,7 +248,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     }
 
     const [allBds, myBds, myAos] = await Promise.all([
-      this.backblastService.getAllData(),
+      this.loadAllBds(),
       this.backblastService.getBackblastsForPax(pax.name),
       this.currentPaxService.getMyAos(pax.name),
     ]);
@@ -522,6 +522,16 @@ export class DashboardPage implements OnInit, OnDestroy {
       hour: 'numeric',
       minute: 'numeric',
     });
+  }
+
+  /**
+   * Every backblast, newest first. Sorted here rather than trusting the
+   * service's shared array, since any page that reorders that array in place
+   * would silently break every calculation below.
+   */
+  private async loadAllBds(): Promise<Backblast[]> {
+    const all = await this.backblastService.getAllData();
+    return [...all].sort((a, b) => b.date.localeCompare(a.date));
   }
 
   private calculatePulse(allBds: Backblast[]) {
