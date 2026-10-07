@@ -198,10 +198,17 @@
 
     <!-- region pulse -->
     <div class="stat-tile-row">
-      <div class="stat-tile" *ngFor="let stat of pulse">
+      <div
+        class="stat-tile"
+        *ngFor="let stat of pulse"
+        [class.stat-tile-link]="stat.route"
+        [routerLink]="stat.route || null">
         <div class="stat-value">{{ stat.value }}</div>
         <div class="stat-label">{{ stat.label }}</div>
-        <div class="stat-sub">{{ stat.sub }}</div>
+        <div class="stat-sub">
+          {{ stat.sub }}
+          <ion-icon name="chevron-forward" *ngIf="stat.route"></ion-icon>
+        </div>
       </div>
     </div>
 

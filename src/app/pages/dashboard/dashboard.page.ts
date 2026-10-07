@@ -85,6 +85,8 @@ interface PulseStat {
   value: string;
   label: string;
   sub: string;
+  /** Where tapping the tile goes, if anywhere. */
+  route?: string;
 }
 
 interface TomorrowBd {
@@ -527,25 +529,39 @@ export class DashboardPage implements OnInit, OnDestroy {
     let weekBds = 0;
     let weekPosts = 0;
     const weekPax = new Set<string>();
-    const monthFngs = new Set<string>();
 
     for (const bb of allBds) {
       const days = now.diff(moment(bb.date), 'days');
-      if (days > 30) break;  // allBds is date descending
+      if (days > 7) break;  // allBds is date descending
 
-      if (days <= 7) {
-        weekBds++;
-        weekPosts += bb.pax.length;
-        bb.pax.forEach(name => weekPax.add(name.toLowerCase()));
-      }
-      (bb.fngs ?? []).forEach(name => monthFngs.add(name.toLowerCase()));
+      weekBds++;
+      weekPosts += bb.pax.length;
+      bb.pax.forEach(name => weekPax.add(name.toLowerCase()));
+    }
+
+    // An FNG is someone whose first post ever was in the window, the same
+    // way the monthly summary counts them; the backblasts' own FNG field is
+    // too patchy to trust.
+    const firstPost = new Map<string, string>();
+    for (const bb of allBds) {
+      // allBds is date descending, so keep overwriting to end at the earliest
+      for (const name of bb.pax) firstPost.set(name.toLowerCase(), bb.date);
+    }
+    let monthFngs = 0;
+    for (const first of firstPost.values()) {
+      if (now.diff(moment(first), 'days') <= 30) monthFngs++;
     }
 
     this.pulse = [
       {value: `${weekBds}`, label: 'Beatdowns', sub: 'last 7 days'},
       {value: `${weekPosts}`, label: 'Posts', sub: 'last 7 days'},
       {value: `${weekPax.size}`, label: 'Unique PAX', sub: 'last 7 days'},
-      {value: `${monthFngs.size}`, label: 'FNGs', sub: 'last 30 days'},
+      {
+        value: `${monthFngs}`,
+        label: 'FNGs',
+        sub: 'last 30 days',
+        route: '/summary',
+      },
     ];
   }
 

@@ -159,7 +159,7 @@
       <h1>Loading...</h1>
     </div>
     <div class="card-grid wide">
-      <ion-card class="month-card" *ngFor="let month of monthlyStats; let i = index">
+      <ion-card class="month-card" *ngFor="let month of visibleMonths; let i = index">
         <ion-card-header>
           <ion-card-title class="space-between">
             {{ month.displayName }}
@@ -169,8 +169,11 @@
           </ion-card-title>
         </ion-card-header>
         <ion-card-content>
-          <strong>{{ month.allPax.size }} Total PAX this month</strong> ({{ month.totalPosts }} posts, {{ month.totalBeatdowns }} beatdowns)
-          <div class="pax-avatars">
+          <div class="space-between">
+            <span><strong>{{ month.allPax.size }} Total PAX this month</strong> ({{ month.totalPosts }} posts, {{ month.totalBeatdowns }} beatdowns)</span>
+            <a (click)="month.showAllPax = !month.showAllPax">{{ month.showAllPax ? 'Hide' : 'Show' }}</a>
+          </div>
+          <div class="pax-avatars" *ngIf="month.showAllPax">
             <a
               *ngFor="let name of month.allPax"
               [attr.data-tooltip]="utilService.normalizeName(name)"
@@ -292,6 +295,12 @@
           </ng-container>
         </ion-card-content>
       </ion-card>
+    </div>
+    <div class="center-container show-more" *ngIf="hasMoreMonths">
+      <ion-button fill="outline" (click)="showMoreMonths()">
+        Show earlier months
+        <ion-icon name="chevron-down" slot="end"></ion-icon>
+      </ion-button>
     </div>
   </div>
 </ion-content>

@@ -48,7 +48,7 @@ export class TabBarComponent implements OnInit, OnDestroy {
       icon: 'stats-chart-outline',
       activeIcon: 'stats-chart',
       route: '/aos',
-      matches: ['/aos', '/ao/', '/region/', '/dd/', '/pax/'],
+      matches: ['/aos', '/ao/', '/region/', '/dd/', '/pax/', '/summary'],
       isActive: false,
     },
     {

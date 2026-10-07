@@ -349,6 +349,14 @@ ion-searchbar {
     text-align: center;
     box-shadow: rgba(0, 0, 0, 0.12) 0px 4px 16px;
 
+    &.stat-tile-link {
+      cursor: pointer;
+
+      .stat-sub ion-icon {
+        vertical-align: -2px;
+      }
+    }
+
     .stat-value {
       font-size: 2rem;
       font-weight: bold;

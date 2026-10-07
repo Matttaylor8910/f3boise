@@ -99,6 +99,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
       collapsed: false,
       items: [
         {
+          label: 'Monthly Summary',
+          route: '/summary',
+          icon: 'calendar-number-outline',
+          matches: ['/summary'],
+          isActive: false,
+        },
+        {
           label: 'Family Tree',
           route: '/family-tree',
           icon: 'git-network-outline',

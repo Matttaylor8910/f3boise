@@ -1,10 +1,14 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import * as moment from 'moment';
 import {BackblastService} from 'src/app/services/backblast.service';
 import {UtilService} from 'src/app/services/util.service';
 
 import {REGION} from '../../../../constants';
+
+/** Months shown on first paint, and added per "show more". */
+const INITIAL_MONTHS = 3;
+const MONTHS_PER_PAGE = 6;
 
 interface MonthlyStats {
   // the display name of this month like January 2021
@@ -20,6 +24,8 @@ interface MonthlyStats {
   fngAoMap: Map<string, string[]>;
   fngsByAo: {name: string, fngs: string[]}[];
   breakdownFngsByAo: boolean;
+  // the full PAX avatar wall is folded away until asked for
+  showAllPax?: boolean;
 
   // PAX that were missing last month that came back this month
   returnedPax: Set<string>;
@@ -74,10 +80,15 @@ interface DateRangeStats {
   templateUrl: './summary.page.html',
   styleUrls: ['./summary.page.scss'],
 })
-export class SummaryPage {
+export class SummaryPage implements OnInit {
   ao: string;
   region: REGION;
   monthlyStats?: MonthlyStats[];
+  /**
+   * The months rendered so far. Every month since 2021 with every PAX's
+   * avatar is thousands of images, so they come in a few at a time.
+   */
+  visibleMonths: MonthlyStats[] = [];
   dateRangeStats?: DateRangeStats;
   startDate?: string;
   endDate?: string;
@@ -241,6 +252,16 @@ export class SummaryPage {
     });
 
     this.monthlyStats = Array.from(monthlyStats.values()).reverse();
+    this.visibleMonths = this.monthlyStats.slice(0, INITIAL_MONTHS);
+  }
+
+  get hasMoreMonths(): boolean {
+    return this.visibleMonths.length < (this.monthlyStats?.length ?? 0);
+  }
+
+  showMoreMonths() {
+    this.visibleMonths = this.monthlyStats!.slice(
+        0, this.visibleMonths.length + MONTHS_PER_PAGE);
   }
 
   async calculateDateRangeStats() {
