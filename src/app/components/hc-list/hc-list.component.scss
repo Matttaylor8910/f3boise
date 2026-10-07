@@ -1,0 +1,49 @@
+:host {
+  display: block;
+}
+
+.hc-list {
+  margin-top: 4px;
+  cursor: pointer;
+}
+
+.hc-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hc-avatars {
+  display: flex;
+  flex-shrink: 0;
+
+  app-pax-avatar {
+    margin-right: -6px;
+    border: 2px solid var(--ion-card-background, var(--ion-background-color));
+    border-radius: 50%;
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+}
+
+.hc-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--f3-red, #ee6059);
+}
+
+.hc-names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 4px;
+  font-size: 13px;
+
+  a {
+    color: var(--ion-text-color);
+    text-decoration: none;
+    font-weight: 500;
+  }
+}

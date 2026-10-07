@@ -36,6 +36,7 @@
                 <span *ngIf="bd.time && bd.address"> &middot; </span>
                 <span *ngIf="bd.address">{{ bd.address }}</span>
               </p>
+              <app-hc-list [names]="bd.hcs"></app-hc-list>
             </ion-label>
             <span slot="end" class="q-slot" *ngIf="bd.q">
               <app-pax-avatar [name]="bd.q" [size]="28"></app-pax-avatar>

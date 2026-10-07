@@ -93,6 +93,8 @@ interface TomorrowBd {
   q: string|null;
   time: string;
   icon: string;
+  /** PAX who have HC'd for it. */
+  hcs: string[];
 }
 
 interface MilestoneWatchItem {
@@ -210,7 +212,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     this.filterTomorrowMine();
 
     // hits the network, so let the page render first
-    await this.markMilestonesDueTomorrow();
+    await this.loadTomorrowHcs();
   }
 
   async openLoginModal() {
@@ -505,6 +507,7 @@ export class DashboardPage implements OnInit, OnDestroy {
                 q: workout.tomorrows_q,
                 time: times.length > 0 ? this.formatTime(times[0]) : '',
                 icon: workout.icon,
+                hcs: [],
               };
             })
             .sort((a, b) => (a.time || 'z').localeCompare(b.time || 'z'));
@@ -599,18 +602,21 @@ export class DashboardPage implements OnInit, OnDestroy {
   }
 
   /**
-   * A PAX one BD away who has HC'd for tomorrow's preblast gets a note saying
-   * where the milestone should land.
+   * Tomorrow's preblast HCs: listed under each beatdown, and a PAX one BD away
+   * who has HC'd gets a note saying where the milestone should land.
    */
-  private async markMilestonesDueTomorrow() {
-    const oneAway = this.milestoneWatch.filter(m => m.needed === 1);
-    if (oneAway.length === 0) return;
-
+  private async loadTomorrowHcs() {
     const tomorrow = moment().add(1, 'day').format('YYYY-MM-DD');
     const hcs = await this.preblastHcService.getHcs(tomorrow);
     if (hcs.size === 0) return;
 
-    for (const item of oneAway) {
+    // tomorrowMine shares these objects, so it picks the HCs up too
+    for (const bd of this.tomorrow) {
+      bd.hcs = Array.from(hcs.get(bd.route) ?? []).sort();
+    }
+
+    for (const item of this.milestoneWatch) {
+      if (item.needed !== 1) continue;
       const lower = item.name.toLowerCase();
       for (const [ao, pax] of hcs) {
         if (pax.has(lower)) {
