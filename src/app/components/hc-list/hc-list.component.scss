@@ -2,23 +2,26 @@
   display: block;
 }
 
-.hc-list {
+.hc-stack {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-top: 4px;
+  padding: 2px 8px 2px 2px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(var(--ion-color-medium-rgb), 0.12);
+  font: inherit;
   cursor: pointer;
 }
 
-.hc-row {
+.faces {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
 
-.hc-avatars {
-  display: flex;
-  flex-shrink: 0;
-
-  app-pax-avatar {
-    margin-right: -6px;
+  app-pax-avatar,
+  .more {
+    margin-right: -7px;
     border: 2px solid var(--ion-card-background, var(--ion-background-color));
     border-radius: 50%;
 
@@ -26,24 +29,23 @@
       margin-right: 0;
     }
   }
-}
 
-.hc-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--f3-red, #ee6059);
-}
-
-.hc-names {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  margin-top: 4px;
-  font-size: 13px;
-
-  a {
-    color: var(--ion-text-color);
-    text-decoration: none;
-    font-weight: 500;
+  .more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: content-box;
+    width: 24px;
+    height: 24px;
+    background: var(--f3-red, #ee6059);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
   }
+}
+
+.caption {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ion-color-medium);
 }

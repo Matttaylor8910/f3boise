@@ -1,0 +1,28 @@
+.hc-popover {
+  padding: 10px 0 4px;
+  min-width: 220px;
+
+  .title {
+    padding: 0 16px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ion-color-medium);
+  }
+
+  ion-list {
+    padding: 0;
+    background: transparent;
+  }
+
+  ion-item {
+    --min-height: 44px;
+    --background: transparent;
+    font-weight: 600;
+
+    app-pax-avatar {
+      margin: 6px 12px 6px 0;
+    }
+  }
+}

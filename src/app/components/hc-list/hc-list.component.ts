@@ -1,14 +1,14 @@
 import {Component, Input, OnChanges} from '@angular/core';
-import {UtilService} from 'src/app/services/util.service';
+import {PopoverController} from '@ionic/angular';
 
-/** Avatars shown before collapsing into a count. */
-const MAX_AVATARS = 5;
-/** Up to this many names are spelled out; beyond it the label is a count. */
-const MAX_NAMED = 2;
+import {HcPopoverComponent} from '../hc-popover/hc-popover.component';
+
+/** Faces shown before the rest collapse into a "+N" bubble. */
+const MAX_AVATARS = 4;
 
 /**
- * Who has HC'd (hard committed) for a beatdown: a short avatar stack and a
- * one-line label, tap to spell out everyone.
+ * Who has HC'd (hard committed) for a beatdown: a stack of faces, tap for
+ * the names.
  */
 @Component({
   selector: 'app-hc-list',
@@ -19,25 +19,25 @@ export class HcListComponent implements OnChanges {
   /** PAX names, any casing. */
   @Input() names: string[] = [];
 
-  expanded = false;
   avatars: string[] = [];
-  label = '';
+  overflow = 0;
 
-  constructor(readonly utilService: UtilService) {}
+  constructor(private readonly popoverController: PopoverController) {}
 
   ngOnChanges() {
     this.avatars = this.names.slice(0, MAX_AVATARS);
-    this.label = this.buildLabel();
+    this.overflow = this.names.length - this.avatars.length;
   }
 
-  toggle(event: Event) {
+  async showNames(event: Event) {
     event.stopPropagation();
-    this.expanded = !this.expanded;
-  }
-
-  private buildLabel(): string {
-    if (this.names.length > MAX_NAMED) return `${this.names.length} HC'd`;
-    const named = this.names.map(name => this.utilService.normalizeName(name));
-    return `${named.join(' & ')} HC'd`;
+    const popover = await this.popoverController.create({
+      component: HcPopoverComponent,
+      componentProps: {names: this.names},
+      cssClass: 'hc-popover',
+      event,
+      translucent: true,
+    });
+    await popover.present();
   }
 }

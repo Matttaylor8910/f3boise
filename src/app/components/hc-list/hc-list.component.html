@@ -1,13 +1,12 @@
-<div class="hc-list" *ngIf="names.length > 0" (click)="toggle($event)">
-  <div class="hc-row">
-    <div class="hc-avatars">
-      <app-pax-avatar *ngFor="let name of avatars" [name]="name" [size]="22"></app-pax-avatar>
-    </div>
-    <span class="hc-label">{{ label }}</span>
-  </div>
-  <div class="hc-names" *ngIf="expanded">
-    <a *ngFor="let name of names" routerLink="/pax/{{ name.toLowerCase() }}" (click)="$event.stopPropagation()">
-      {{ utilService.normalizeName(name) }}
-    </a>
-  </div>
-</div>
+<button
+  type="button"
+  class="hc-stack"
+  *ngIf="names.length > 0"
+  [attr.aria-label]="names.length + ' HC\'d, tap for names'"
+  (click)="showNames($event)">
+  <span class="faces">
+    <app-pax-avatar *ngFor="let name of avatars" [name]="name" [size]="24"></app-pax-avatar>
+    <span class="more" *ngIf="overflow > 0">+{{ overflow }}</span>
+  </span>
+  <span class="caption">HC'd</span>
+</button>
