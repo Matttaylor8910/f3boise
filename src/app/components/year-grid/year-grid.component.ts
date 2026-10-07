@@ -287,10 +287,17 @@ export class YearGridComponent implements OnInit, OnChanges {
     return start <= date && date <= end;
   }
 
-  private randomHexColorCode() {
-    const n = (Math.random() * 0xfffff * 1000000).toString(16);
-    return '#' + n.slice(0, 6);
-  };
+  /**
+   * Stable fallback colour for an AO that has no entry in getColor yet, so a
+   * new AO renders the same colour on every load instead of a random one.
+   */
+  private fallbackColor(ao: string): string {
+    let hash = 0;
+    for (const char of ao) {
+      hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+    }
+    return `hsl(${hash % 360}, 65%, 45%)`;
+  }
 
   private getColor(bd: Backblast): string {
     switch (bd.ao.toLowerCase()) {
@@ -306,11 +313,11 @@ export class YearGridComponent implements OnInit, OnChanges {
       case AO.BLEACH:
         return '#8FFF5A';
       case AO.CAMELS_BACK:
-        return '#FFDD33 ';
+        return '#FFDD33';
       case AO.LIBERTY:
         return '#1e0697';
       case AO.COOP:
-        return '#3C6F19 ';
+        return '#3C6F19';
       case AO.DARK_STRIDE:
         return '#E75293';
       case AO.DUCK_HUNT:
@@ -341,6 +348,8 @@ export class YearGridComponent implements OnInit, OnChanges {
         return '#E0C248';
       case AO.RISE:
         return '#F39C12';
+      case AO.RUCKERSHIP:
+        return '#FF8C00';
       case AO.RUCKERSHIP_EAST:
         return '#E67E22';
       case AO.RUCKERSHIP_WEST:
@@ -356,7 +365,7 @@ export class YearGridComponent implements OnInit, OnChanges {
       case AO.WAR_HORSE:
         return '#E74C3C';
       default:
-        return this.randomHexColorCode();
+        return this.fallbackColor(bd.ao.toLowerCase());
     }
   }
 
