@@ -3,7 +3,7 @@
   "short_name": "F3 Boise",
   "description": "F3 Boise - Fitness, Fellowship, and Faith",
   "id": "/",
-  "start_url": "/stats",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",

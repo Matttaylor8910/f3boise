@@ -13,7 +13,7 @@
       "resources": {
         "files": [
           "/index.html",
-          "/manifest.webmanifest",
+          "/*.webmanifest",
           "/*.css",
           "/*.js"
         ]

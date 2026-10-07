@@ -1,6 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {NavigationEnd, Router} from '@angular/router';
 import {filter, Subscription} from 'rxjs';
+import {STATIC_PAGES} from 'src/app/config/static-pages';
 import {SidebarService} from 'src/app/services/sidebar.service';
 
 interface Tab {
@@ -12,9 +13,6 @@ interface Tab {
   matches: string[];
   isActive: boolean;
 }
-
-/** Routes that are public marketing pages and get no app chrome. */
-const STATIC_PAGES = ['/', '/fng', '/workouts'];
 
 /**
  * Bottom tab bar shown on phones in place of digging through the side menu.
