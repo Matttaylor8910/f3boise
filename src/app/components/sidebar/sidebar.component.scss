@@ -253,16 +253,24 @@
     font-size: 13px;
   }
 
-  .search-result {
+  // .ao-link is display: block further down at the same specificity, so
+  // double up here to keep the name and the kind on opposite ends
+  .ao-link.search-result {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: 16px;
 
     .result-kind {
+      flex-shrink: 0;
+      margin-left: auto;
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
       font-size: 10px;
+      font-weight: 600;
       letter-spacing: 0.08em;
-      color: rgba(255, 255, 255, 0.4);
+      color: rgba(255, 255, 255, 0.5);
     }
   }
 
