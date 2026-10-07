@@ -1,0 +1,82 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <div class="day-heading">
+      <h1>{{ dayLabel }}</h1>
+      <p>{{ relativeLabel }}<ng-container *ngIf="featured"> &middot; {{ featured }}</ng-container></p>
+    </div>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()" aria-label="Close">
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ng-container *ngIf="beatdowns.length > 0; else empty">
+    <div class="stat-row">
+      <div class="stat" *ngFor="let stat of stats">
+        <div class="stat-value">{{ stat.value }}</div>
+        <div class="stat-label">{{ stat.label }}</div>
+      </div>
+    </div>
+
+    <div class="beatdown" *ngFor="let bd of beatdowns" [style.--ao-color]="bd.color">
+      <div class="beatdown-accent"></div>
+      <div class="beatdown-body">
+        <div class="beatdown-head">
+          <div>
+            <button type="button" class="ao-name" (click)="open('/ao/' + bd.aoRoute)">{{ bd.ao }}</button>
+            <div class="bd-title" *ngIf="bd.title">{{ bd.title }}</div>
+          </div>
+          <div class="count">
+            <strong>{{ bd.pax.length }}</strong>
+            <span>PAX</span>
+          </div>
+        </div>
+
+        <div class="q-row" *ngIf="bd.qs.length > 0">
+          <span class="row-label">{{ bd.qs.length === 1 ? 'Q' : 'Qs' }}</span>
+          <button type="button" class="q" *ngFor="let q of bd.qs" (click)="open('/pax/' + q.toLowerCase())">
+            <app-pax-avatar [name]="q" [size]="28"></app-pax-avatar>
+            <span>{{ utilService.normalizeName(q) }}</span>
+          </button>
+        </div>
+
+        <div class="fng-row" *ngIf="bd.fngs.length > 0">
+          <ion-icon name="sparkles"></ion-icon>
+          <span>
+            {{ bd.fngs.length === 1 ? 'FNG' : 'FNGs' }}:
+            <ng-container *ngFor="let fng of bd.fngs; let last = last">{{ utilService.normalizeName(fng) }}<ng-container *ngIf="!last">, </ng-container></ng-container>
+          </span>
+        </div>
+
+        <div class="pax-grid">
+          <button
+            type="button"
+            class="pax"
+            *ngFor="let pax of bd.pax"
+            [class.featured]="isFeatured(pax)"
+            [class.is-q]="isQ(pax, bd)"
+            (click)="open('/pax/' + pax.toLowerCase())">
+            <app-pax-avatar [name]="pax" [size]="24"></app-pax-avatar>
+            <span>{{ utilService.normalizeName(pax) }}</span>
+          </button>
+        </div>
+
+        <button type="button" class="read-link" (click)="open('/backblasts/' + bd.id)">
+          Read the backblast
+          <ion-icon name="arrow-forward"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #empty>
+    <div class="empty">
+      <ion-icon name="moon-outline"></ion-icon>
+      <h2>{{ featured ? featured + ' sat this one out' : 'Nobody posted' }}</h2>
+      <p>{{ featured ? 'No posts from ' + featured + ' on this day.' : 'No beatdowns were logged on this day.' }}</p>
+    </div>
+  </ng-template>
+</ion-content>

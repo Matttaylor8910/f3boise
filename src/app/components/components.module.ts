@@ -17,6 +17,7 @@ import {CareBearGymComponent} from './care-bear-gym/care-bear-gym.component';
 import {CreateChallengeModalComponent} from './create-challenge-modal/create-challenge-modal.component';
 import {CustomDateRangePopoverComponent} from './custom-date-range-popover/custom-date-range-popover.component';
 import {DateRangePickerComponent} from './date-range-picker/date-range-picker.component';
+import {DayDetailModalComponent} from './day-detail-modal/day-detail-modal.component';
 import {DayOfWeekHeatmapComponent} from './day-of-week-heatmap/day-of-week-heatmap.component';
 import {DuosGridComponent} from './duos-grid/duos-grid.component';
 import {GoogleFormModalComponent} from './google-form-modal/google-form-modal.component';
@@ -67,6 +68,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     CreateChallengeModalComponent,
     CustomDateRangePopoverComponent,
     DateRangePickerComponent,
+    DayDetailModalComponent,
     DuosGridComponent,
     HcListComponent,
     HeaderComponent,
@@ -123,6 +125,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     CareBearGymComponent,
     CreateChallengeModalComponent,
     DateRangePickerComponent,
+    DayDetailModalComponent,
     DuosGridComponent,
     HcListComponent,
     HeaderComponent,

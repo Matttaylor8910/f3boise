@@ -1,10 +1,11 @@
 import {Component, ElementRef, Input, OnChanges, OnInit, ViewChild} from '@angular/core';
-import {Router} from '@angular/router';
+import {ModalController} from '@ionic/angular';
 import * as moment from 'moment';
-import {UtilService} from 'src/app/services/util.service';
+import {aoColor} from 'src/app/util/ao-colors';
 
-import {AO} from '../../../../constants';
 import {Backblast} from '../../../../types';
+
+import {DayDetailModalComponent} from '../day-detail-modal/day-detail-modal.component';
 
 interface GridCell {
   date: string;
@@ -57,13 +58,13 @@ export class YearGridComponent implements OnInit, OnChanges {
   grid: (GridCell|undefined)[][] = [];
   legend: LegendItem[] = [];
 
+  /** The backblasts behind each day in the current range. */
+  private dayBds = new Map<string, Backblast[]>();
+
   @ViewChild('gridContainer', {static: false})
   gridContainer?: ElementRef<HTMLDivElement>;
 
-  constructor(
-      private readonly router: Router,
-      private readonly utilService: UtilService,
-  ) {}
+  constructor(private readonly modalController: ModalController) {}
 
   ngOnInit() {
     this.calculateThisPastYear();
@@ -93,6 +94,7 @@ export class YearGridComponent implements OnInit, OnChanges {
   calculateGrid(start = `${this.year}/01/01`, end = `${this.year}/12/31`) {
     // if we have the pax name and their bds, build up a map of those BDs
     const bdMap = new Map<string, GridCell>();
+    const dayBds = new Map<string, Backblast[]>();
     const years = new Set<number>();
     const aos = new Set<string>();
     const aoColorMap = new Map<string, string>();
@@ -106,18 +108,21 @@ export class YearGridComponent implements OnInit, OnChanges {
 
         if (this.inRange(m.format(FORMAT), start, end)) {
           const date = m.format(FORMAT);
+          dayBds.set(date, [...(dayBds.get(date) ?? []), bd]);
 
           // PAX grid
           if (this.name) {
             // show when they Q and show the date as a popover
-            const text = bd.qs.includes(this.name) ? 'Q' : '';
+            const lowerName = this.name.toLowerCase();
+            const text =
+                bd.qs.some(q => q.toLowerCase() === lowerName) ? 'Q' : '';
             const popover = date;
 
             // load the color for this ao, and save it to to a map for future
             // bds at the same ao
             let color = aoColorMap.get(bd.ao);
             if (color === undefined) {
-              color = this.getColor(bd);
+              color = aoColor(bd.ao);
               aoColorMap.set(bd.ao, color);
             }
 
@@ -185,6 +190,7 @@ export class YearGridComponent implements OnInit, OnChanges {
 
     // set the grid and years options
     this.grid = grid;
+    this.dayBds = dayBds;
     this.years = Array.from(years.values());
     this.yearOptions = [
       {name: 'This Past Year', year: THIS_PAST_YEAR},
@@ -239,21 +245,22 @@ export class YearGridComponent implements OnInit, OnChanges {
     }, 0);
   }
 
-  cellClicked(cell?: GridCell) {
-    if (cell) {
-      if (cell?.backblastId) {
-        this.router.navigateByUrl(`backblasts/${cell.backblastId}`);
-      } else if (this.name) {
-        const name = this.utilService.normalizeName(this.name!);
-        const message = `${name} did not post anywhere on ${cell?.date}`;
-        this.utilService.alert(message, '', 'Got It');
-      } else {
-        const {count = 0} = cell;
-        const message = count > 0 ? `${count} PAX posted on ${cell?.date}` :
-                                    `No PAX posted on ${cell?.date}`;
-        this.utilService.alert(message, '', 'Got It');
-      }
-    }
+  /** Opens the day sheet: every beatdown that day, or a nice empty state. */
+  async cellClicked(cell?: GridCell) {
+    if (!cell) return;
+    const modal = await this.modalController.create({
+      component: DayDetailModalComponent,
+      componentProps: {
+        date: cell.date,
+        bds: this.dayBds.get(cell.date) ?? [],
+        name: this.name,
+      },
+      cssClass: 'day-detail-modal',
+      breakpoints: [0, 0.6, 1],
+      initialBreakpoint: 0.6,
+      handle: true,
+    });
+    await modal.present();
   }
 
   private calculateThisPastYear() {
@@ -287,87 +294,6 @@ export class YearGridComponent implements OnInit, OnChanges {
     return start <= date && date <= end;
   }
 
-  /**
-   * Stable fallback colour for an AO that has no entry in getColor yet, so a
-   * new AO renders the same colour on every load instead of a random one.
-   */
-  private fallbackColor(ao: string): string {
-    let hash = 0;
-    for (const char of ao) {
-      hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
-    }
-    return `hsl(${hash % 360}, 65%, 45%)`;
-  }
-
-  private getColor(bd: Backblast): string {
-    switch (bd.ao.toLowerCase()) {
-      case AO.BACKYARD:
-        return '#014235';
-      case AO.BELLAGIO:
-        return '#16A085';
-      case AO.BLACK_CANYON:
-        return '#3067e6';
-      case AO.BLACK_DIAMOND:
-      case AO.BLACK_OPS:
-        return '#000000';
-      case AO.BLEACH:
-        return '#8FFF5A';
-      case AO.CAMELS_BACK:
-        return '#FFDD33';
-      case AO.LIBERTY:
-        return '#1e0697';
-      case AO.COOP:
-        return '#3C6F19';
-      case AO.DARK_STRIDE:
-        return '#E75293';
-      case AO.DUCK_HUNT:
-        return '#7fd7ab';
-      case AO.EMMETT_GEM_ISLAND:
-        return '#17A2B8';
-      case AO.GEM:
-        return '#3498DB';
-      case AO.GOOSE_DYNASTY:
-        return '#A8AAAF';
-      case AO.INTERCEPTOR:
-        return '#720374';
-      case AO.IRON_MOUNTAIN:
-        return '#002F4D';
-      case AO.LIBERTY_PARK:
-        return '#DC143C';
-      case AO.OLD_GLORY:
-        return '#9B59B6';
-      case AO.OTB_CYNTHIA_MANN:
-        return '#C2185B';
-      case AO.OTB_GORDON_HARRIS_PARK:
-        return '#8D6E63';
-      case AO.OTB_LIBERTY_PARK:
-        return '#FF7043';
-      case AO.RAFO:
-        return '#5D4E75';
-      case AO.REBEL:
-        return '#E0C248';
-      case AO.RISE:
-        return '#F39C12';
-      case AO.OTB_RUCKERSHIP_CANYON:
-        return '#FF8C00';
-      case AO.RUCKERSHIP_EAST:
-        return '#E67E22';
-      case AO.RUCKERSHIP_WEST:
-        return '#D35400';
-      case AO.SENTINELS:
-        return '#686363';
-      case AO.SUNDAY_RUCK:
-        return '#795548';
-      case AO.TOWER:
-        return '#9CD6F1';
-      case AO.THE_EDGE:
-        return '#2C3E50';
-      case AO.WAR_HORSE:
-        return '#E74C3C';
-      default:
-        return this.fallbackColor(bd.ao.toLowerCase());
-    }
-  }
 
   private getHeatmapColor(count: number, max: number): string {
     // Calculate the index of the color based on the count, returning a lighter
