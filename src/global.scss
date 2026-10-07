@@ -524,3 +524,13 @@ ion-icon[name="logo-instagram"] {
   white-space: normal;
   line-height: 1.35;
 }
+
+// Who HC'd, as a sheet for the big events
+.hc-sheet {
+  --height: 70%;
+  --border-radius: 18px 18px 0 0;
+
+  @media (min-width: 768px) {
+    --max-width: 480px;
+  }
+}
