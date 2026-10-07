@@ -24,6 +24,8 @@ const AO_CHANNELS = new Map<string, string>([
   [AO.INTERCEPTOR, 'C077KEU5RQF'],
   [AO.IRON_MOUNTAIN, 'C03TZTTHDPZ'],
   [AO.LIBERTY, 'C07LQPM4X37'],
+  // the Nampa site: the same channel under its old OTB name and its AO name
+  [AO.LIBERTY_PARK, 'C0A0Z9PB6TE'],
   [AO.OLD_GLORY, 'C03TZTPUFRV'],
   [AO.OTB_CYNTHIA_MANN, 'C09Q3HXVC1M'],
   [AO.OTB_GORDON_HARRIS_PARK, 'C0A5ZDLFLH4'],
