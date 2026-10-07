@@ -1,12 +1,12 @@
 <button
   type="button"
   class="hc-stack"
-  *ngIf="names.length > 0"
-  [attr.aria-label]="names.length + (names.length === 1 ? ' HC' : ' HCs') + ', tap for names'"
+  *ngIf="committed.length > 0"
+  [attr.aria-label]="committed.length + (committed.length === 1 ? ' HC' : ' HCs') + ', tap for names'"
   (click)="showNames($event)">
   <span class="faces">
     <app-pax-avatar *ngFor="let name of avatars" [name]="name" [size]="24"></app-pax-avatar>
     <span class="more" *ngIf="overflow > 0">+{{ overflow }}</span>
   </span>
-  <span class="caption">{{ names.length }} {{ names.length === 1 ? 'HC' : 'HCs' }}</span>
+  <span class="caption">{{ committed.length }} {{ committed.length === 1 ? 'HC' : 'HCs' }}</span>
 </button>

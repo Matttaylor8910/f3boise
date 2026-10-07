@@ -71,7 +71,7 @@
                 <ion-label class="ion-text-wrap">
                   <h2><a routerLink="/ao/{{ bd.route }}">{{ bd.ao }}</a></h2>
                   <p *ngIf="bd.time">{{ bd.time }}</p>
-                  <app-hc-list [names]="bd.hcs"></app-hc-list>
+                  <app-hc-list [names]="bd.hcs" [q]="bd.q"></app-hc-list>
                 </ion-label>
                 <span slot="end" class="q-slot" *ngIf="bd.q">
                   <app-pax-avatar [name]="bd.q" [size]="28"></app-pax-avatar>
@@ -225,7 +225,7 @@
             <ion-label class="ion-text-wrap">
               <h2><a routerLink="/ao/{{ bd.route }}">{{ bd.ao }}</a></h2>
               <p *ngIf="bd.time">{{ bd.time }}</p>
-              <app-hc-list [names]="bd.hcs"></app-hc-list>
+              <app-hc-list [names]="bd.hcs" [q]="bd.q"></app-hc-list>
             </ion-label>
             <span slot="end" class="q-slot" *ngIf="bd.q">
               <app-pax-avatar [name]="bd.q" [size]="28"></app-pax-avatar>

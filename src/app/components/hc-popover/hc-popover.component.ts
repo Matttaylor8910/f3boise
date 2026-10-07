@@ -11,12 +11,18 @@ import {UtilService} from 'src/app/services/util.service';
 })
 export class HcPopoverComponent {
   @Input() names: string[] = [];
+  /** The Q, shown with a badge. */
+  @Input() q?: string;
 
   constructor(
       readonly utilService: UtilService,
       private readonly popoverController: PopoverController,
       private readonly router: Router,
   ) {}
+
+  isQ(name: string): boolean {
+    return !!this.q && name.toLowerCase() === this.q.toLowerCase();
+  }
 
   async goToPax(name: string) {
     await this.popoverController.dismiss();

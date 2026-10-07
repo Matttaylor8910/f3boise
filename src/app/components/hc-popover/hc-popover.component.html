@@ -4,6 +4,7 @@
     <ion-item button detail="false" *ngFor="let name of names" (click)="goToPax(name)">
       <app-pax-avatar slot="start" [name]="name" [size]="32"></app-pax-avatar>
       <ion-label>{{ utilService.normalizeName(name) }}</ion-label>
+      <span slot="end" class="q-badge" *ngIf="isQ(name)">Q</span>
     </ion-item>
   </ion-list>
 </div>
