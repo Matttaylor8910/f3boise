@@ -397,6 +397,9 @@ export class MapPage implements OnInit, OnDestroy {
     fullscreenControl: false,
     streetViewControl: false,
     mapTypeControl: false,
+    // The map owns every touch on it: one finger pans and a pinch zooms the
+    // map, instead of the "use two fingers" mode that fights the page.
+    gestureHandling: 'greedy',
   };
 
   @ViewChild('mapRef') private readonly mapComponent?: GoogleMap;

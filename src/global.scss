@@ -36,6 +36,14 @@
   --f3-red: #ee6059;
 }
 
+/* This is an app, not a page: never pinch- or double-tap-zoom the whole UI.
+   Components that zoom themselves (maps) opt back in with their own
+   touch-action; Safari additionally needs the gesture guard in page-zoom.ts. */
+html,
+body {
+  touch-action: pan-x pan-y;
+}
+
 /* Fix for mobile Safari - ensure ion-content can scroll to bottom */
 ion-content {
   --padding-bottom: calc(var(--safe-area-inset-bottom) + 20px);
