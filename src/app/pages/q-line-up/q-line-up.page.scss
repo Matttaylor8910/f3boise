@@ -150,7 +150,7 @@
     z-index: 1;
     width: var(--date-col-w);
     padding-left: 12px;
-    background: var(--grid-head);
+    background-color: var(--grid-head);
     border-right: 1px solid var(--grid-line);
     text-align: left;
     white-space: nowrap;
@@ -178,13 +178,12 @@
     }
   }
 
-  tr.weekend td,
-  tr.weekend .date-col {
+  tr.weekend td {
     background: var(--grid-weekend);
   }
 
   tr.today {
-    td, .date-col {
+    td {
       background: var(--grid-today);
     }
 
@@ -193,9 +192,10 @@
     }
   }
 
-  // the sticky date column needs a solid base under its tints
+  // The row tints are translucent. The sticky date column has chips sliding
+  // under it, so it keeps a solid base and takes the tint as an overlay.
   tbody .date-col {
-    background-image: linear-gradient(var(--grid-head), var(--grid-head));
+    background-color: var(--grid-head);
   }
   tr.weekend .date-col {
     background-image: linear-gradient(var(--grid-weekend), var(--grid-weekend));
