@@ -46,6 +46,11 @@ interface PopularAo {
 }
 
 const LIMIT = 10;
+/**
+ * A PAX needs more than this many posts to rank on the Top/Bottom Q lists,
+ * so a one-and-done Q at 100% and a near-stranger at 1% don't bookend them.
+ */
+const MIN_BDS_FOR_Q_LEADERBOARD = 10;
 
 /** Charts at the top of the page always reflect this lookback. */
 const TRAILING_DAYS = 90;
@@ -494,7 +499,7 @@ export class AoPage {
     const hasQd = [];
     for (const pax of this.paxStats ?? []) {
       if (pax.qs > 0) {
-        hasQd.push(pax);
+        if (pax.bds > MIN_BDS_FOR_Q_LEADERBOARD) hasQd.push(pax);
       } else {
         // Precompute relative date for noQs items
         const paxWithDate: AoPaxStats = {
