@@ -2,6 +2,10 @@ import {AO} from '../../../constants';
 
 /** The F3 Boise Slack workspace. */
 export const SLACK_WORKSPACE_URL = 'https://f3-boise.slack.com';
+/** The workspace's Slack team ID, which the app's deep links key on. */
+const SLACK_TEAM_ID = 'T03T5J6801Z';
+/** How long to give the Slack app to take over before falling back to the web. */
+const APP_OPEN_GRACE_MS = 1500;
 
 /**
  * Slack channel for each AO (backblast AO name → channel ID), from the
@@ -43,18 +47,60 @@ const AO_CHANNELS = new Map<string, string>([
   [AO.WAR_HORSE, 'C0425DL9MT7'],
 ]);
 
+function channelFor(ao?: string): string|undefined {
+  return ao ? AO_CHANNELS.get(ao.toLowerCase()) : undefined;
+}
+
 /**
- * Link into Slack: the AO's channel when we know it, else the workspace.
- * An https link is used rather than the slack:// scheme so it still works
- * without the app installed; phones with Slack open it there anyway.
+ * Web link into Slack: the AO's channel when we know it, else the workspace.
+ * Works without the Slack app installed.
  */
 export function slackUrl(ao?: string): string {
-  const channel = ao ? AO_CHANNELS.get(ao.toLowerCase()) : undefined;
+  const channel = channelFor(ao);
   return channel ? `${SLACK_WORKSPACE_URL}/archives/${channel}` :
                    SLACK_WORKSPACE_URL;
 }
 
-/** Opens Slack in a new tab (or the Slack app on a phone). */
+/**
+ * Slack's own deep link, which opens the app straight to the channel or
+ * workspace with no browser in between.
+ */
+export function slackAppUrl(ao?: string): string {
+  const channel = channelFor(ao);
+  return channel ? `slack://channel?team=${SLACK_TEAM_ID}&id=${channel}` :
+                   `slack://open?team=${SLACK_TEAM_ID}`;
+}
+
+/** Phones and tablets, where the Slack app is the better destination. */
+function isMobile(): boolean {
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+      (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.userAgent));
+}
+
+/**
+ * Opens Slack. On a phone the app is opened directly through its deep link:
+ * an https link from an installed web app opens an in-app browser sheet, and
+ * even when iOS hands the page to Slack that blank sheet is left behind. If
+ * the app doesn't take over within a moment (not installed), the web link is
+ * opened instead. On desktop the web link opens in a new tab.
+ */
 export function openSlack(ao?: string): void {
-  window.open(slackUrl(ao), '_blank', 'noopener');
+  const web = slackUrl(ao);
+  if (!isMobile()) {
+    window.open(web, '_blank', 'noopener');
+    return;
+  }
+
+  // if the app opens, the page is hidden and the fallback is cancelled
+  const fallback = setTimeout(() => {
+    if (document.visibilityState === 'visible') {
+      window.open(web, '_blank', 'noopener');
+    }
+  }, APP_OPEN_GRACE_MS);
+  const cancel = () => clearTimeout(fallback);
+  document.addEventListener('visibilitychange', cancel, {once: true});
+  window.addEventListener('pagehide', cancel, {once: true});
+  window.addEventListener('blur', cancel, {once: true});
+
+  window.location.href = slackAppUrl(ao);
 }
