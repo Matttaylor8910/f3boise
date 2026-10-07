@@ -24,6 +24,37 @@
     margin-top: 20px;
   }
 
+  .picker-search {
+    padding: 0;
+    --box-shadow: none;
+    --background: rgba(var(--ion-color-medium-rgb), 0.12);
+  }
+
+  .picker-loading {
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .picker-results {
+    padding: 0;
+    margin-top: 8px;
+
+    ion-item {
+      --padding-start: 8px;
+      font-weight: 600;
+
+      app-pax-avatar {
+        margin: 6px 12px 6px 0;
+      }
+    }
+  }
+
+  .picker-empty {
+    margin-top: 12px;
+    font-size: 14px;
+  }
+
   .slack-email-note {
     font-size: 16px;
     font-weight: bold;

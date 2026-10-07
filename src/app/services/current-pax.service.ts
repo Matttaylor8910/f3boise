@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import * as moment from 'moment';
-import {from, Observable, of} from 'rxjs';
-import {shareReplay, switchMap} from 'rxjs/operators';
+import {BehaviorSubject, combineLatest, from, Observable, of} from 'rxjs';
+import {map, shareReplay, switchMap} from 'rxjs/operators';
 import {Backblast, Pax} from 'types';
 
 import {AuthService} from './auth.service';
@@ -19,20 +19,46 @@ export interface MyAo {
   posts: number;
 }
 
+/** Where the current PAX came from. */
+export type PaxSource =
+    /** Matched by the signed-in Firebase user's email: real auth. */
+    'auth'|
+    /** The user told us who they are, with no proof: personalization only. */
+    'chosen';
+
+export interface CurrentPax {
+  pax: Pax;
+  source: PaxSource;
+}
+
+/** localStorage key holding the self-identified PAX name. */
+const CHOSEN_PAX_KEY = 'chosenPaxName';
+
 /** How far back to look when deciding which AOs are "yours". */
 export const MY_AOS_DAYS = 90;
 /** How many AOs to pin as "yours". */
 export const MY_AOS_LIMIT = 3;
 
 /**
- * Resolves the signed-in Firebase user to their PAX record (matched by
- * email) and derives the AOs they post at most. Shared by the sidebar, the
- * tab bar and the personal dashboard so the lookup only happens once.
+ * Resolves who is using the app to their PAX record and derives the AOs they
+ * post at most. Shared by the sidebar, the tab bar and the personal dashboard
+ * so the lookup only happens once.
+ *
+ * A signed-in Firebase user is matched by email. Failing that, a PAX the user
+ * picked for themselves (kept in localStorage) is used, which is how the
+ * installed app personalizes itself without the email-link dance. Only ever
+ * use {@link current$}'s `source` for display: anything that writes data must
+ * keep checking real auth (AuthService / UserPermissionsService).
  */
 @Injectable({providedIn: 'root'})
 export class CurrentPaxService {
-  /** The linked PAX, or undefined when signed out or not matched. */
+  /** The current PAX and how we know, or undefined when nobody is known. */
+  readonly current$: Observable<CurrentPax|undefined>;
+  /** The current PAX, or undefined when signed out and nobody was chosen. */
   readonly pax$: Observable<Pax|undefined>;
+
+  private readonly chosenName$ =
+      new BehaviorSubject<string|null>(readChosenName());
 
   constructor(
       private readonly authService: AuthService,
@@ -40,14 +66,49 @@ export class CurrentPaxService {
       private readonly backblastService: BackblastService,
       private readonly utilService: UtilService,
   ) {
-    this.pax$ = this.authService.authState$.pipe(
+    const authPax$ = this.authService.authState$.pipe(
         switchMap(user => {
           const email: string|undefined = user?.email;
           return email ? from(this.paxService.getPaxByEmail(email)) :
                          of(undefined);
         }),
-        shareReplay({bufferSize: 1, refCount: true}),
     );
+    this.current$ =
+        combineLatest([authPax$, this.chosenName$])
+            .pipe(
+                switchMap(([authPax, chosenName]) => this.resolve(
+                              authPax, chosenName)),
+                shareReplay({bufferSize: 1, refCount: true}),
+            );
+    this.pax$ = this.current$.pipe(map(current => current?.pax));
+  }
+
+  /** Remember that the user says they are this PAX. */
+  choose(pax: Pax): void {
+    try {
+      localStorage.setItem(CHOSEN_PAX_KEY, pax.name);
+    } catch (e) {
+      // private mode or storage disabled: the choice just won't persist
+    }
+    this.chosenName$.next(pax.name);
+  }
+
+  /** Forget the self-identified PAX. */
+  clearChoice(): void {
+    try {
+      localStorage.removeItem(CHOSEN_PAX_KEY);
+    } catch (e) {
+      // nothing to clear
+    }
+    this.chosenName$.next(null);
+  }
+
+  private async resolve(authPax: Pax|undefined, chosenName: string|null):
+      Promise<CurrentPax|undefined> {
+    if (authPax) return {pax: authPax, source: 'auth'};
+    if (!chosenName) return undefined;
+    const pax = await this.paxService.getPax(chosenName);
+    return pax ? {pax, source: 'chosen'} : undefined;
   }
 
   /**
@@ -78,5 +139,13 @@ export class CurrentPaxService {
       counts.set(name, entry);
     }
     return Array.from(counts.values()).sort((a, b) => b.posts - a.posts);
+  }
+}
+
+function readChosenName(): string|null {
+  try {
+    return localStorage.getItem(CHOSEN_PAX_KEY);
+  } catch (e) {
+    return null;
   }
 }

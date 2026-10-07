@@ -14,8 +14,20 @@
     <ion-icon name="stats-chart-outline" slot="start"></ion-icon>
     <ion-label>My Beatdown Breakdown</ion-label>
   </ion-item> -->
-  <ion-item button (click)="signOut()">
-    <ion-icon name="log-out-outline" slot="start"></ion-icon>
-    <ion-label>Sign Out</ion-label>
-  </ion-item>
+  <ng-container *ngIf="chosenOnly; else signedIn">
+    <ion-item button (click)="switchPax()">
+      <ion-icon name="people-outline" slot="start"></ion-icon>
+      <ion-label>Not you? Switch PAX</ion-label>
+    </ion-item>
+    <ion-item button (click)="signIn()">
+      <ion-icon name="log-in-outline" slot="start"></ion-icon>
+      <ion-label>Sign in for full access</ion-label>
+    </ion-item>
+  </ng-container>
+  <ng-template #signedIn>
+    <ion-item button (click)="signOut()">
+      <ion-icon name="log-out-outline" slot="start"></ion-icon>
+      <ion-label>Sign Out</ion-label>
+    </ion-item>
+  </ng-template>
 </ion-list>

@@ -181,13 +181,16 @@
         </ion-card-header>
         <ion-card-content>
           <ng-container *ngIf="!user">
-            Sign in to see your streak, your AOs, tomorrow's Q and the open slots you could fill.
+            Tell us who you are to see your streak, your AOs, tomorrow's Q and the open slots you could fill.
             <div class="claim-actions">
-              <ion-button color="primary" (click)="openLoginModal()">Sign in</ion-button>
+              <ion-button color="primary" (click)="openLoginModal()">I'm a PAX</ion-button>
             </div>
           </ng-container>
           <ng-container *ngIf="user">
-            We couldn't match your email to a PAX. Ask Backslash in Slack to link it and this page becomes yours.
+            We couldn't match your email to a PAX. Ask Backslash in Slack to link it, or pick yourself from the roster for now.
+            <div class="claim-actions">
+              <ion-button color="primary" (click)="openLoginModal()">Pick my PAX</ion-button>
+            </div>
           </ng-container>
         </ion-card-content>
       </ion-card>
