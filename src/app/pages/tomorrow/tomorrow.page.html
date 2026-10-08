@@ -14,13 +14,10 @@
 <ion-content>
   <ng-container *ngIf="loaded; else loading">
     <div class="page-intro">
-      <div class="page-intro-text">
-        <h1>Tomorrow, {{ tomorrowLabel }}</h1>
-        <p *ngIf="groups.length > 0">
-          {{ openCount === 0 ? 'Every beatdown has a Q.' : openCount + ' slot' + (openCount === 1 ? '' : 's') + ' still need a Q. Sign up with /post-q-sheet in Slack.' }}
-        </p>
-      </div>
-      <app-slack-link></app-slack-link>
+      <h1>Tomorrow, {{ tomorrowLabel }}</h1>
+      <p *ngIf="groups.length > 0">
+        {{ openCount === 0 ? 'Every beatdown has a Q.' : openCount + ' slot' + (openCount === 1 ? '' : 's') + ' still need' + (openCount === 1 ? 's' : '') + ' a Q. Tap one to claim it in Slack.' }}
+      </p>
     </div>
 
     <div class="tiles" *ngIf="groups.length > 0; else noBds">
