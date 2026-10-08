@@ -266,7 +266,7 @@
                 <div class="progress-fill" [style.width.%]="m.pct"></div>
               </div>
               <!-- just crossed a century: celebrate it through tomorrow -->
-              <p class="milestone-tomorrow" *ngIf="m.hit; else tomorrow">
+              <p class="milestone-tomorrow milestone-done" *ngIf="m.hit; else tomorrow">
                 <ion-icon name="trophy"></ion-icon>
                 {{ m.bds }} BDs &middot; crossed {{ m.hit.milestone }} at {{ m.hit.ao }} {{ m.hit.when }}
               </p>

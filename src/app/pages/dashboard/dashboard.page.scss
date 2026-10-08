@@ -1,5 +1,15 @@
 // region pulse hero tiles use the global .stat-tile-row styles
 
+// crossing a milestone gets gold; approaching one keeps the brand red
+:host {
+  --milestone-gold: #c69214;
+}
+@media (prefers-color-scheme: dark) {
+  :host {
+    --milestone-gold: #e6b422;
+  }
+}
+
 // tile cards — grid tracks so each ion-card's own margins stay inside
 // its track instead of pushing past the viewport on small screens
 .tiles {
@@ -33,13 +43,17 @@
       font-size: 0.8em;
 
       &.milestone-hit {
-        color: var(--f3-red, #ee6059);
+        color: var(--milestone-gold);
         font-weight: 700;
       }
     }
 
     .progress-track.complete .progress-fill {
-      background: var(--f3-red, #ee6059);
+      background: var(--milestone-gold);
+    }
+
+    .milestone-tomorrow.milestone-done {
+      color: var(--milestone-gold);
     }
 
     .milestone-tomorrow {
