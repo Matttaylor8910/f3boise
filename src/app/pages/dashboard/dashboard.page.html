@@ -258,16 +258,25 @@
             <ion-label class="ion-text-wrap">
               <h2>
                 {{ utilService.normalizeName(m.name) }}
-                <span class="milestone-target">{{ m.needed }} away from {{ m.next }}</span>
+                <span class="milestone-target" [class.milestone-hit]="m.hit">
+                  {{ m.hit ? 'Hit ' + m.hit.milestone + '!' : m.needed + ' away from ' + m.next }}
+                </span>
               </h2>
-              <div class="progress-track">
+              <div class="progress-track" [class.complete]="m.hit">
                 <div class="progress-fill" [style.width.%]="m.pct"></div>
               </div>
-              <!-- an HC for tomorrow beats the pace guess -->
-              <p class="milestone-tomorrow" *ngIf="m.tomorrowAo; else pace">
-                <ion-icon name="flame"></ion-icon>
-                {{ m.bds }} BDs &middot; HC'd for {{ m.tomorrowAo }} tomorrow, should hit {{ m.next }} there
+              <!-- just crossed a century: celebrate it through tomorrow -->
+              <p class="milestone-tomorrow" *ngIf="m.hit; else tomorrow">
+                <ion-icon name="trophy"></ion-icon>
+                {{ m.bds }} BDs &middot; crossed {{ m.hit.milestone }} at {{ m.hit.ao }} {{ m.hit.when }}
               </p>
+              <ng-template #tomorrow>
+                <!-- an HC for tomorrow beats the pace guess -->
+                <p class="milestone-tomorrow" *ngIf="m.tomorrowAo; else pace">
+                  <ion-icon name="flame"></ion-icon>
+                  {{ m.bds }} BDs &middot; HC'd for {{ m.tomorrowAo }} tomorrow, should hit {{ m.next }} there
+                </p>
+              </ng-template>
               <ng-template #pace>
                 <p>{{ m.bds }} BDs &middot; {{ m.paceLabel }}</p>
               </ng-template>

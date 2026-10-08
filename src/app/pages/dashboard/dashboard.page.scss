@@ -31,6 +31,15 @@
       float: right;
       color: var(--ion-color-medium);
       font-size: 0.8em;
+
+      &.milestone-hit {
+        color: var(--f3-red, #ee6059);
+        font-weight: 700;
+      }
+    }
+
+    .progress-track.complete .progress-fill {
+      background: var(--f3-red, #ee6059);
     }
 
     .milestone-tomorrow {

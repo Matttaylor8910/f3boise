@@ -108,6 +108,11 @@ interface MilestoneWatchItem {
   paceLabel: string;
   /** Display name of the AO they've HC'd for tomorrow, when one BD away. */
   tomorrowAo?: string;
+  /**
+   * They just crossed a century: the milestone, where, and when. Kept on the
+   * list through the end of the following day so the moment isn't missed.
+   */
+  hit?: {milestone: number; ao: string; when: 'today'|'yesterday'};
 }
 
 interface FamilyGrower {
@@ -581,6 +586,8 @@ export class DashboardPage implements OnInit, OnDestroy {
     const displayNames = new Map<string, string>();
     const lastPostDays = new Map<string, number>();
     const paceCounts = new Map<string, number>();
+    // each PAX's posts from today and yesterday, latest first
+    const recentPosts = new Map<string, Array<{days: number; ao: string}>>();
 
     for (const bb of allBds) {
       const days = now.diff(moment(bb.date), 'days');
@@ -593,6 +600,10 @@ export class DashboardPage implements OnInit, OnDestroy {
         if (days <= PACE_DAYS) {
           paceCounts.set(lower, (paceCounts.get(lower) ?? 0) + 1);
         }
+        if (days <= 1) {
+          recentPosts.set(
+              lower, [...(recentPosts.get(lower) ?? []), {days, ao: bb.ao}]);
+        }
       }
     }
 
@@ -602,6 +613,30 @@ export class DashboardPage implements OnInit, OnDestroy {
       const needed = next - bds;
       const pace = paceCounts.get(lower) ?? 0;
       const lastDays = lastPostDays.get(lower) ?? Infinity;
+
+      // Did their century post land today or yesterday? That post is the
+      // (bds - milestone + 1)th most recent one, so it's recent only if they
+      // have that many posts in the last two days (a same-day double-down
+      // after the milestone still counts).
+      const milestone = Math.floor(bds / MILESTONE_STEP) * MILESTONE_STEP;
+      const recent = recentPosts.get(lower) ?? [];
+      const centuryPost = recent[bds - milestone];
+      if (milestone > 0 && centuryPost) {
+        watch.push({
+          name: displayNames.get(lower)!,
+          bds,
+          next: milestone,
+          needed: 0,
+          pct: 100,
+          paceLabel: '',
+          hit: {
+            milestone,
+            ao: this.utilService.normalizeName(centuryPost.ao),
+            when: centuryPost.days === 0 ? 'today' : 'yesterday',
+          },
+        });
+        continue;
+      }
 
       if (needed > WATCH_WINDOW || lastDays > ACTIVE_DAYS || pace === 0) {
         continue;
