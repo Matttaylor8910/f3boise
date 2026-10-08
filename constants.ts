@@ -123,5 +123,9 @@ export const DISCONTINUED_AOS = new Set<string>([
 // AO name used in backblasts. Keys are the workout name normalized and
 // lowercased, values are the backblast AO name.
 export const WORKOUT_AO_ALIASES = new Map<string, string>([
+  ['camel\'s back', AO.CAMELS_BACK],
   ['cynthia mann', AO.OTB_CYNTHIA_MANN],
+  ['gordon harris park', AO.OTB_GORDON_HARRIS_PARK],
+  ['ruckership canyon', AO.OTB_RUCKERSHIP_CANYON],
+  ['warhorse', AO.WAR_HORSE],
 ]);
