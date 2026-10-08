@@ -60,8 +60,10 @@ export class UtilService {
 
     // TODO: ask Stinger to unify the ao naming lmao
     if (name === 'Warhorse') return 'War Horse';
+    if (name === 'Camels Back') return 'Camel\'s Back';
 
-    return name;
+    // "Off The Books" sites keep their acronym
+    return name.replace(/^Otb\b/, 'OTB');
   }
 
   /**
