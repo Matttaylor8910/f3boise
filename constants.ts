@@ -12,7 +12,7 @@ export enum REGION {
 export enum AO {
   // city of trees
   BLEACH = 'bleach',
-  CAMELS_BACK = 'camels back',
+  CAMELS_BACK = 'camel\'s back',
   LIBERTY = 'liberty',
   OTB_CYNTHIA_MANN = 'otb cynthia mann',
   RISE = 'rise',
@@ -123,7 +123,7 @@ export const DISCONTINUED_AOS = new Set<string>([
 // AO name used in backblasts. Keys are the workout name normalized and
 // lowercased, values are the backblast AO name.
 export const WORKOUT_AO_ALIASES = new Map<string, string>([
-  ['camel\'s back', AO.CAMELS_BACK],
+  ['camels back', AO.CAMELS_BACK],
   ['cynthia mann', AO.OTB_CYNTHIA_MANN],
   ['gordon harris park', AO.OTB_GORDON_HARRIS_PARK],
   ['ruckership canyon', AO.OTB_RUCKERSHIP_CANYON],

@@ -36,7 +36,6 @@ const PREBLAST_AO_ALIASES = new Map<string, string>([
   ['gordon harris park', 'otb gordon harris park'],
   ['ruckership canyon', 'otb ruckership canyon'],
   ['warhorse', 'war horse'],
-  ['camel\'s back', 'camels back'],
 ]);
 
 /** Backblast AO key (lowercase) for a preblast summary heading. */
