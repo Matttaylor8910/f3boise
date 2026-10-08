@@ -12,7 +12,7 @@ import {PaxService} from 'src/app/services/pax.service';
 import {UtilService} from 'src/app/services/util.service';
 import {AoPaxStats, Backblast, BBType} from 'types';
 
-import {REGION_AGNOSTIC_AOS} from '../../../../constants';
+import {canonicalAoName, REGION_AGNOSTIC_AOS} from '../../../../constants';
 
 /** A reference to a single beatdown, for "first BD" / "record" style rows. */
 interface BdRef {
@@ -135,7 +135,9 @@ export class AoPage {
       private readonly toastController: ToastController,
       private readonly modalController: ModalController,
   ) {
-    this.name = this.route.snapshot.params['name'];
+    // a link may carry the scraper's spelling ("camel's back"): resolve it
+    // to the backblast AO name the stats are keyed on
+    this.name = canonicalAoName(this.route.snapshot.params['name'] ?? '');
     this.displayName = this.utilService.normalizeName(this.name);
     this.bbType = window.location.href.includes('/dd/') ? BBType.DOUBLEDOWN :
                                                           BBType.BACKBLAST;

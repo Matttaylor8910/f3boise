@@ -129,3 +129,12 @@ export const WORKOUT_AO_ALIASES = new Map<string, string>([
   ['ruckership canyon', AO.OTB_RUCKERSHIP_CANYON],
   ['warhorse', AO.WAR_HORSE],
 ]);
+
+/**
+ * The backblast AO name for any spelling of an AO: the scraper's workout
+ * name, an older link, or the name itself. Lowercased.
+ */
+export function canonicalAoName(name: string): string {
+  const lower = name.trim().toLowerCase();
+  return WORKOUT_AO_ALIASES.get(lower) ?? lower;
+}
