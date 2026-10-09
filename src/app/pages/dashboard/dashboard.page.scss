@@ -10,16 +10,21 @@
   }
 }
 
-// tile cards — grid tracks so each ion-card's own margins stay inside
-// its track instead of pushing past the viewport on small screens
+// tile cards — masonry via CSS columns rather than a grid: card heights
+// vary a lot (one AO tomorrow, few or no challenges, a long Q-slot list),
+// and grid rows are as tall as their tallest card, which wraps into big
+// bands of whitespace at in-between widths. Columns let each card stack
+// right under the previous one. The cards' own 10px margins form the
+// gutters (column-gap: 0), matching the old grid spacing.
 .tiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
-  align-items: start;
+  column-width: 320px;
+  column-gap: 0;
   max-width: 1500px;
   margin: 4px auto 0;
 
   .tile {
+    break-inside: avoid;
+    page-break-inside: avoid; // older WebKit
 
     ion-card-subtitle {
       text-transform: none;
