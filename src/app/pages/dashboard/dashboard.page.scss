@@ -21,10 +21,15 @@
   column-gap: 0;
   max-width: 1500px;
   margin: 4px auto 0;
+  padding-top: 10px; // stands in for the cards' zeroed top margins
 
   .tile {
     break-inside: avoid;
     page-break-inside: avoid; // older WebKit
+    // Fragmentation truncates a card's leading margin when it starts a new
+    // column, so first cards sat at different heights across columns. Keep
+    // all vertical rhythm in bottom margins so every column tops out even.
+    margin: 0 10px 20px;
 
     ion-card-subtitle {
       text-transform: none;
