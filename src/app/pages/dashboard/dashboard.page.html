@@ -59,26 +59,31 @@
         </div>
 
         <div class="tiles">
-          <!-- tomorrow, filtered to where they post -->
-          <ion-card class="tile" *ngIf="tomorrowMine.length > 0">
+          <!-- the rest of today and tomorrow, filtered to where they post -->
+          <ion-card class="tile" *ngIf="upcomingMine.length > 0">
             <ion-card-header>
-              <ion-card-title>Tomorrow at your AOs</ion-card-title>
+              <ion-card-title>Up next at your AOs</ion-card-title>
               <ion-card-subtitle>Set your alarm</ion-card-subtitle>
             </ion-card-header>
             <ion-list>
-              <ion-item *ngFor="let bd of tomorrowMine">
-                <ion-icon [name]="bd.icon" slot="start" class="ao-icon"></ion-icon>
-                <ion-label class="ion-text-wrap">
-                  <h2><a routerLink="/ao/{{ bd.route }}">{{ bd.ao }}</a></h2>
-                  <p *ngIf="bd.time">{{ bd.time }}</p>
-                  <app-hc-list [names]="bd.hcs" [q]="bd.q"></app-hc-list>
-                </ion-label>
-                <span slot="end" class="q-slot" *ngIf="bd.q">
-                  <app-pax-avatar [name]="bd.q" [size]="28"></app-pax-avatar>
-                  <a routerLink="/pax/{{ bd.q.toLowerCase() }}">{{ utilService.normalizeName(bd.q) }}</a>
-                </span>
-                <app-slack-link slot="end" *ngIf="!bd.q" [ao]="bd.route" label="Claim the Q"></app-slack-link>
-              </ion-item>
+              <ng-container *ngFor="let day of upcomingMine">
+                <ion-item-divider class="day-divider">
+                  <ion-label>{{ day.label }}</ion-label>
+                </ion-item-divider>
+                <ion-item *ngFor="let bd of day.bds">
+                  <ion-icon [name]="bd.icon" slot="start" class="ao-icon"></ion-icon>
+                  <ion-label class="ion-text-wrap">
+                    <h2><a routerLink="/ao/{{ bd.route }}">{{ bd.ao }}</a></h2>
+                    <p *ngIf="bd.time">{{ bd.time }}</p>
+                    <app-hc-list [names]="bd.hcs" [q]="bd.q"></app-hc-list>
+                  </ion-label>
+                  <span slot="end" class="q-slot" *ngIf="bd.q">
+                    <app-pax-avatar [name]="bd.q" [size]="28"></app-pax-avatar>
+                    <a routerLink="/pax/{{ bd.q.toLowerCase() }}">{{ utilService.normalizeName(bd.q) }}</a>
+                  </span>
+                  <app-slack-link slot="end" *ngIf="!bd.q" [ao]="bd.route" label="Claim the Q"></app-slack-link>
+                </ion-item>
+              </ng-container>
             </ion-list>
             <ion-button fill="clear" size="small" class="tile-footer-link" routerLink="/tomorrow">
               All of tomorrow's beatdowns
@@ -210,29 +215,34 @@
     </div>
 
     <div class="tiles">
-      <!-- tomorrow's beatdowns -->
+      <!-- the rest of today's beatdowns, then tomorrow's -->
       <ion-card class="tile">
         <ion-card-header>
-          <ion-card-title>Tomorrow's Beatdowns</ion-card-title>
+          <ion-card-title>Up Next</ion-card-title>
           <ion-card-subtitle>Set your alarm — here's who's leading where</ion-card-subtitle>
         </ion-card-header>
-        <ion-list *ngIf="tomorrow.length > 0; else noTomorrow">
-          <ion-item *ngFor="let bd of tomorrow">
-            <ion-icon [name]="bd.icon" slot="start" class="ao-icon"></ion-icon>
-            <ion-label class="ion-text-wrap">
-              <h2><a routerLink="/ao/{{ bd.route }}">{{ bd.ao }}</a></h2>
-              <p *ngIf="bd.time">{{ bd.time }}</p>
-              <app-hc-list [names]="bd.hcs" [q]="bd.q"></app-hc-list>
-            </ion-label>
-            <span slot="end" class="q-slot" *ngIf="bd.q">
-              <app-pax-avatar [name]="bd.q" [size]="28"></app-pax-avatar>
-              <a routerLink="/pax/{{ bd.q.toLowerCase() }}">{{ utilService.normalizeName(bd.q) }}</a>
-            </span>
-            <app-slack-link slot="end" *ngIf="!bd.q" [ao]="bd.route" label="Claim the Q"></app-slack-link>
-          </ion-item>
+        <ion-list *ngIf="upcoming.length > 0; else noUpcoming">
+          <ng-container *ngFor="let day of upcoming">
+            <ion-item-divider class="day-divider">
+              <ion-label>{{ day.label }}</ion-label>
+            </ion-item-divider>
+            <ion-item *ngFor="let bd of day.bds">
+              <ion-icon [name]="bd.icon" slot="start" class="ao-icon"></ion-icon>
+              <ion-label class="ion-text-wrap">
+                <h2><a routerLink="/ao/{{ bd.route }}">{{ bd.ao }}</a></h2>
+                <p *ngIf="bd.time">{{ bd.time }}</p>
+                <app-hc-list [names]="bd.hcs" [q]="bd.q"></app-hc-list>
+              </ion-label>
+              <span slot="end" class="q-slot" *ngIf="bd.q">
+                <app-pax-avatar [name]="bd.q" [size]="28"></app-pax-avatar>
+                <a routerLink="/pax/{{ bd.q.toLowerCase() }}">{{ utilService.normalizeName(bd.q) }}</a>
+              </span>
+              <app-slack-link slot="end" *ngIf="!bd.q" [ao]="bd.route" label="Claim the Q"></app-slack-link>
+            </ion-item>
+          </ng-container>
         </ion-list>
-        <ng-template #noTomorrow>
-          <div class="tile-empty">No beatdowns on the calendar tomorrow. Rest up.</div>
+        <ng-template #noUpcoming>
+          <div class="tile-empty">No beatdowns on the calendar today or tomorrow. Rest up.</div>
         </ng-template>
         <ion-button fill="clear" size="small" class="tile-footer-link" routerLink="/q-line-up">
           Full Q lineup

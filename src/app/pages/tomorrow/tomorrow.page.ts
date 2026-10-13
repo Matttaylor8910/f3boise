@@ -2,23 +2,14 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import * as moment from 'moment';
 import {Subscription} from 'rxjs';
 import {CurrentPaxService, MyAo} from 'src/app/services/current-pax.service';
-import {PreblastHcService} from 'src/app/services/preblast-hc.service';
+import {UpcomingBd, UpcomingBdService} from 'src/app/services/upcoming-bd.service';
 import {UtilService} from 'src/app/services/util.service';
-import {WorkoutService} from 'src/app/services/workout.service';
-import {Pax, Workout} from 'types';
+import {Pax} from 'types';
 
 import {CANYON_AOS, CITY_OF_TREES_AOS, HIGH_DESERT_AOS, SETTLERS_AOS} from '../../../../constants';
 
-interface TomorrowBd {
-  ao: string;
-  route: string;
-  q: string|null;
-  time: string;
-  address: string|null;
-  icon: string;
+interface TomorrowBd extends UpcomingBd {
   region: string;
-  /** PAX who have HC'd for it. */
-  hcs: string[];
 }
 
 interface TomorrowGroup {
@@ -57,9 +48,8 @@ export class TomorrowPage implements OnInit, OnDestroy {
 
   constructor(
       public readonly utilService: UtilService,
-      private readonly workoutService: WorkoutService,
+      private readonly upcomingBdService: UpcomingBdService,
       private readonly currentPaxService: CurrentPaxService,
-      private readonly preblastHcService: PreblastHcService,
   ) {}
 
   ngOnInit() {
@@ -76,40 +66,21 @@ export class TomorrowPage implements OnInit, OnDestroy {
   }
 
   async ionViewDidEnter() {
-    const workouts = await this.workoutService.getAllData();
-    const tomorrowDay = moment().add(1, 'day').format('ddd');
-
-    this.all = workouts.filter(workout => workout.is_tomorrow && !workout.closed)
-                   .map(workout => this.toBd(workout, tomorrowDay))
-                   .sort((a, b) => (a.time || 'z').localeCompare(b.time || 'z'));
+    const tomorrow = await this.upcomingBdService.getTomorrow();
+    this.all = tomorrow.bds.map(bd => this.toBd(bd));
     this.openCount = this.all.filter(bd => !bd.q).length;
     this.buildGroups();
     this.loaded = true;
 
     // HCs hit the network, so fill them in after the list is up
-    const hcs = await this.preblastHcService.getHcs(
-        moment().add(1, 'day').format('YYYY-MM-DD'));
-    for (const bd of this.all) {
-      bd.hcs = Array.from(hcs.get(bd.route) ?? []).sort();
-    }
+    await this.upcomingBdService.fillHcs(this.all);
     // the region subtitles count HCs, so refresh them
     this.buildGroups();
   }
 
-  private toBd(workout: Workout, tomorrowDay: string): TomorrowBd {
-    const times = (workout.workout_dates as any)[tomorrowDay] ?? [];
-    const key = this.workoutService.aoKey(workout);
-    const region = REGIONS.find(r => r.aos.has(key));
-    return {
-      ao: this.utilService.normalizeName(key),
-      route: key,
-      q: workout.tomorrows_q,
-      time: times.length > 0 ? this.formatTime(times[0]) : '',
-      address: workout.address,
-      icon: workout.icon,
-      region: region?.name ?? 'Other',
-      hcs: [],
-    };
+  private toBd(bd: UpcomingBd): TomorrowBd {
+    const region = REGIONS.find(r => r.aos.has(bd.route));
+    return {...bd, region: region?.name ?? 'Other'};
   }
 
   private buildGroups() {
@@ -168,14 +139,5 @@ export class TomorrowPage implements OnInit, OnDestroy {
     const q = bd.q?.trim().toLowerCase();
     const others = bd.hcs.filter(name => name.toLowerCase() !== q).length;
     return (q ? 1 : 0) + others;
-  }
-
-  private formatTime(time: string): string {
-    return new Date(`1970-01-01T${time}Z`).toLocaleTimeString('en-US', {
-      timeZone: 'UTC',
-      hour12: true,
-      hour: 'numeric',
-      minute: 'numeric',
-    });
   }
 }

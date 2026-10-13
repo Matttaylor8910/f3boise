@@ -11,8 +11,8 @@ import {CurrentPaxService, MyAo} from 'src/app/services/current-pax.service';
 import {PaxService} from 'src/app/services/pax.service';
 import {PreblastHcService} from 'src/app/services/preblast-hc.service';
 import {QService} from 'src/app/services/q.service';
+import {UpcomingBd, UpcomingBdService, UpcomingDay} from 'src/app/services/upcoming-bd.service';
 import {UtilService} from 'src/app/services/util.service';
-import {WorkoutService} from 'src/app/services/workout.service';
 import {Backblast, BBType, Challenge, ChallengeMetric, Pax, PaxOrigin} from 'types';
 
 const PAGE_SIZE = 30;
@@ -89,16 +89,6 @@ interface PulseStat {
   route?: string;
 }
 
-interface TomorrowBd {
-  ao: string;
-  route: string;
-  q: string|null;
-  time: string;
-  icon: string;
-  /** PAX who have HC'd for it. */
-  hcs: string[];
-}
-
 interface MilestoneWatchItem {
   name: string;
   bds: number;
@@ -150,7 +140,8 @@ export class DashboardPage implements OnInit, OnDestroy {
   loaded = false;
 
   pulse: PulseStat[] = [];
-  tomorrow: TomorrowBd[] = [];
+  /** The rest of today's beatdowns, then tomorrow's. */
+  upcoming: UpcomingDay[] = [];
   milestoneWatch: MilestoneWatchItem[] = [];
   familyGrowers: FamilyGrower[] = [];
 
@@ -163,7 +154,8 @@ export class DashboardPage implements OnInit, OnDestroy {
   personalLoaded = false;
   myWeek?: MyWeek;
   myAos: MyAo[] = [];
-  tomorrowMine: TomorrowBd[] = [];
+  /** `upcoming`, filtered to the AOs where they post. */
+  upcomingMine: UpcomingDay[] = [];
   openSlots: OpenSlot[] = [];
   standings: ChallengeStanding[] = [];
   recentMine: MyBackblast[] = [];
@@ -176,7 +168,7 @@ export class DashboardPage implements OnInit, OnDestroy {
       private readonly router: Router,
       private readonly backblastService: BackblastService,
       private readonly paxService: PaxService,
-      private readonly workoutService: WorkoutService,
+      private readonly upcomingBdService: UpcomingBdService,
       private readonly authService: AuthService,
       private readonly currentPaxService: CurrentPaxService,
       private readonly qService: QService,
@@ -204,7 +196,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   async ionViewDidEnter() {
     const [allBds] = await Promise.all([
       this.loadAllBds(),
-      this.loadTomorrow(),
+      this.loadUpcoming(),
     ]);
 
     this.calculatePulse(allBds);
@@ -215,11 +207,11 @@ export class DashboardPage implements OnInit, OnDestroy {
     this.visibleEvents = this.timeline.slice(0, PAGE_SIZE);
     this.loaded = true;
 
-    // tomorrow's list is ready now, so the personal filter of it can run
-    this.filterTomorrowMine();
+    // the upcoming list is ready now, so the personal filter of it can run
+    this.filterUpcomingMine();
 
     // hits the network, so let the page render first
-    await this.loadTomorrowHcs();
+    await this.loadUpcomingHcs();
   }
 
   async openLoginModal() {
@@ -245,7 +237,7 @@ export class DashboardPage implements OnInit, OnDestroy {
       this.personalLoaded = false;
       this.myWeek = undefined;
       this.myAos = [];
-      this.tomorrowMine = [];
+      this.upcomingMine = [];
       this.openSlots = [];
       this.standings = [];
       this.recentMine = [];
@@ -264,7 +256,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     this.myAos = myAos;
     this.myWeek = this.calculateMyWeek(pax.name, myBds);
     this.recentMine = this.findRecentAtMyAos(allBds);
-    this.filterTomorrowMine();
+    this.filterUpcomingMine();
 
     // these two hit the network, so let the page render first
     this.personalLoaded = true;
@@ -311,14 +303,23 @@ export class DashboardPage implements OnInit, OnDestroy {
     };
   }
 
-  private filterTomorrowMine() {
+  private filterUpcomingMine() {
     if (this.myAos.length === 0) {
-      this.tomorrowMine = [];
+      this.upcomingMine = [];
       return;
     }
     const mine = new Set(this.myAos.map(ao => ao.name));
-    this.tomorrowMine = this.tomorrow.filter(
-        bd => mine.has(this.utilService.normalizeName(bd.ao).toLowerCase()));
+    // the day objects are new, but the beatdowns are shared with `upcoming`,
+    // so HCs filled in later show up here too
+    this.upcomingMine =
+        this.upcoming
+            .map(day => ({
+                   ...day,
+                   bds: day.bds.filter(
+                       bd => mine.has(
+                           this.utilService.normalizeName(bd.ao).toLowerCase())),
+                 }))
+            .filter(day => day.bds.length > 0);
   }
 
   private findRecentAtMyAos(allBds: Backblast[]): MyBackblast[] {
@@ -499,34 +500,18 @@ export class DashboardPage implements OnInit, OnDestroy {
     }
   }
 
-  private async loadTomorrow() {
-    const workouts = await this.workoutService.getAllData();
-    const tomorrowDay = moment().add(1, 'day').format('ddd');
-
-    this.tomorrow =
-        workouts.filter(workout => workout.is_tomorrow && !workout.closed)
-            .map(workout => {
-              const times = (workout.workout_dates as any)[tomorrowDay] ?? [];
-              const key = this.workoutService.aoKey(workout);
-              return {
-                ao: this.utilService.normalizeName(key),
-                route: key,
-                q: workout.tomorrows_q,
-                time: times.length > 0 ? this.formatTime(times[0]) : '',
-                icon: workout.icon,
-                hcs: [],
-              };
-            })
-            .sort((a, b) => (a.time || 'z').localeCompare(b.time || 'z'));
+  /**
+   * Today's beatdowns that haven't ended yet, then tomorrow's: a PAX on the
+   * way to a beatdown keeps seeing its HC list until it's over.
+   */
+  private async loadUpcoming() {
+    this.upcoming = await this.upcomingBdService.getUpcoming();
   }
 
-  private formatTime(time: string): string {
-    return new Date(`1970-01-01T${time}Z`).toLocaleTimeString('en-US', {
-      timeZone: 'UTC',
-      hour12: true,
-      hour: 'numeric',
-      minute: 'numeric',
-    });
+  /** Every upcoming beatdown, today's and tomorrow's. */
+  private get upcomingBds(): UpcomingBd[] {
+    return this.upcoming.reduce(
+        (all, day) => all.concat(day.bds), [] as UpcomingBd[]);
   }
 
   /**
@@ -663,18 +648,17 @@ export class DashboardPage implements OnInit, OnDestroy {
   }
 
   /**
-   * Tomorrow's preblast HCs: listed under each beatdown, and a PAX one BD away
-   * who has HC'd gets a note saying where the milestone should land.
+   * Preblast HCs: listed under each upcoming beatdown, and a PAX one BD away
+   * who has HC'd for tomorrow gets a note saying where the milestone should
+   * land.
    */
-  private async loadTomorrowHcs() {
+  private async loadUpcomingHcs() {
+    // upcomingMine shares these objects, so it picks the HCs up too
+    await this.upcomingBdService.fillHcs(this.upcomingBds);
+
     const tomorrow = moment().add(1, 'day').format('YYYY-MM-DD');
     const hcs = await this.preblastHcService.getHcs(tomorrow);
     if (hcs.size === 0) return;
-
-    // tomorrowMine shares these objects, so it picks the HCs up too
-    for (const bd of this.tomorrow) {
-      bd.hcs = Array.from(hcs.get(bd.route) ?? []).sort();
-    }
 
     for (const item of this.milestoneWatch) {
       if (item.needed !== 1) continue;
