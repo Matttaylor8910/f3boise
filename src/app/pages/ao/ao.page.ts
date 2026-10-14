@@ -47,13 +47,11 @@ interface PopularAo {
 
 const LIMIT = 10;
 /**
- * A PAX needs at least this many posts to rank on the Top/Bottom Q lists,
- * so a one-and-done Q at 100% and a near-stranger at 1% don't bookend them.
- *
- * This is the ceiling: short ranges (e.g. the current month) scale it down
- * to roughly one post per week, see `qListMinBdsForSpan`.
+ * Over all time, a PAX needs at least this many posts to rank on the
+ * Top/Bottom Q lists, so a one-and-done Q at 100% and a near-stranger at 1%
+ * don't bookend them. A picked date range ranks everyone who has Q'd in it.
  */
-const MAX_MIN_BDS_FOR_Q_LISTS = 10;
+const ALL_TIME_MIN_BDS_FOR_Q_LISTS = 10;
 
 /** Charts at the top of the page always reflect this lookback. */
 const TRAILING_DAYS = 90;
@@ -100,8 +98,8 @@ export class AoPage {
   topQs: AoPaxStats[] = [];
   bottomQs: AoPaxStats[] = [];
   noQs: AoPaxStats[] = [];
-  /** Posts a PAX needs in the selected range to rank on Top/Bottom Qs. */
-  qListMinBds = MAX_MIN_BDS_FOR_Q_LISTS;
+  /** Posts a PAX needs to rank on Top/Bottom Qs (1 = everyone who has Q'd). */
+  qListMinBds = ALL_TIME_MIN_BDS_FOR_Q_LISTS;
 
   showMoreLeaderboard = false;
   showMoreTop = false;
@@ -369,8 +367,9 @@ export class AoPage {
         paxStatsArray.filter(pax => !pax.parent) :
         paxStatsArray;
     this.calculatePaxBdsPerWeek();
-    this.qListMinBds =
-        this.qListMinBdsForSpan(data[0].date, data[data.length - 1].date);
+    this.qListMinBds = range.startDate || range.endDate ?
+        1 :
+        ALL_TIME_MIN_BDS_FOR_Q_LISTS;
     this.calculateQsCards();
 
     // after everything renders, then set recent BDs for the grid
@@ -503,18 +502,6 @@ export class AoPage {
     });
   }
 
-  /**
-   * Posts needed to rank on the Top/Bottom Q lists for a range spanning the
-   * given dates: about one per week, at least 2, capped at
-   * `MAX_MIN_BDS_FOR_Q_LISTS`. Over all time that's the cap; over the first
-   * two weeks of a month it's 3, so the lists aren't empty early in a month.
-   */
-  private qListMinBdsForSpan(firstDate: string, lastDate: string): number {
-    const days = moment(lastDate).diff(moment(firstDate), 'days') + 1;
-    const weeks = Math.ceil(Math.max(days, 1) / 7);
-    return Math.min(MAX_MIN_BDS_FOR_Q_LISTS, Math.max(2, weeks + 1));
-  }
-
   calculateQsCards() {
     const noQs: AoPaxStats[] = [];
     const hasQd: AoPaxStats[] = [];
@@ -564,7 +551,7 @@ export class AoPage {
       });
     }
 
-    // Only PAX with enough posts in the range rank on the Top/Bottom Q lists;
+    // Over all time only PAX with enough posts rank on the Top/Bottom Q lists;
     // everyone who has Q'd still counts on the leaderboard below.
     const rankedQs = hasQd.filter(pax => pax.bds >= this.qListMinBds);
 

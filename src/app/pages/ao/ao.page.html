@@ -241,7 +241,7 @@
               <div class="card-header-content">
                 <div>
                   <ion-card-title>Top Qs</ion-card-title>
-                  <ion-card-subtitle>Takes the Q the most, among PAX with {{ qListMinBds }}+ posts</ion-card-subtitle>
+                  <ion-card-subtitle>Takes the Q the most<ng-container *ngIf="qListMinBds > 1">, among PAX with {{ qListMinBds }}+ posts</ng-container></ion-card-subtitle>
                 </div>
                 <ion-button
                   fill="clear"
@@ -294,7 +294,7 @@
               <div class="card-header-content">
                 <div>
                   <ion-card-title>Bottom Qs</ion-card-title>
-                  <ion-card-subtitle>Takes the Q the least, among PAX with {{ qListMinBds }}+ posts</ion-card-subtitle>
+                  <ion-card-subtitle>Takes the Q the least<ng-container *ngIf="qListMinBds > 1">, among PAX with {{ qListMinBds }}+ posts</ng-container></ion-card-subtitle>
                 </div>
                 <ion-button
                   fill="clear"
