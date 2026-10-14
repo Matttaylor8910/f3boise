@@ -47,10 +47,13 @@ interface PopularAo {
 
 const LIMIT = 10;
 /**
- * A PAX needs more than this many posts to rank on the Top/Bottom Q lists,
+ * A PAX needs at least this many posts to rank on the Top/Bottom Q lists,
  * so a one-and-done Q at 100% and a near-stranger at 1% don't bookend them.
+ *
+ * This is the ceiling: short ranges (e.g. the current month) scale it down
+ * to roughly one post per week, see `qListMinBdsForSpan`.
  */
-const MIN_BDS_FOR_Q_LEADERBOARD = 10;
+const MAX_MIN_BDS_FOR_Q_LISTS = 10;
 
 /** Charts at the top of the page always reflect this lookback. */
 const TRAILING_DAYS = 90;
@@ -97,6 +100,8 @@ export class AoPage {
   topQs: AoPaxStats[] = [];
   bottomQs: AoPaxStats[] = [];
   noQs: AoPaxStats[] = [];
+  /** Posts a PAX needs in the selected range to rank on Top/Bottom Qs. */
+  qListMinBds = MAX_MIN_BDS_FOR_Q_LISTS;
 
   showMoreLeaderboard = false;
   showMoreTop = false;
@@ -364,6 +369,8 @@ export class AoPage {
         paxStatsArray.filter(pax => !pax.parent) :
         paxStatsArray;
     this.calculatePaxBdsPerWeek();
+    this.qListMinBds =
+        this.qListMinBdsForSpan(data[0].date, data[data.length - 1].date);
     this.calculateQsCards();
 
     // after everything renders, then set recent BDs for the grid
@@ -496,12 +503,24 @@ export class AoPage {
     });
   }
 
+  /**
+   * Posts needed to rank on the Top/Bottom Q lists for a range spanning the
+   * given dates: about one per week, at least 2, capped at
+   * `MAX_MIN_BDS_FOR_Q_LISTS`. Over all time that's the cap; over the first
+   * two weeks of a month it's 3, so the lists aren't empty early in a month.
+   */
+  private qListMinBdsForSpan(firstDate: string, lastDate: string): number {
+    const days = moment(lastDate).diff(moment(firstDate), 'days') + 1;
+    const weeks = Math.ceil(Math.max(days, 1) / 7);
+    return Math.min(MAX_MIN_BDS_FOR_Q_LISTS, Math.max(2, weeks + 1));
+  }
+
   calculateQsCards() {
     const noQs: AoPaxStats[] = [];
-    const hasQd = [];
+    const hasQd: AoPaxStats[] = [];
     for (const pax of this.paxStats ?? []) {
       if (pax.qs > 0) {
-        if (pax.bds > MIN_BDS_FOR_Q_LEADERBOARD) hasQd.push(pax);
+        hasQd.push(pax);
       } else {
         // Precompute relative date for noQs items
         const paxWithDate: AoPaxStats = {
@@ -545,10 +564,14 @@ export class AoPage {
       });
     }
 
+    // Only PAX with enough posts in the range rank on the Top/Bottom Q lists;
+    // everyone who has Q'd still counts on the leaderboard below.
+    const rankedQs = hasQd.filter(pax => pax.bds >= this.qListMinBds);
+
     // Sort Top Qs based on toggle state - always descending (highest first)
     if (this.topQsViewByPercentage) {
       // Sort by percentage descending, fallback to total Qs descending
-      this.topQs = [...hasQd].sort((a, b) => {
+      this.topQs = [...rankedQs].sort((a, b) => {
         if (b.qRate === a.qRate) {
           return b.qs - a.qs;  // Same percentage, fallback to total Qs
         }
@@ -556,7 +579,7 @@ export class AoPage {
       });
     } else {
       // Sort by total Qs descending, fallback to percentage descending
-      this.topQs = [...hasQd].sort((a, b) => {
+      this.topQs = [...rankedQs].sort((a, b) => {
         if (b.qs === a.qs) {
           return b.qRate - a.qRate;  // Same Qs, fallback to percentage
         }
@@ -567,7 +590,7 @@ export class AoPage {
     // Sort Bottom Qs based on toggle state - always ascending (lowest first)
     if (this.bottomQsViewByPercentage) {
       // Sort by percentage ascending, fallback to total Qs ascending
-      this.bottomQs = [...hasQd].sort((a, b) => {
+      this.bottomQs = [...rankedQs].sort((a, b) => {
         if (a.qRate === b.qRate) {
           return a.qs - b.qs;  // Same percentage, fallback to total Qs
         }
@@ -575,7 +598,7 @@ export class AoPage {
       });
     } else {
       // Sort by total Qs ascending, fallback to percentage ascending
-      this.bottomQs = [...hasQd].sort((a, b) => {
+      this.bottomQs = [...rankedQs].sort((a, b) => {
         if (a.qs === b.qs) {
           return a.qRate - b.qRate;  // Same Qs, fallback to percentage
         }
