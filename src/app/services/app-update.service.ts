@@ -1,6 +1,16 @@
 import {Injectable, NgZone} from '@angular/core';
+import {NavigationEnd, Router} from '@angular/router';
 import {SwUpdate, VersionReadyEvent} from '@angular/service-worker';
-import {BehaviorSubject, filter} from 'rxjs';
+import {
+  BehaviorSubject,
+  combineLatest,
+  distinctUntilChanged,
+  filter,
+  map,
+  Observable,
+  startWith,
+} from 'rxjs';
+import {isStaticPage} from 'src/app/config/static-pages';
 
 /** Delay before the first explicit update check, so startup stays snappy. */
 const FIRST_CHECK_MS = 10 * 1000;
@@ -17,12 +27,29 @@ export class AppUpdateService {
   /** True once a new version has been downloaded and is waiting to activate. */
   readonly updateReady$ = new BehaviorSubject(false);
 
+  /**
+   * Whether to show the update offer: a new version is ready and the user is
+   * in the stats app. The public website pages never show it.
+   */
+  readonly showBanner$: Observable<boolean>;
+
   private started = false;
 
   constructor(
       private readonly updates: SwUpdate,
       private readonly zone: NgZone,
-  ) {}
+      router: Router,
+  ) {
+    const onStaticPage$ =
+        router.events.pipe(
+            filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+            map(e => isStaticPage(e.urlAfterRedirects)),
+            startWith(isStaticPage(location.pathname)),
+            distinctUntilChanged());
+    this.showBanner$ =
+        combineLatest([this.updateReady$, onStaticPage$])
+            .pipe(map(([ready, isStatic]) => ready && !isStatic));
+  }
 
   start(): void {
     if (this.started || !this.updates.isEnabled) return;

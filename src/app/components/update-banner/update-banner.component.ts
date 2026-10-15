@@ -12,7 +12,7 @@ import {AppUpdateService} from 'src/app/services/app-update.service';
   styleUrls: ['./update-banner.component.scss'],
 })
 export class UpdateBannerComponent {
-  readonly ready$ = this.appUpdate.updateReady$;
+  readonly ready$ = this.appUpdate.showBanner$;
 
   constructor(private readonly appUpdate: AppUpdateService) {}
 

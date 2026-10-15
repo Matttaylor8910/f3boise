@@ -10,7 +10,7 @@ import {disablePageZoom} from './util/page-zoom';
   styleUrls: ['app.component.scss'],
 })
 export class AppComponent {
-  readonly updateReady$ = this.appUpdate.updateReady$;
+  readonly showUpdateBanner$ = this.appUpdate.showBanner$;
 
   constructor(
       private readonly appUpdate: AppUpdateService,
