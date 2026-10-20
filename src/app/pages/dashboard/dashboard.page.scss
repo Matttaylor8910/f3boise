@@ -62,7 +62,8 @@
       background: var(--milestone-gold);
     }
 
-    .milestone-tomorrow.milestone-done {
+    .milestone-tomorrow.milestone-done,
+    .milestone-tomorrow.milestone-q {
       color: var(--milestone-gold);
     }
 

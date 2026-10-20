@@ -275,6 +275,13 @@
                 {{ m.bds }} BDs &middot; crossed {{ m.hit.milestone }} at {{ m.hit.ao }} {{ m.hit.when }}
               </p>
               <ng-template #tomorrow>
+                <!-- on the Q for the century post: the best story on the tile -->
+                <p class="milestone-tomorrow milestone-q" *ngIf="m.qing; else hc">
+                  <ion-icon name="star"></ion-icon>
+                  {{ m.bds }} BDs &middot; Qing their {{ m.next }}th at {{ m.qing.ao }} {{ m.qing.when }}!
+                </p>
+              </ng-template>
+              <ng-template #hc>
                 <!-- an HC for tomorrow beats the pace guess -->
                 <p class="milestone-tomorrow" *ngIf="m.tomorrowAo; else pace">
                   <ion-icon name="flame"></ion-icon>

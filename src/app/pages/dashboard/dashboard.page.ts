@@ -99,6 +99,11 @@ interface MilestoneWatchItem {
   /** Display name of the AO they've HC'd for tomorrow, when one BD away. */
   tomorrowAo?: string;
   /**
+   * One BD away and on the Q at an upcoming beatdown: the century will land
+   * while they lead. Beats the HC note.
+   */
+  qing?: {ao: string; when: 'today'|'tomorrow'};
+  /**
    * They just crossed a century: the milestone, where, and when. Kept on the
    * list through the end of the following day so the moment isn't missed.
    */
@@ -640,11 +645,30 @@ export class DashboardPage implements OnInit, OnDestroy {
         needed,
         pct: (bds % MILESTONE_STEP) / MILESTONE_STEP * 100,
         paceLabel,
+        qing: needed === 1 ? this.findUpcomingQ(lower) : undefined,
       });
     }
 
     this.milestoneWatch =
         watch.sort((a, b) => a.needed - b.needed || b.bds - a.bds).slice(0, 8);
+  }
+
+  /**
+   * The upcoming beatdown this PAX is Qing (or co-Qing), if any. Today's
+   * beatdowns come first, so the soonest one wins.
+   */
+  private findUpcomingQ(lower: string):
+      {ao: string; when: 'today'|'tomorrow'}|undefined {
+    for (const bd of this.upcomingBds) {
+      const qs = (bd.q ?? '')
+                     .split(/[,&\/]|\band\b/)
+                     .map(name => name.trim().toLowerCase())
+                     .filter(name => name.length > 0);
+      if (qs.includes(lower) || bd.hcs.includes(lower)) {
+        return {ao: bd.ao, when: bd.day};
+      }
+    }
+    return undefined;
   }
 
   /**
