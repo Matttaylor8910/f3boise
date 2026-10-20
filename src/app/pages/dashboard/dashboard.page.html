@@ -278,7 +278,7 @@
                 <!-- on the Q for the century post: the best story on the tile -->
                 <p class="milestone-tomorrow milestone-q" *ngIf="m.qing; else hc">
                   <ion-icon name="star"></ion-icon>
-                  {{ m.bds }} BDs &middot; Qing their {{ m.next }}th at {{ m.qing.ao }} {{ m.qing.when }}!
+                  {{ m.bds }} BDs &middot; Qing his {{ m.next }}th at {{ m.qing.ao }} {{ m.qing.when }}!
                 </p>
               </ng-template>
               <ng-template #hc>
@@ -346,7 +346,7 @@
 
             <ng-container *ngSwitchCase="'vq'">
               <a routerLink="/pax/{{ e.paxName!.toLowerCase() }}" (click)="$event.stopPropagation()">{{ utilService.normalizeName(e.paxName!) }}</a>
-              took their <strong>VQ</strong>
+              took his <strong>VQ</strong>
               at <a routerLink="/ao/{{ e.aoRoute }}" (click)="$event.stopPropagation()">{{ e.ao }}</a>
             </ng-container>
 
