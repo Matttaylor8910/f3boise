@@ -31,9 +31,11 @@ export interface UpcomingBd {
   start: string;
   address: string|null;
   icon: string;
+  /** Co-Qs from the line up (lowercase); committed whether or not they HC. */
+  coQs: string[];
   /**
-   * PAX who have HC'd for it (lowercase), plus any co-Qs. Empty until
-   * `fillHcs` has run.
+   * PAX who have HC'd for it (lowercase), plus the co-Qs. Just the co-Qs
+   * until `fillHcs` has run.
    */
   hcs: string[];
 }
@@ -119,7 +121,9 @@ export class UpcomingBdService {
 
   /**
    * Fills in who has HC'd on each beatdown's preblast. One request per day
-   * present, cached by the HC service, so this is cheap to call again.
+   * present, cached briefly by the HC service, so this is cheap to call
+   * again; calling it again replaces the list, so a PAX who took their HC
+   * back drops off.
    */
   async fillHcs(bds: UpcomingBd[]): Promise<void> {
     const dates = Array.from(new Set(bds.map(bd => bd.date)));
@@ -130,8 +134,7 @@ export class UpcomingBdService {
 
     for (const bd of bds) {
       const hcs = hcsByDate.get(bd.date)?.get(bd.route) ?? new Set<string>();
-      // keep any co-Qs that were seeded before the fetch
-      bd.hcs = Array.from(new Set([...bd.hcs, ...hcs])).sort();
+      bd.hcs = Array.from(new Set([...bd.coQs, ...hcs])).sort();
     }
   }
 
@@ -175,7 +178,7 @@ export class UpcomingBdService {
 
   private toBd(
       workout: Workout, day: BdDay, date: moment.Moment, q: string|null,
-      hcs: string[]): UpcomingBd {
+      coQs: string[]): UpcomingBd {
     const [start] = this.timesOn(workout, date.format('ddd')) ?? [];
     const key = this.workoutService.aoKey(workout);
     return {
@@ -188,7 +191,8 @@ export class UpcomingBdService {
       start: start ?? '',
       address: workout.address,
       icon: workout.icon,
-      hcs,
+      coQs,
+      hcs: [...coQs],
     };
   }
 

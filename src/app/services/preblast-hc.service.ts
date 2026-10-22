@@ -8,26 +8,40 @@ import {parsePreblastHcs} from './preblast-hc.parser';
 
 const URL = `${BASE_URL}/reactions_log/pre-blast-data`;
 
+/**
+ * How long a day's HCs are reused before the next request fetches them
+ * again. PAX keep HC'ing right up until the beatdown and a home-screen PWA
+ * can stay alive for days, so the list can't live for the whole session;
+ * a short window still lets a page's own lookups share one request.
+ */
+const MAX_AGE_MS = 60 * 1000;
+
+interface CachedHcs {
+  fetchedAt: number;
+  hcs: Promise<Map<string, Set<string>>>;
+}
+
 /** Who has HC'd (hard committed) to a day's preblasts, per AO. */
 @Injectable({providedIn: 'root'})
 export class PreblastHcService {
-  private readonly cache = new Map<string, Promise<Map<string, Set<string>>>>();
+  private readonly cache = new Map<string, CachedHcs>();
 
   constructor(private readonly http: HttpClient) {}
 
   /**
    * PAX names holding an HC on each AO's preblast for a date, keyed by
    * backblast AO name (lowercase). Empty when the scraper is unreachable.
-   * Fetched once per date per page load.
+   * Fetched again once the last fetch is older than `MAX_AGE_MS`.
    * @param date YYYY-MM-DD
    */
   getHcs(date: string): Promise<Map<string, Set<string>>> {
-    let pending = this.cache.get(date);
-    if (!pending) {
-      pending = this.fetch(date);
-      this.cache.set(date, pending);
+    const cached = this.cache.get(date);
+    if (cached && Date.now() - cached.fetchedAt < MAX_AGE_MS) {
+      return cached.hcs;
     }
-    return pending;
+    const hcs = this.fetch(date);
+    this.cache.set(date, {fetchedAt: Date.now(), hcs});
+    return hcs;
   }
 
   /** The HC names for one AO on a date, in a stable order. */
@@ -42,7 +56,7 @@ export class PreblastHcService {
           this.http.get(URL, {params: {date}, responseType: 'text'}));
       return parsePreblastHcs(summary);
     } catch (e) {
-      this.cache.delete(date);  // let the next page load try again
+      this.cache.delete(date);  // let the next lookup try again
       return new Map();
     }
   }

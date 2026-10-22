@@ -196,6 +196,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.authSubscription?.unsubscribe();
     this.paxSubscription?.unsubscribe();
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
   }
 
   async ionViewDidEnter() {
@@ -217,7 +218,19 @@ export class DashboardPage implements OnInit, OnDestroy {
 
     // hits the network, so let the page render first
     await this.loadUpcomingHcs();
+
+    // A home-screen PWA comes back from the background without re-entering
+    // the page, so re-read the HCs when it does.
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
   }
+
+  ionViewWillLeave() {
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
+  }
+
+  private readonly onVisibilityChange = () => {
+    if (document.visibilityState === 'visible') this.loadUpcomingHcs();
+  };
 
   async openLoginModal() {
     const modal = await this.modalController.create({

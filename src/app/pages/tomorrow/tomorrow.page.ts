@@ -63,6 +63,7 @@ export class TomorrowPage implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.paxSubscription?.unsubscribe();
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
   }
 
   async ionViewDidEnter() {
@@ -73,10 +74,27 @@ export class TomorrowPage implements OnInit, OnDestroy {
     this.loaded = true;
 
     // HCs hit the network, so fill them in after the list is up
+    await this.refreshHcs();
+
+    // A home-screen PWA comes back from the background without re-entering
+    // the page, so re-read the HCs when it does.
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
+  }
+
+  ionViewWillLeave() {
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
+  }
+
+  /** PAX HC right up until the beatdown, so this is run on every return. */
+  private async refreshHcs() {
     await this.upcomingBdService.fillHcs(this.all);
     // the region subtitles count HCs, so refresh them
     this.buildGroups();
   }
+
+  private readonly onVisibilityChange = () => {
+    if (document.visibilityState === 'visible') this.refreshHcs();
+  };
 
   private toBd(bd: UpcomingBd): TomorrowBd {
     const region = REGIONS.find(r => r.aos.has(bd.route));
