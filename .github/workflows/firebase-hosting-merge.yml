@@ -16,5 +16,11 @@ jobs:
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_F3_BOISE }}'
+          # 15.34.1 (2026-10-21) asks the Service Usage API whether Hosting is
+          # enabled before deploying, which the deploy service account may not
+          # read, so the deploy died with "Permission denied to get service
+          # [firebasehosting.googleapis.com]". Pinned to the last version that
+          # deploys with the account's current roles.
+          firebaseToolsVersion: 15.34.0
           channelId: live
           projectId: f3-boise
