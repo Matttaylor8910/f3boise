@@ -4,11 +4,13 @@
     class="tab"
     *ngFor="let tab of tabs"
     [class.active]="tab.isActive"
+    [attr.aria-label]="tab.label"
+    [title]="tab.label"
     (click)="go(tab)">
     <ion-icon [name]="tab.isActive ? tab.activeIcon : tab.icon"></ion-icon>
     <span>{{ tab.label }}</span>
   </button>
-  <button type="button" class="tab" (click)="openMenu()">
+  <button type="button" class="tab" aria-label="More" title="More" (click)="openMenu()">
     <ion-icon name="ellipsis-horizontal"></ion-icon>
     <span>More</span>
   </button>

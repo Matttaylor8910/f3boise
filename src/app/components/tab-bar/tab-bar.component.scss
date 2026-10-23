@@ -45,6 +45,43 @@
   }
 }
 
+// iPhone Duo's outer display (see util/side-rail.ts): iOS keeps the status bar
+// in a vertical rail on the right, and native tab bars join it there, bottom
+// aligned and symbol only. Ours can't draw inside the system rail, so it
+// stands beside it on the page background with no edge of its own, which
+// reads as one continuous rail. The safe-area insets keep it clear of the
+// system rail should a later iOS extend web apps underneath it.
+:host-context(.side-rail) {
+  display: flex;
+  flex-direction: column;
+}
+
+:host-context(.side-rail) .tab-bar {
+  flex: 1;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: calc(56px + env(safe-area-inset-right, 0px));
+  background: var(--ion-background-color);
+  border-top: none;
+  padding: calc(8px + env(safe-area-inset-top, 0px)) env(safe-area-inset-right, 0px) calc(8px + env(safe-area-inset-bottom, 0px)) 0;
+
+  .tab {
+    flex: 0 0 auto;
+    width: 100%;
+    min-height: 52px;
+    padding: 8px 0;
+
+    ion-icon {
+      font-size: 26px;
+    }
+
+    // the title lives on as the accessible name and tooltip
+    span {
+      display: none;
+    }
+  }
+}
+
 // the sidebar handles navigation on desktop
 @media (min-width: 1024px) {
   :host {
