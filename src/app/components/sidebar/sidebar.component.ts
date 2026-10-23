@@ -1,6 +1,6 @@
 import {Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {NavigationEnd, NavigationExtras, Router} from '@angular/router';
-import {AlertController, ToastController} from '@ionic/angular';
+import {ToastController} from '@ionic/angular';
 import * as moment from 'moment';
 import {filter, Subscription} from 'rxjs';
 import {AuthService} from 'src/app/services/auth.service';
@@ -9,7 +9,6 @@ import {CurrentPaxService, MyAo} from 'src/app/services/current-pax.service';
 import {PaxService} from 'src/app/services/pax.service';
 import {SidebarService} from 'src/app/services/sidebar.service';
 import {UtilService} from 'src/app/services/util.service';
-import {describeSideRail} from 'src/app/util/side-rail';
 import {Challenge, Pax} from 'types';
 
 import {CANYON_AOS, CITY_OF_TREES_AOS, HIGH_DESERT_AOS, REGION_AGNOSTIC_AOS, SETTLERS_AOS} from '../../../../constants';
@@ -203,7 +202,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
       public readonly utilService: UtilService,
       private readonly authService: AuthService,
       private readonly toastController: ToastController,
-      private readonly alertController: AlertController,
       private readonly challengesService: ChallengesService,
       private readonly paxService: PaxService,
       private readonly currentPaxService: CurrentPaxService,
@@ -318,43 +316,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (window.innerWidth < 1024) {
       this.sidebarService.close();
     }
-  }
-
-  /**
-   * Shows what the phone reports about its screen and safe areas, so a
-   * layout that misfires on a device we don't have can be diagnosed from a
-   * screenshot. Tapping the text copies it.
-   */
-  async showDeviceInfo() {
-    const report = describeSideRail();
-    const lines = [
-      `Side rail: ${report.sideRail ? 'yes' : 'no'}`,
-      `Viewport: ${report.viewport.width} x ${report.viewport.height}`,
-      `Screen: ${report.screen.width} x ${report.screen.height}`,
-      `Safe area: top ${report.insets.top}, right ${report.insets.right}, ` +
-          `bottom ${report.insets.bottom}, left ${report.insets.left}`,
-      `Rail ${report.rail}, ratio ${report.ratio}`,
-      `Standalone: ${report.standalone ? 'yes' : 'no'}, touch: ${
-          report.touch ? 'yes' : 'no'}`,
-      `Pixel ratio: ${window.devicePixelRatio}`,
-      report.userAgent,
-    ];
-    const text = lines.join('\n');
-    const alert = await this.alertController.create({
-      header: 'Device info',
-      message: lines.join('<br>'),
-      buttons: [
-        {
-          text: 'Copy',
-          handler: () => {
-            this.utilService.copyToClipboard(text, 'Copied device info');
-            return false;
-          },
-        },
-        {text: 'Close', role: 'cancel'},
-      ],
-    });
-    await alert.present();
   }
 
   async togglePaxSearch() {

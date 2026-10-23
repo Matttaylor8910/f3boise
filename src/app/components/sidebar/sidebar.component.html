@@ -129,15 +129,6 @@
             <ion-icon [name]="item.icon"></ion-icon>
             {{ item.label }}
           </button>
-          <!-- what the phone tells the app about its screen, for layout bugs -->
-          <button
-            type="button"
-            class="nav-link with-icon secondary"
-            *ngIf="group.key === 'about'"
-            (click)="showDeviceInfo()">
-            <ion-icon name="phone-portrait-outline"></ion-icon>
-            Device info
-          </button>
         </div>
       </div>
 

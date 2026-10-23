@@ -19,20 +19,18 @@ ion-app {
   overflow-x: hidden;
 }
 
-// the routed page fills the column between the update banner and the mobile
-// tab bar
+// the routed page fills the column above the mobile tab bar
 .main-content {
   flex: 1;
   min-width: 0; // Prevent overflow
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  grid-template-columns: minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   position: relative;
   z-index: 1;
 
   .app-outlet {
     position: relative;
-    min-width: 0;
+    flex: 1;
     min-height: 0;
   }
 
@@ -40,28 +38,5 @@ ion-app {
   // shouldn't add the notch inset a second time
   &.has-update-banner {
     --ion-safe-area-top: 0px;
-  }
-}
-
-// iPhone Duo's outer display (see util/side-rail.ts): the tab bar stands up
-// along the right edge, beside the system's own vertical rail, and the page
-// gets the full height. The update banner still spans the top.
-:host-context(.side-rail) .main-content {
-  grid-template-rows: auto minmax(0, 1fr);
-  grid-template-columns: minmax(0, 1fr) auto;
-
-  app-update-banner {
-    grid-row: 1;
-    grid-column: 1 / -1;
-  }
-
-  .app-outlet {
-    grid-row: 2;
-    grid-column: 1;
-  }
-
-  app-tab-bar {
-    grid-row: 2;
-    grid-column: 2;
   }
 }
