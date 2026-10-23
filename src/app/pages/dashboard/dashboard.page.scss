@@ -244,12 +244,21 @@
         font-weight: bold;
         font-size: 1.5rem;
         line-height: 1.15;
+        // a long name trims rather than breaking mid-word in a narrow column
+        // (iPhone Duo's outer display beside the tab rail)
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       p {
         margin: 2px 0 0;
         color: var(--ion-color-medium);
       }
+    }
+
+    ion-button {
+      flex-shrink: 0;
     }
   }
 
