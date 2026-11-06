@@ -38,8 +38,15 @@ interface AoStats {
   total: number;
 }
 
-/** PAX whose pages get a confetti celebration on every visit. */
-const CONFETTI_PAX = new Set(['strings']);
+/**
+ * PAX whose pages get a confetti celebration on every visit, and the
+ * emojis that rain (well, rise) for each of them.
+ */
+const CONFETTI_PAX = new Map<string, string[]>([
+  ['strings', ['🔥']],
+  ['sushi', ['🍣', '🍣', '🍣', '🍱', '🍤', '🥢', '🍙']],
+  ['riot', ['🍆']],
+]);
 const CONFETTI_DURATION_MS = 6000;
 
 /** PAX whose pages swap the background for a gym full of lifting bears. */
@@ -98,12 +105,13 @@ export class PaxPage {
    * visits their page.
    */
   private async maybeCelebrate() {
-    if (!CONFETTI_PAX.has(this.name)) return;
+    const emojis = CONFETTI_PAX.get(this.name);
+    if (!emojis) return;
 
     // canvas-confetti is a CJS module; grab the callable regardless of interop
     const mod: any = await import('canvas-confetti');
     const confetti = (mod.default ?? mod) as typeof import('canvas-confetti');
-    const flame = confetti.shapeFromText({text: '🔥', scalar: 2});
+    const shapes = emojis.map(text => confetti.shapeFromText({text, scalar: 2}));
     const end = Date.now() + CONFETTI_DURATION_MS;
     let stopped = false;
     this.confettiStop = () => {
@@ -120,7 +128,7 @@ export class PaxPage {
       const frame = () => {
         if (stopped || Date.now() > end) return;
 
-        // spawn flames just below the viewport; negative gravity sends
+        // spawn emojis just below the viewport; negative gravity sends
         // them rising, flat keeps them upright instead of tumbling
         confetti({
           particleCount: 2,
@@ -130,7 +138,7 @@ export class PaxPage {
           gravity: random(-1.1, -0.6),
           scalar: random(1.2, 2),
           drift: random(-0.2, 0.2),
-          shapes: [flame],
+          shapes,
           flat: true,
           disableForReducedMotion: true,
         });
