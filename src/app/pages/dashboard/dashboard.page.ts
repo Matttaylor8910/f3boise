@@ -451,7 +451,30 @@ export class DashboardPage implements OnInit, OnDestroy {
     }
 
     const metric = challenge.sortBy ?? ChallengeMetric.BDS;
-    const valueOf = (entry: MetricTally): number => {
+
+    // a self-reported metric is scored from what PAX logged, not from BDs
+    const custom = (challenge.customMetrics ?? []).find(m => m.id === metric);
+    const logged = new Map<string, number>();
+    if (custom) {
+      const logs =
+          await firstValueFrom(this.challengesService.getLogs(challenge.id));
+      const paxNames = new Map<string, string>();
+      logs.forEach(log => {
+        if (log.paxName) {
+          paxNames.set(log.userId.toLowerCase(), log.paxName.toLowerCase());
+        }
+      });
+      this.challengesService.customMetricTotals(challenge, logs)
+          .forEach((scores, userId) => {
+            const pax = paxNames.get(userId);
+            if (pax) logged.set(pax, scores[custom.id] ?? 0);
+          });
+      // PAX who only logged still need a row to rank
+      logged.forEach((value, pax) => tally(pax));
+    }
+
+    const valueOf = (entry: MetricTally, key: string): number => {
+      if (custom) return logged.get(key) ?? 0;
       switch (metric) {
         case ChallengeMetric.UNIQUE_AOS:
           return entry.aos.size;
@@ -466,19 +489,20 @@ export class DashboardPage implements OnInit, OnDestroy {
 
     const ranked = Array.from(tallies.entries())
                        .filter(([key]) => !eligible || eligible.has(key))
-                       .map(([key, entry]) => ({key, value: valueOf(entry)}))
+                       .map(([key, entry]) => ({key, value: valueOf(entry, key)}))
                        .filter(entry => entry.value > 0)
                        .sort((a, b) => b.value - a.value);
     const mine = tallies.get(lower);
-    const value = mine ? valueOf(mine) : 0;
+    const value = mine ? valueOf(mine, lower) : 0;
     const rank = ranked.findIndex(entry => entry.key === lower) + 1;
     const goalKey = String(metric) as keyof NonNullable<Challenge['goals']>;
-    const goal = challenge.goals ? challenge.goals[goalKey] : undefined;
+    const goal = custom ? custom.goal :
+                          challenge.goals ? challenge.goals[goalKey] : undefined;
 
     return {
       id: challenge.id,
       name: challenge.name,
-      metricLabel: this.metricLabel(metric),
+      metricLabel: custom ? custom.name : this.metricLabel(metric),
       value,
       goal,
       pct: goal ? Math.min(100, value / goal * 100) : 0,
@@ -488,7 +512,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     };
   }
 
-  private metricLabel(metric: ChallengeMetric): string {
+  private metricLabel(metric: ChallengeMetric|string): string {
     switch (metric) {
       case ChallengeMetric.UNIQUE_AOS:
         return 'unique AOs';

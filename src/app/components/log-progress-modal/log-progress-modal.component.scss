@@ -1,0 +1,55 @@
+.log-progress-content {
+  max-width: 600px;
+  margin: 0 auto;
+
+  .intro {
+    margin: 0 0 12px;
+  }
+
+  .hint {
+    color: var(--ion-color-medium);
+    font-size: 14px;
+    margin: 16px 0 24px;
+  }
+}
+
+.date-item {
+  --border-color: transparent;
+  --padding-start: 0;
+  margin-bottom: 8px;
+
+  .date-input {
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px;
+    border: 1px solid var(--ion-color-medium);
+    border-radius: 4px;
+    font-size: 16px;
+  }
+}
+
+.metric-item {
+  --padding-start: 0;
+
+  .metric-label {
+    h2 {
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    p {
+      font-size: 14px;
+      color: var(--ion-color-medium);
+    }
+  }
+}
+
+.amount-input {
+  width: 100px;
+  flex-shrink: 0;
+  text-align: right;
+  --padding-start: 10px;
+  --padding-end: 10px;
+  border: 1px solid var(--ion-color-medium);
+  border-radius: 4px;
+}

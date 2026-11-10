@@ -24,6 +24,7 @@ import {GoogleFormModalComponent} from './google-form-modal/google-form-modal.co
 import {HcListComponent} from './hc-list/hc-list.component';
 import {HcPopoverComponent} from './hc-popover/hc-popover.component';
 import {HeaderComponent} from './header/header.component';
+import {LogProgressModalComponent} from './log-progress-modal/log-progress-modal.component';
 import {LoginModalComponent} from './login-modal/login-modal.component';
 import {PaxAvatarComponent} from './pax-avatar/pax-avatar.component';
 import {PaxChipComponent} from './pax-chip/pax-chip.component';
@@ -76,6 +77,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     HcPopoverComponent,
     HeaderComponent,
     LoginModalComponent,
+    LogProgressModalComponent,
     PaxAvatarComponent,
     PaxChipComponent,
     PaxListItemComponent,
@@ -135,6 +137,7 @@ import {YearGridComponent} from './year-grid/year-grid.component';
     HcPopoverComponent,
     HeaderComponent,
     LoginModalComponent,
+    LogProgressModalComponent,
     PaxAvatarComponent,
     PaxChipComponent,
     PaxListItemComponent,

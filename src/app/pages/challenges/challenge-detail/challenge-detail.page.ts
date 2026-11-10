@@ -4,10 +4,11 @@ import {AlertController, ModalController, ToastController} from '@ionic/angular'
 import * as moment from 'moment';
 import {combineLatest, Subscription} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
-import {Backblast, BBType, Challenge, ChallengeLeaderboardEntry, ChallengeMetric, ChallengeParticipant,} from 'types';
+import {Backblast, BBType, Challenge, ChallengeLeaderboardEntry, ChallengeLog, ChallengeParticipant,} from 'types';
 
 import {AddParticipantModalComponent} from '../../../components/add-participant-modal/add-participant-modal.component';
 import {CreateChallengeModalComponent} from '../../../components/create-challenge-modal/create-challenge-modal.component';
+import {LogProgressModalComponent} from '../../../components/log-progress-modal/log-progress-modal.component';
 import {LoginModalComponent} from '../../../components/login-modal/login-modal.component';
 import {AuthService} from '../../../services/auth.service';
 import {BackblastService} from '../../../services/backblast.service';
@@ -26,6 +27,11 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   leaderboard: ChallengeLeaderboardEntry[] = [];
   nonJoinedLeaderboard: ChallengeLeaderboardEntry[] =
       [];  // For PAX that qualify but haven't joined
+  /** What PAX have logged against the challenge's custom metrics. */
+  logs: ChallengeLog[] = [];
+  /** One leaderboard column per tracked metric, built-in then custom. */
+  columns: Array<{key: string; label: string; goal?: number; custom: boolean}> =
+      [];
   isLoading = false;
   isJoining = false;
   isWithdrawing = false;
@@ -71,6 +77,9 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
         this.challengesService.getChallenge(this.challengeId).subscribe({
           next: (challenge) => {
             this.challenge = challenge;
+            this.columns = challenge ?
+                this.challengesService.metricColumns(challenge) :
+                [];
             this.challengeLoading = false;
             if (challenge) {
               this.loadLeaderboard();
@@ -110,6 +119,21 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
               }
             });
     this.subscriptions.push(participantsSub);
+
+    // Load self-reported progress
+    const logsSub =
+        this.challengesService.getLogs(this.challengeId).subscribe({
+          next: logs => {
+            this.logs = logs;
+            if (this.challenge) {
+              this.loadLeaderboard();
+            }
+          },
+          error: error => {
+            console.error('Error loading challenge progress logs:', error);
+          },
+        });
+    this.subscriptions.push(logsSub);
   }
 
   ngOnDestroy() {
@@ -284,13 +308,34 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
         }
       }
 
+      // Add what PAX logged by hand for the custom metrics
+      const entriesByLowerId = new Map<string, ChallengeLeaderboardEntry>();
+      leaderboardMap.forEach(
+          (entry, userId) => entriesByLowerId.set(userId.toLowerCase(), entry));
+      this.challengesService.customMetricTotals(this.challenge, this.logs)
+          .forEach((scores, userId) => {
+            let entry = entriesByLowerId.get(userId);
+            if (!entry && this.challenge!.requireJoining === false) {
+              // Logged by someone the PAX list doesn't know by email
+              const log = this.logs.find(l => l.userId.toLowerCase() === userId);
+              entry = {
+                userId: log?.userId ?? userId,
+                paxName: log?.paxName,
+                bds: 0,
+                uniqueAos: 0,
+                qs: 0,
+                doubleDowns: 0,
+              };
+              leaderboardMap.set(entry.userId, entry);
+            }
+            if (entry) entry.custom = scores;
+          });
+
       // Convert to array
       let leaderboard = Array.from(leaderboardMap.values());
 
       // If requireJoining is false, separate into two leaderboards
       if (this.challenge.requireJoining === false) {
-        const challenge = this.challenge;  // Capture for closure
-
         // Get set of participant user IDs (normalized for comparison)
         const participantUserIds = new Set<string>();
         this.participants.forEach(participant => {
@@ -298,12 +343,9 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
         });
 
         // Filter to only include PAX with at least one metric > 0
-        const qualifyingEntries = leaderboard.filter(entry => {
-          return (challenge.metrics.bds && entry.bds > 0) ||
-              (challenge.metrics.uniqueAos && entry.uniqueAos > 0) ||
-              (challenge.metrics.qs && entry.qs > 0) ||
-              (challenge.metrics.doubleDowns && entry.doubleDowns > 0);
-        });
+        const qualifyingEntries = leaderboard.filter(
+            entry => this.columns.some(
+                col => this.getValue(entry, col.key) > 0));
 
         // Split into joined and non-joined
         const joinedEntries: ChallengeLeaderboardEntry[] = [];
@@ -335,55 +377,58 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   }
 
   sortLeaderboard() {
-    if (!this.challenge) return;
-
-    if (this.getTotalGoal() > 0) {
-      this.leaderboard.sort((a, b) => {
-        const aPct = this.getGoalCompletionPercent(a);
-        const bPct = this.getGoalCompletionPercent(b);
-        if (bPct !== aPct) return bPct - aPct;
-        const aMinBds = this.getMinBdsToComplete(a);
-        const bMinBds = this.getMinBdsToComplete(b);
-        if (aMinBds !== bMinBds) return aMinBds - bMinBds;  // Lower = closer to done = ranks higher
-        const sortBy = this.challenge!.sortBy;
-        const aValue = a[sortBy] || 0;
-        const bValue = b[sortBy] || 0;
-        return bValue - aValue;
-      });
-    } else {
-      const sortBy = this.challenge.sortBy;
-      this.leaderboard.sort((a, b) => {
-        const aValue = a[sortBy] || 0;
-        const bValue = b[sortBy] || 0;
-        return bValue - aValue;  // Descending order
-      });
-    }
+    this.leaderboard.sort((a, b) => this.compareEntries(a, b));
   }
 
   sortNonJoinedLeaderboard() {
-    if (!this.challenge) return;
+    this.nonJoinedLeaderboard.sort((a, b) => this.compareEntries(a, b));
+  }
 
+  /** Leaderboard order: goal completion first when there are goals. */
+  private compareEntries(
+      a: ChallengeLeaderboardEntry, b: ChallengeLeaderboardEntry): number {
+    if (!this.challenge) return 0;
     if (this.getTotalGoal() > 0) {
-      this.nonJoinedLeaderboard.sort((a, b) => {
-        const aPct = this.getGoalCompletionPercent(a);
-        const bPct = this.getGoalCompletionPercent(b);
-        if (bPct !== aPct) return bPct - aPct;
-        const aMinBds = this.getMinBdsToComplete(a);
-        const bMinBds = this.getMinBdsToComplete(b);
-        if (aMinBds !== bMinBds) return aMinBds - bMinBds;  // Lower = closer to done = ranks higher
-        const sortBy = this.challenge!.sortBy;
-        const aValue = a[sortBy] || 0;
-        const bValue = b[sortBy] || 0;
-        return bValue - aValue;
-      });
-    } else {
-      const sortBy = this.challenge.sortBy;
-      this.nonJoinedLeaderboard.sort((a, b) => {
-        const aValue = a[sortBy] || 0;
-        const bValue = b[sortBy] || 0;
-        return bValue - aValue;  // Descending order
-      });
+      const aPct = this.getGoalCompletionPercent(a);
+      const bPct = this.getGoalCompletionPercent(b);
+      if (bPct !== aPct) return bPct - aPct;
+      const aMinBds = this.getMinBdsToComplete(a);
+      const bMinBds = this.getMinBdsToComplete(b);
+      // Lower = closer to done = ranks higher
+      if (aMinBds !== bMinBds) return aMinBds - bMinBds;
     }
+    const sortBy = this.challenge.sortBy;
+    return this.getValue(b, sortBy) - this.getValue(a, sortBy);
+  }
+
+  /** A PAX's score on a metric, built-in or custom. */
+  getValue(entry: ChallengeLeaderboardEntry, key: string): number {
+    switch (key) {
+      case 'bds':
+      case 'uniqueAos':
+      case 'qs':
+      case 'doubleDowns':
+        return entry[key] || 0;
+      default:
+        return entry.custom?.[key] || 0;
+    }
+  }
+
+  /** The goal set for a tracked metric, or 0 when it has none. */
+  getGoal(key: string): number {
+    const goal = this.columns.find(col => col.key === key)?.goal;
+    return goal && goal > 0 ? goal : 0;
+  }
+
+  /** Short enough to sit inside the progress ring. */
+  formatValue(entry: ChallengeLeaderboardEntry, key: string): string {
+    const value = this.getValue(entry, key);
+    if (value >= 10000) return `${Math.round(value / 100) / 10}k`;
+    return String(Math.round(value * 10) / 10);
+  }
+
+  trackByColumn(index: number, column: {key: string}): string {
+    return column.key;
   }
 
   /**
@@ -396,14 +441,10 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
     if (total <= 0) return 0;
 
     let cappedSum = 0;
-    const metrics: Array<'bds'|'uniqueAos'|'qs'|'doubleDowns'> =
-        ['bds', 'uniqueAos', 'qs', 'doubleDowns'];
-
-    for (const metric of metrics) {
-      const goal = this.challenge?.goals?.[metric];
-      if (goal && goal > 0 && this.challenge?.metrics[metric]) {
-        const value = entry[metric] || 0;
-        cappedSum += Math.min(value, goal);
+    for (const col of this.columns) {
+      const goal = this.getGoal(col.key);
+      if (goal > 0) {
+        cappedSum += Math.min(this.getValue(entry, col.key), goal);
       }
     }
 
@@ -413,6 +454,7 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   /**
    * Minimum BDs needed to complete all goals (each goal increments at most once
    * per BD). Max of remaining per metric. Lower = closer to done = ranks higher.
+   * Custom metrics don't come from BDs, so they aren't counted here.
    */
   getMinBdsToComplete(entry: ChallengeLeaderboardEntry): number {
     if (!this.challenge?.goals) return 0;
@@ -440,20 +482,8 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
 
   /** Sum of all goal targets for metrics that are tracked and have goals. */
   getTotalGoal(): number {
-    if (!this.challenge?.goals) return 0;
-
-    let total = 0;
-    const metrics: Array<'bds'|'uniqueAos'|'qs'|'doubleDowns'> =
-        ['bds', 'uniqueAos', 'qs', 'doubleDowns'];
-
-    for (const metric of metrics) {
-      const goal = this.challenge.goals[metric];
-      if (goal && goal > 0 && this.challenge.metrics[metric]) {
-        total += goal;
-      }
-    }
-
-    return total;
+    return this.columns.reduce(
+        (total, col) => total + this.getGoal(col.key), 0);
   }
 
   trackByLeaderboardEntry(index: number, entry: ChallengeLeaderboardEntry):
@@ -795,13 +825,7 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   }
 
   getMetricsList(): string {
-    if (!this.challenge) return '';
-    const metrics: string[] = [];
-    if (this.challenge.metrics.bds) metrics.push('# of BDs');
-    if (this.challenge.metrics.uniqueAos) metrics.push('# of AOs');
-    if (this.challenge.metrics.qs) metrics.push('# of Qs');
-    if (this.challenge.metrics.doubleDowns) metrics.push('# of DDs');
-    return metrics.join(', ');
+    return this.columns.map(col => col.label).join(', ');
   }
 
   getSortByLabel(): string {
@@ -809,18 +833,62 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
     if (this.getTotalGoal() > 0) {
       return 'Goal completion %';
     }
-    switch (this.challenge.sortBy) {
-      case 'bds':
-        return '# of BDs';
-      case 'uniqueAos':
-        return '# of AOs';
-      case 'qs':
-        return '# of Qs';
-      case 'doubleDowns':
-        return '# of DDs';
-      default:
-        return this.challenge.sortBy;
+    return this.columns.find(col => col.key === this.challenge!.sortBy)
+               ?.label ??
+        this.challenge.sortBy;
+  }
+
+  hasCustomMetrics(): boolean {
+    return (this.challenge?.customMetrics?.length ?? 0) > 0;
+  }
+
+  /** Whether the signed-in PAX can log his own numbers right now. */
+  canLogProgress(): boolean {
+    if (!this.user || !this.challenge || !this.hasCustomMetrics()) return false;
+    if (moment().format('YYYY-MM-DD') < this.challenge.startDate) return false;
+    return this.isParticipant || this.challenge.requireJoining === false;
+  }
+
+  /**
+   * Log custom-metric progress: for the signed-in PAX, or, when the creator
+   * taps a leaderboard row, for that PAX.
+   */
+  async openLogModal(entry?: ChallengeLeaderboardEntry) {
+    if (!this.user || !this.challenge || !this.hasCustomMetrics()) return;
+    const me = this.user.email || this.user.uid;
+    if (!me) return;
+    if (moment().format('YYYY-MM-DD') < this.challenge.startDate) {
+      await this.showToast('This challenge hasn\'t started yet', 'warning');
+      return;
     }
+
+    let userId = me;
+    let paxName: string|undefined;
+    if (entry) {
+      if (!this.isOwner() && entry.userId.toLowerCase() !== me.toLowerCase()) {
+        return;
+      }
+      userId = entry.userId;
+      paxName = entry.paxName;
+    } else {
+      paxName = this.participants.find(p => p.userId === me)?.paxName ??
+          (await this.paxService.getPaxByEmail(me))?.name;
+    }
+
+    const modal = await this.modalController.create({
+      component: LogProgressModalComponent,
+      componentProps: {
+        challenge: this.challenge,
+        userId,
+        paxName,
+        updatedBy: me,
+        logs: this.logs.filter(
+            log => log.userId.toLowerCase() === userId.toLowerCase()),
+      },
+      cssClass: 'log-progress-modal',
+    });
+    await modal.present();
+    // The leaderboard updates on its own through the logs subscription
   }
 
   isOwner(): boolean {
@@ -887,30 +955,21 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
     this.router.navigateByUrl('/challenges');
   }
 
-  getProgressPercentage(
-      entry: ChallengeLeaderboardEntry,
-      metric: 'bds'|'uniqueAos'|'qs'|'doubleDowns'): number {
-    if (!this.challenge?.goals) return 0;
-    const goal = this.challenge.goals[metric];
-    if (!goal || goal <= 0) return 0;
-    const value = entry[metric] || 0;
-    return Math.min(100, Math.round((value / goal) * 100));
+  getProgressPercentage(entry: ChallengeLeaderboardEntry, metric: string):
+      number {
+    const goal = this.getGoal(metric);
+    if (goal <= 0) return 0;
+    return Math.min(
+        100, Math.round((this.getValue(entry, metric) / goal) * 100));
   }
 
-  hasMetGoal(
-      entry: ChallengeLeaderboardEntry,
-      metric: 'bds'|'uniqueAos'|'qs'|'doubleDowns'): boolean {
-    if (!this.challenge?.goals) return false;
-    const goal = this.challenge.goals[metric];
-    if (!goal || goal <= 0) return false;
-    const value = entry[metric] || 0;
-    return value >= goal;
+  hasMetGoal(entry: ChallengeLeaderboardEntry, metric: string): boolean {
+    const goal = this.getGoal(metric);
+    return goal > 0 && this.getValue(entry, metric) >= goal;
   }
 
-  hasGoal(metric: 'bds'|'uniqueAos'|'qs'|'doubleDowns'): boolean {
-    if (!this.challenge?.goals) return false;
-    const goal = this.challenge.goals[metric];
-    return goal !== undefined && goal > 0;
+  hasGoal(metric: string): boolean {
+    return this.getGoal(metric) > 0;
   }
 
   getStrokeDashArray(radius: number = 20): number {
@@ -918,8 +977,7 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   }
 
   getStrokeDashOffset(
-      entry: ChallengeLeaderboardEntry,
-      metric: 'bds'|'uniqueAos'|'qs'|'doubleDowns',
+      entry: ChallengeLeaderboardEntry, metric: string,
       radius: number = 20): number {
     const circumference = 2 * Math.PI * radius;
     const progress = this.getProgressPercentage(entry, metric) / 100;

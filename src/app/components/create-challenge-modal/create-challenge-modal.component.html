@@ -179,6 +179,56 @@
       </ion-item>
     </div>
 
+    <div class="metrics-section custom-metrics-section">
+      <h3>Custom Metrics</h3>
+      <p class="section-description">Track anything backblasts can't see: reps, miles, days done. PAX log their own numbers on the challenge page, and you can log for them.</p>
+
+      <div class="custom-metric" *ngFor="let metric of customMetrics; let i = index; trackBy: trackByMetricId">
+        <div class="custom-metric-row">
+          <ion-input
+            type="text"
+            [(ngModel)]="metric.name"
+            (ionChange)="onMetricChange()"
+            placeholder="e.g., Pushups, Cold plunges"
+            maxlength="30"
+            class="custom-metric-name"
+            [disabled]="isLoading">
+          </ion-input>
+          <ion-button
+            fill="clear"
+            color="danger"
+            size="small"
+            (click)="removeCustomMetric(i)"
+            [disabled]="isLoading">
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-button>
+        </div>
+        <div class="custom-metric-row">
+          <ion-select
+            [(ngModel)]="metric.type"
+            interface="popover"
+            class="custom-metric-type"
+            [disabled]="isLoading">
+            <ion-select-option value="total">Running total (reps, miles)</ion-select-option>
+            <ion-select-option value="days">Days completed</ion-select-option>
+          </ion-select>
+          <ion-input
+            type="number"
+            [(ngModel)]="metric.goal"
+            placeholder="Goal"
+            min="1"
+            class="goal-input"
+            [disabled]="isLoading">
+          </ion-input>
+        </div>
+      </div>
+
+      <ion-button fill="outline" size="small" (click)="addCustomMetric()" [disabled]="isLoading">
+        <ion-icon slot="start" name="add"></ion-icon>
+        Add custom metric
+      </ion-button>
+    </div>
+
     <div class="sort-section" *ngIf="availableSortOptions.length > 1">
       <h3>Sort Leaderboard By</h3>
       <p class="section-description">Choose which metric to use for sorting the leaderboard:</p>

@@ -1,0 +1,62 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Log Progress</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="log-progress-content">
+    <p class="intro" *ngIf="isForSomeoneElse">Logging for <strong>{{ paxName || userId }}</strong></p>
+
+    <ion-item class="date-item">
+      <ion-label position="stacked">Day</ion-label>
+      <input
+        type="date"
+        [(ngModel)]="date"
+        (ngModelChange)="loadDay()"
+        [min]="minDate"
+        [max]="maxDate"
+        [disabled]="isSaving"
+        class="date-input">
+    </ion-item>
+
+    <ion-item *ngFor="let metric of metrics" class="metric-item">
+      <ion-label class="metric-label">
+        <h2>{{ metric.name }}</h2>
+        <p>
+          {{ totals[metric.id] || 0 }}<ng-container *ngIf="metric.goal"> of {{ metric.goal }}</ng-container>
+          {{ metric.type === 'days' ? 'days' : 'total' }} so far
+        </p>
+      </ion-label>
+      <ion-toggle
+        *ngIf="metric.type === 'days'"
+        [(ngModel)]="done[metric.id]"
+        [disabled]="isSaving"
+        slot="end">
+      </ion-toggle>
+      <ion-input
+        *ngIf="metric.type !== 'days'"
+        type="number"
+        inputmode="decimal"
+        [(ngModel)]="amounts[metric.id]"
+        placeholder="0"
+        min="0"
+        class="amount-input"
+        [disabled]="isSaving"
+        slot="end">
+      </ion-input>
+    </ion-item>
+
+    <p class="hint">Numbers are the total for that day. Pick an earlier day to fill it in or fix it.</p>
+
+    <ion-button expand="block" (click)="save()" [disabled]="isSaving">
+      <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
+      <span *ngIf="!isSaving">Save</span>
+    </ion-button>
+  </div>
+</ion-content>

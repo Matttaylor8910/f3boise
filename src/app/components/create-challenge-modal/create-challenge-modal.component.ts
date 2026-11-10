@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {ModalController, ToastController} from '@ionic/angular';
 import * as moment from 'moment';
-import {Challenge, ChallengeMetric} from 'types';
+import {Challenge, ChallengeCustomMetric, ChallengeCustomMetricType, ChallengeMetric} from 'types';
 
 import {ChallengesService} from '../../services/challenges.service';
 
@@ -29,13 +29,18 @@ export class CreateChallengeModalComponent implements OnInit {
   goals:
       {bds?: number; uniqueAos?: number; qs?: number;
        doubleDowns?: number;} = {};
-  sortBy: ChallengeMetric = ChallengeMetric.BDS;
+  // Self-reported metrics; goal is null while its input is empty
+  customMetrics: Array<{
+    id: string; name: string; type: ChallengeCustomMetricType;
+    goal?: number|null;
+  }> = [];
+  sortBy: ChallengeMetric|string = ChallengeMetric.BDS;
   isLoading = false;
   readonly today: string = moment().format('YYYY-MM-DD');
   readonly ChallengeMetric = ChallengeMetric;
 
   // Available sort options based on selected metrics
-  availableSortOptions: Array<{value: ChallengeMetric; label: string}> = [];
+  availableSortOptions: Array<{value: string; label: string}> = [];
 
   get isEditMode(): boolean {
     return !!this.challengeToEdit;
@@ -68,6 +73,8 @@ export class CreateChallengeModalComponent implements OnInit {
       this.metrics = {...this.challengeToEdit.metrics};
       this.sortBy = this.challengeToEdit.sortBy;
       this.goals = {...(this.challengeToEdit.goals || {})};
+      this.customMetrics =
+          (this.challengeToEdit.customMetrics || []).map(m => ({...m}));
       this.updateAvailableSortOptions();
       // Ensure sortBy is valid for selected metrics
       this.updateSortByIfNeeded();
@@ -80,8 +87,27 @@ export class CreateChallengeModalComponent implements OnInit {
     this.updateSortByIfNeeded();
   }
 
+  addCustomMetric() {
+    this.customMetrics.push({
+      id: `c_${Date.now().toString(36)}${
+          Math.random().toString(36).slice(2, 6)}`,
+      name: '',
+      type: 'total',
+    });
+    this.onMetricChange();
+  }
+
+  removeCustomMetric(index: number) {
+    this.customMetrics.splice(index, 1);
+    this.onMetricChange();
+  }
+
+  trackByMetricId(index: number, metric: {id: string}): string {
+    return metric.id;
+  }
+
   private updateAvailableSortOptions() {
-    const options: Array<{value: ChallengeMetric; label: string}> = [];
+    const options: Array<{value: string; label: string}> = [];
     if (this.metrics.bds) {
       options.push({value: ChallengeMetric.BDS, label: '# of BDs'});
     }
@@ -93,6 +119,10 @@ export class CreateChallengeModalComponent implements OnInit {
     }
     if (this.metrics.doubleDowns) {
       options.push({value: ChallengeMetric.DOUBLE_DOWNS, label: '# of DDs'});
+    }
+    for (const metric of this.customMetrics) {
+      options.push(
+          {value: metric.id, label: metric.name.trim() || 'Custom metric'});
     }
     this.availableSortOptions = options;
   }
@@ -135,9 +165,14 @@ export class CreateChallengeModalComponent implements OnInit {
       return;
     }
 
+    if (this.customMetrics.some(m => !m.name.trim())) {
+      await this.showToast('Please name each custom metric', 'danger');
+      return;
+    }
+
     // Check if at least one metric is selected
     if (!this.metrics.bds && !this.metrics.uniqueAos && !this.metrics.qs &&
-        !this.metrics.doubleDowns) {
+        !this.metrics.doubleDowns && this.customMetrics.length === 0) {
       await this.showToast(
           'Please select at least one metric to track', 'danger');
       return;
@@ -171,6 +206,7 @@ export class CreateChallengeModalComponent implements OnInit {
           metrics: this.metrics,
           sortBy: this.sortBy,
           goals: this.getGoalsForChallenge(),
+          customMetrics: this.getCustomMetricsForChallenge(),
         };
 
         await this.challengesService.updateChallenge(
@@ -190,6 +226,7 @@ export class CreateChallengeModalComponent implements OnInit {
           sortBy: this.sortBy,
           createdBy: this.createdBy,
           goals: this.getGoalsForChallenge(),
+          customMetrics: this.getCustomMetricsForChallenge(),
         };
 
         await this.challengesService.createChallenge(challenge);
@@ -213,35 +250,41 @@ export class CreateChallengeModalComponent implements OnInit {
     await this.modalController.dismiss();
   }
 
+  private getCustomMetricsForChallenge(): ChallengeCustomMetric[] {
+    return this.customMetrics.map(m => {
+      const metric: ChallengeCustomMetric =
+          {id: m.id, name: m.name.trim(), type: m.type};
+      // Firestore rejects undefined, so only carry a goal that was set
+      const goal = Number(m.goal);
+      if (goal > 0) metric.goal = goal;
+      return metric;
+    });
+  }
+
   private getGoalsForChallenge():
-      {bds?: number; uniqueAos?: number; qs?: number;
-       doubleDowns?: number;}|undefined {
+      {bds?: number; uniqueAos?: number; qs?: number; doubleDowns?: number;} {
     const goals:
         {bds?: number; uniqueAos?: number; qs?: number;
          doubleDowns?: number;} = {};
-    let hasGoals = false;
 
     if (this.metrics.bds && this.goals.bds !== undefined &&
         this.goals.bds > 0) {
       goals.bds = this.goals.bds;
-      hasGoals = true;
     }
     if (this.metrics.uniqueAos && this.goals.uniqueAos !== undefined &&
         this.goals.uniqueAos > 0) {
       goals.uniqueAos = this.goals.uniqueAos;
-      hasGoals = true;
     }
     if (this.metrics.qs && this.goals.qs !== undefined && this.goals.qs > 0) {
       goals.qs = this.goals.qs;
-      hasGoals = true;
     }
     if (this.metrics.doubleDowns && this.goals.doubleDowns !== undefined &&
         this.goals.doubleDowns > 0) {
       goals.doubleDowns = this.goals.doubleDowns;
-      hasGoals = true;
     }
 
-    return hasGoals ? goals : undefined;
+    // Always an object: Firestore rejects an undefined field
+    return goals;
   }
 
   private async showToast(message: string, color: string) {

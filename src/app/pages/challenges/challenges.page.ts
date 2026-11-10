@@ -137,27 +137,16 @@ export class ChallengesPage implements OnInit, OnDestroy {
   }
 
   getMetricsList(challenge: Challenge): string {
-    const metrics: string[] = [];
-    if (challenge.metrics.bds) metrics.push('# of BDs');
-    if (challenge.metrics.uniqueAos) metrics.push('Unique # of AOs');
-    if (challenge.metrics.qs) metrics.push('# of Qs');
-    if (challenge.metrics.doubleDowns) metrics.push('Double Downs');
-    return metrics.join(', ');
+    return this.challengesService.metricColumns(challenge)
+        .map(col => col.label)
+        .join(', ');
   }
 
   getSortByLabel(challenge: Challenge): string {
-    switch (challenge.sortBy) {
-      case 'bds':
-        return '# of BDs';
-      case 'uniqueAos':
-        return '# of AOs';
-      case 'qs':
-        return '# of Qs';
-      case 'doubleDowns':
-        return '# of DDs';
-      default:
-        return challenge.sortBy;
-    }
+    return this.challengesService.metricColumns(challenge)
+               .find(col => col.key === challenge.sortBy)
+               ?.label ??
+        challenge.sortBy;
   }
 
   isOwner(challenge: Challenge): boolean {

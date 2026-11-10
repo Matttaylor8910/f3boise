@@ -115,3 +115,27 @@
     text-align: right;
   }
 }
+
+.custom-metric {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--ion-color-light-shade);
+  border-radius: 8px;
+
+  .custom-metric-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .custom-metric-name,
+  .custom-metric-type {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .custom-metric-type {
+    font-size: 14px;
+    --padding-start: 0;
+  }
+}

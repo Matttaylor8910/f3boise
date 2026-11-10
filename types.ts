@@ -115,7 +115,8 @@ export interface Challenge {
   endDate: string;    // YYYY-MM-DD format
   metrics:
       {bds: boolean; uniqueAos: boolean; qs: boolean; doubleDowns: boolean;};
-  sortBy: ChallengeMetric;
+  // A built-in ChallengeMetric, or the id of one of customMetrics
+  sortBy: ChallengeMetric|string;
   createdBy: string;   // User email or UID
   createdAt: any;      // Firestore timestamp
   isPrivate: boolean;  // Whether the challenge is private (default: false)
@@ -128,6 +129,32 @@ export interface Challenge {
     qs?: number;
     doubleDowns?: number;
   };  // Optional goals for each metric
+  // Self-reported metrics (reps, miles, days done...) that PAX log by hand
+  customMetrics?: ChallengeCustomMetric[];
+}
+
+// 'total' adds up the amounts logged (reps, miles); 'days' counts the days
+// that were checked off
+export type ChallengeCustomMetricType = 'total'|'days';
+
+export interface ChallengeCustomMetric {
+  id: string;  // Stable key, never one of the ChallengeMetric values
+  name: string;
+  type: ChallengeCustomMetricType;
+  goal?: number;
+}
+
+// One PAX's amount for one custom metric on one day
+export interface ChallengeLog {
+  id?: string;
+  challengeId: string;
+  metricId: string;
+  userId: string;     // Same id as the ChallengeParticipant
+  paxName?: string;
+  date: string;       // YYYY-MM-DD format
+  value: number;      // The day's total; 1 for a 'days' metric
+  updatedBy: string;  // Who wrote it: the PAX, or the challenge creator
+  updatedAt: any;     // Firestore timestamp
 }
 
 export interface ChallengeParticipant {
@@ -145,4 +172,6 @@ export interface ChallengeLeaderboardEntry {
   uniqueAos: number;
   qs: number;
   doubleDowns: number;
+  // Scores on the challenge's custom metrics, by metric id
+  custom?: {[metricId: string]: number};
 }

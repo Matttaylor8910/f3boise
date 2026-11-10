@@ -13,6 +13,34 @@ service cloud.firestore {
       allow create, update, delete: if request.auth != null;
     }
 
+    /**
+     * Self-reported challenge progress. A PAX writes his own days; the
+     * challenge's creator may write anyone's (he tallies for PAX who don't
+     * use the app).
+     */
+    function isSelf(userId) {
+      return userId == request.auth.uid ||
+          (request.auth.token.email != null &&
+           userId.lower() == request.auth.token.email.lower());
+    }
+
+    function ownsChallenge(challengeId) {
+      return get(/databases/$(database)/documents/challenges/$(challengeId)).data.createdBy
+          in [request.auth.uid, request.auth.token.get('email', '')];
+    }
+
+    match /challenge_logs/{logId} {
+      allow read: if true;
+      allow create, update: if request.auth != null &&
+          request.resource.data.value is number &&
+          request.resource.data.value >= 0 &&
+          (isSelf(request.resource.data.userId) ||
+           ownsChallenge(request.resource.data.challengeId));
+      allow delete: if request.auth != null &&
+          (isSelf(resource.data.userId) ||
+           ownsChallenge(resource.data.challengeId));
+    }
+
     function signedIn() {
       return request.auth != null;
     }

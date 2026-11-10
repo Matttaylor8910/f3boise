@@ -75,6 +75,14 @@
       </ion-button>
     </div>
 
+    <!-- Log self-reported progress -->
+    <div class="join-section" *ngIf="canLogProgress()">
+      <ion-button expand="block" (click)="openLogModal()">
+        <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+        Log Progress
+      </ion-button>
+    </div>
+
     <!-- Leaderboard -->
     <div class="leaderboard-section">
       <!-- Joined Participants Leaderboard -->
@@ -103,10 +111,7 @@
               <tr>
                 <th>Rank</th>
                 <th>Name</th>
-                <th *ngIf="challenge.metrics.bds"># of BDs</th>
-                <th *ngIf="challenge.metrics.uniqueAos"># of AOs</th>
-                <th *ngIf="challenge.metrics.qs"># of Qs</th>
-                <th *ngIf="challenge.metrics.doubleDowns"># of DDs</th>
+                <th *ngFor="let col of columns; trackBy: trackByColumn">{{ col.label }}</th>
                 <th *ngIf="isOwner() || (user && isParticipant)" class="actions-column">Actions</th>
               </tr>
             </thead>
@@ -123,9 +128,9 @@
                     {{ entry.userId }}
                   </ng-template>
                 </td>
-                <td *ngIf="challenge.metrics.bds" class="metric">
+                <td *ngFor="let col of columns; trackBy: trackByColumn" class="metric">
                   <div class="progress-cell">
-                    <svg class="circular-progress" width="48" height="48" [class.goal-met]="hasGoal('bds') && hasMetGoal(entry, 'bds')">
+                    <svg class="circular-progress" width="48" height="48" [class.goal-met]="hasGoal(col.key) && hasMetGoal(entry, col.key)">
                       <circle
                         class="progress-ring-background"
                         cx="24"
@@ -135,9 +140,9 @@
                         stroke="var(--ion-color-light)"
                         stroke-width="3"/>
                       <circle
-                        *ngIf="hasGoal('bds')"
+                        *ngIf="hasGoal(col.key)"
                         class="progress-ring"
-                        [class.goal-met-stroke]="hasMetGoal(entry, 'bds')"
+                        [class.goal-met-stroke]="hasMetGoal(entry, col.key)"
                         cx="24"
                         cy="24"
                         r="20"
@@ -145,97 +150,21 @@
                         stroke="var(--ion-color-primary)"
                         stroke-width="3"
                         [attr.stroke-dasharray]="getStrokeDashArray(20)"
-                        [attr.stroke-dashoffset]="getStrokeDashOffset(entry, 'bds', 20)"
+                        [attr.stroke-dashoffset]="getStrokeDashOffset(entry, col.key, 20)"
                         transform="rotate(-90 24 24)"/>
                     </svg>
-                    <span class="progress-value" [class.goal-met-text]="hasGoal('bds') && hasMetGoal(entry, 'bds')">{{ entry.bds }}</span>
-                  </div>
-                </td>
-                <td *ngIf="challenge.metrics.uniqueAos" class="metric">
-                  <div class="progress-cell">
-                    <svg class="circular-progress" width="48" height="48" [class.goal-met]="hasGoal('uniqueAos') && hasMetGoal(entry, 'uniqueAos')">
-                      <circle
-                        class="progress-ring-background"
-                        cx="24"
-                        cy="24"
-                        r="20"
-                        fill="none"
-                        stroke="var(--ion-color-light)"
-                        stroke-width="3"/>
-                      <circle
-                        *ngIf="hasGoal('uniqueAos')"
-                        class="progress-ring"
-                        [class.goal-met-stroke]="hasMetGoal(entry, 'uniqueAos')"
-                        cx="24"
-                        cy="24"
-                        r="20"
-                        fill="none"
-                        stroke="var(--ion-color-primary)"
-                        stroke-width="3"
-                        [attr.stroke-dasharray]="getStrokeDashArray(20)"
-                        [attr.stroke-dashoffset]="getStrokeDashOffset(entry, 'uniqueAos', 20)"
-                        transform="rotate(-90 24 24)"/>
-                    </svg>
-                    <span class="progress-value" [class.goal-met-text]="hasGoal('uniqueAos') && hasMetGoal(entry, 'uniqueAos')">{{ entry.uniqueAos }}</span>
-                  </div>
-                </td>
-                <td *ngIf="challenge.metrics.qs" class="metric">
-                  <div class="progress-cell">
-                    <svg class="circular-progress" width="48" height="48" [class.goal-met]="hasGoal('qs') && hasMetGoal(entry, 'qs')">
-                      <circle
-                        class="progress-ring-background"
-                        cx="24"
-                        cy="24"
-                        r="20"
-                        fill="none"
-                        stroke="var(--ion-color-light)"
-                        stroke-width="3"/>
-                      <circle
-                        *ngIf="hasGoal('qs')"
-                        class="progress-ring"
-                        [class.goal-met-stroke]="hasMetGoal(entry, 'qs')"
-                        cx="24"
-                        cy="24"
-                        r="20"
-                        fill="none"
-                        stroke="var(--ion-color-primary)"
-                        stroke-width="3"
-                        [attr.stroke-dasharray]="getStrokeDashArray(20)"
-                        [attr.stroke-dashoffset]="getStrokeDashOffset(entry, 'qs', 20)"
-                        transform="rotate(-90 24 24)"/>
-                    </svg>
-                    <span class="progress-value" [class.goal-met-text]="hasGoal('qs') && hasMetGoal(entry, 'qs')">{{ entry.qs }}</span>
-                  </div>
-                </td>
-                <td *ngIf="challenge.metrics.doubleDowns" class="metric">
-                  <div class="progress-cell">
-                    <svg class="circular-progress" width="48" height="48" [class.goal-met]="hasGoal('doubleDowns') && hasMetGoal(entry, 'doubleDowns')">
-                      <circle
-                        class="progress-ring-background"
-                        cx="24"
-                        cy="24"
-                        r="20"
-                        fill="none"
-                        stroke="var(--ion-color-light)"
-                        stroke-width="3"/>
-                      <circle
-                        *ngIf="hasGoal('doubleDowns')"
-                        class="progress-ring"
-                        [class.goal-met-stroke]="hasMetGoal(entry, 'doubleDowns')"
-                        cx="24"
-                        cy="24"
-                        r="20"
-                        fill="none"
-                        stroke="var(--ion-color-primary)"
-                        stroke-width="3"
-                        [attr.stroke-dasharray]="getStrokeDashArray(20)"
-                        [attr.stroke-dashoffset]="getStrokeDashOffset(entry, 'doubleDowns', 20)"
-                        transform="rotate(-90 24 24)"/>
-                    </svg>
-                    <span class="progress-value" [class.goal-met-text]="hasGoal('doubleDowns') && hasMetGoal(entry, 'doubleDowns')">{{ entry.doubleDowns }}</span>
+                    <span class="progress-value" [class.long-value]="formatValue(entry, col.key).length > 4" [class.goal-met-text]="hasGoal(col.key) && hasMetGoal(entry, col.key)">{{ formatValue(entry, col.key) }}</span>
                   </div>
                 </td>
                 <td *ngIf="isOwner() || (user && (entry.userId === user.email || entry.userId === user.uid))" class="actions">
+                  <ion-button
+                    *ngIf="isOwner() && hasCustomMetrics()"
+                    fill="clear"
+                    size="small"
+                    title="Log progress for this PAX"
+                    (click)="openLogModal(entry)">
+                    <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+                  </ion-button>
                   <ion-button
                     fill="clear"
                     size="small"
@@ -276,10 +205,7 @@
               <tr>
                 <th>Rank</th>
                 <th>Name</th>
-                <th *ngIf="challenge.metrics.bds"># of BDs</th>
-                <th *ngIf="challenge.metrics.uniqueAos"># of AOs</th>
-                <th *ngIf="challenge.metrics.qs"># of Qs</th>
-                <th *ngIf="challenge.metrics.doubleDowns"># of DDs</th>
+                <th *ngFor="let col of columns; trackBy: trackByColumn">{{ col.label }}</th>
                 <th *ngIf="isOwner()" class="actions-column">Actions</th>
               </tr>
             </thead>
@@ -296,9 +222,9 @@
                     {{ entry.userId }}
                   </ng-template>
                 </td>
-                <td *ngIf="challenge.metrics.bds" class="metric">
+                <td *ngFor="let col of columns; trackBy: trackByColumn" class="metric">
                   <div class="progress-cell">
-                    <svg class="circular-progress" width="48" height="48" [class.goal-met]="hasGoal('bds') && hasMetGoal(entry, 'bds')">
+                    <svg class="circular-progress" width="48" height="48" [class.goal-met]="hasGoal(col.key) && hasMetGoal(entry, col.key)">
                       <circle
                         class="progress-ring-background"
                         cx="24"
@@ -308,9 +234,9 @@
                         stroke="var(--ion-color-light)"
                         stroke-width="3"/>
                       <circle
-                        *ngIf="hasGoal('bds')"
+                        *ngIf="hasGoal(col.key)"
                         class="progress-ring"
-                        [class.goal-met-stroke]="hasMetGoal(entry, 'bds')"
+                        [class.goal-met-stroke]="hasMetGoal(entry, col.key)"
                         cx="24"
                         cy="24"
                         r="20"
@@ -318,94 +244,10 @@
                         stroke="var(--ion-color-primary)"
                         stroke-width="3"
                         [attr.stroke-dasharray]="getStrokeDashArray(20)"
-                        [attr.stroke-dashoffset]="getStrokeDashOffset(entry, 'bds', 20)"
+                        [attr.stroke-dashoffset]="getStrokeDashOffset(entry, col.key, 20)"
                         transform="rotate(-90 24 24)"/>
                     </svg>
-                    <span class="progress-value" [class.goal-met-text]="hasGoal('bds') && hasMetGoal(entry, 'bds')">{{ entry.bds }}</span>
-                  </div>
-                </td>
-                <td *ngIf="challenge.metrics.uniqueAos" class="metric">
-                  <div class="progress-cell">
-                    <svg class="circular-progress" width="48" height="48" [class.goal-met]="hasGoal('uniqueAos') && hasMetGoal(entry, 'uniqueAos')">
-                      <circle
-                        class="progress-ring-background"
-                        cx="24"
-                        cy="24"
-                        r="20"
-                        fill="none"
-                        stroke="var(--ion-color-light)"
-                        stroke-width="3"/>
-                      <circle
-                        *ngIf="hasGoal('uniqueAos')"
-                        class="progress-ring"
-                        [class.goal-met-stroke]="hasMetGoal(entry, 'uniqueAos')"
-                        cx="24"
-                        cy="24"
-                        r="20"
-                        fill="none"
-                        stroke="var(--ion-color-primary)"
-                        stroke-width="3"
-                        [attr.stroke-dasharray]="getStrokeDashArray(20)"
-                        [attr.stroke-dashoffset]="getStrokeDashOffset(entry, 'uniqueAos', 20)"
-                        transform="rotate(-90 24 24)"/>
-                    </svg>
-                    <span class="progress-value" [class.goal-met-text]="hasGoal('uniqueAos') && hasMetGoal(entry, 'uniqueAos')">{{ entry.uniqueAos }}</span>
-                  </div>
-                </td>
-                <td *ngIf="challenge.metrics.qs" class="metric">
-                  <div class="progress-cell">
-                    <svg class="circular-progress" width="48" height="48" [class.goal-met]="hasGoal('qs') && hasMetGoal(entry, 'qs')">
-                      <circle
-                        class="progress-ring-background"
-                        cx="24"
-                        cy="24"
-                        r="20"
-                        fill="none"
-                        stroke="var(--ion-color-light)"
-                        stroke-width="3"/>
-                      <circle
-                        *ngIf="hasGoal('qs')"
-                        class="progress-ring"
-                        [class.goal-met-stroke]="hasMetGoal(entry, 'qs')"
-                        cx="24"
-                        cy="24"
-                        r="20"
-                        fill="none"
-                        stroke="var(--ion-color-primary)"
-                        stroke-width="3"
-                        [attr.stroke-dasharray]="getStrokeDashArray(20)"
-                        [attr.stroke-dashoffset]="getStrokeDashOffset(entry, 'qs', 20)"
-                        transform="rotate(-90 24 24)"/>
-                    </svg>
-                    <span class="progress-value" [class.goal-met-text]="hasGoal('qs') && hasMetGoal(entry, 'qs')">{{ entry.qs }}</span>
-                  </div>
-                </td>
-                <td *ngIf="challenge.metrics.doubleDowns" class="metric">
-                  <div class="progress-cell">
-                    <svg class="circular-progress" width="48" height="48" [class.goal-met]="hasGoal('doubleDowns') && hasMetGoal(entry, 'doubleDowns')">
-                      <circle
-                        class="progress-ring-background"
-                        cx="24"
-                        cy="24"
-                        r="20"
-                        fill="none"
-                        stroke="var(--ion-color-light)"
-                        stroke-width="3"/>
-                      <circle
-                        *ngIf="hasGoal('doubleDowns')"
-                        class="progress-ring"
-                        [class.goal-met-stroke]="hasMetGoal(entry, 'doubleDowns')"
-                        cx="24"
-                        cy="24"
-                        r="20"
-                        fill="none"
-                        stroke="var(--ion-color-primary)"
-                        stroke-width="3"
-                        [attr.stroke-dasharray]="getStrokeDashArray(20)"
-                        [attr.stroke-dashoffset]="getStrokeDashOffset(entry, 'doubleDowns', 20)"
-                        transform="rotate(-90 24 24)"/>
-                    </svg>
-                    <span class="progress-value" [class.goal-met-text]="hasGoal('doubleDowns') && hasMetGoal(entry, 'doubleDowns')">{{ entry.doubleDowns }}</span>
+                    <span class="progress-value" [class.long-value]="formatValue(entry, col.key).length > 4" [class.goal-met-text]="hasGoal(col.key) && hasMetGoal(entry, col.key)">{{ formatValue(entry, col.key) }}</span>
                   </div>
                 </td>
                 <td *ngIf="isOwner()" class="actions">
