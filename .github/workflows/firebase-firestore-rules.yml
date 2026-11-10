@@ -1,0 +1,39 @@
+# Deploys firestore.rules whenever it changes on main, or on demand from the
+# Actions tab. The deploy service account needs these project roles:
+#   - Firebase Rules Admin        (roles/firebaserules.admin)
+#   - Service Usage Consumer      (roles/serviceusage.serviceUsageConsumer)
+# The second one is because the CLI checks that firestore.googleapis.com is
+# enabled before it uploads rules.
+
+name: Deploy Firestore rules
+'on':
+  push:
+    branches:
+      - main
+    paths:
+      - firestore.rules
+      - firebase.json
+      - .github/workflows/firebase-firestore-rules.yml
+  workflow_dispatch:
+concurrency:
+  group: firebase-firestore-rules
+  cancel-in-progress: false
+jobs:
+  deploy_rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Write service account credentials
+        env:
+          FIREBASE_SERVICE_ACCOUNT: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_F3_BOISE }}'
+        run: |
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
+      - name: Deploy Firestore rules
+        run: npx --yes firebase-tools@15.34.0 deploy --only firestore:rules --project f3-boise --non-interactive --force
+      - name: Remove credentials
+        if: always()
+        run: rm -f "$RUNNER_TEMP/firebase-sa.json"

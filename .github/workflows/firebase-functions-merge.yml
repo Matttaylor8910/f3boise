@@ -1,0 +1,47 @@
+# Deploys Cloud Functions whenever functions/ changes on main, or on demand
+# from the Actions tab. firebase.json's predeploy hooks lint and build first.
+# The deploy service account needs these project roles:
+#   - Cloud Functions Developer   (roles/cloudfunctions.developer)
+#   - Service Account User        (roles/iam.serviceAccountUser)
+#   - Service Usage Consumer      (roles/serviceusage.serviceUsageConsumer)
+#   - Artifact Registry Writer    (roles/artifactregistry.writer)
+# Service Account User lets it deploy functions that run as the App Engine
+# default account; Artifact Registry Writer lets the CLI clean up old build
+# images instead of warning about them.
+
+name: Deploy Cloud Functions on merge
+'on':
+  push:
+    branches:
+      - main
+    paths:
+      - 'functions/**'
+      - firebase.json
+      - .github/workflows/firebase-functions-merge.yml
+  workflow_dispatch:
+concurrency:
+  group: firebase-functions-live
+  cancel-in-progress: false
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - name: Install function dependencies
+        run: npm ci --prefix functions
+      - name: Write service account credentials
+        env:
+          FIREBASE_SERVICE_ACCOUNT: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_F3_BOISE }}'
+        run: |
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
+      - name: Deploy functions
+        run: npx --yes firebase-tools@15.34.0 deploy --only functions --project f3-boise --non-interactive --force
+      - name: Remove credentials
+        if: always()
+        run: rm -f "$RUNNER_TEMP/firebase-sa.json"
