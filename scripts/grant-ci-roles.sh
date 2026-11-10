@@ -19,6 +19,11 @@ ROLES=(
   roles/artifactregistry.writer            # CLI cleans up old function build images
 )
 
+# The CLI refuses to deploy functions unless this API is on, and the deploy
+# account may only read API state, so an owner turns it on here.
+echo "== enable cloudbilling.googleapis.com"
+gcloud services enable cloudbilling.googleapis.com --project "${PROJECT}" --quiet
+
 for role in "${ROLES[@]}"; do
   echo "== ${role}"
   gcloud projects add-iam-policy-binding "${PROJECT}" \
