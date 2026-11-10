@@ -276,19 +276,28 @@ export class ChallengesService {
    */
   async updateCheckIn(
       id: string, date: string, values: {[metricId: string]: number},
-      note: string, updatedBy: string): Promise<void> {
+      note: string, updatedBy: string,
+      owner?: {userId: string, paxName?: string}): Promise<void> {
     const kept: {[metricId: string]: number} = {};
     for (const metricId of Object.keys(values)) {
       if (values[metricId] > 0) kept[metricId] = values[metricId];
     }
-    await this.firestore.collection(this.LOGS_COLLECTION).doc(id).update({
+    const changes: {[field: string]: unknown} = {
       date,
       values: kept,
       note: note.trim() ? note.trim() :
                           firebase.firestore.FieldValue.delete(),
       updatedBy,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
+    };
+    // the creator may hand a check-in to the PAX it was really for
+    if (owner) {
+      changes['userId'] = owner.userId;
+      changes['paxName'] = owner.paxName ??
+          firebase.firestore.FieldValue.delete();
+    }
+    await this.firestore.collection(this.LOGS_COLLECTION).doc(id).update(
+        changes);
   }
 
   /** Remove a check-in posted by mistake. */

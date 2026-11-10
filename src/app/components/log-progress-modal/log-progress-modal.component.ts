@@ -1,14 +1,21 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {ModalController, ToastController} from '@ionic/angular';
 import * as moment from 'moment';
-import {Challenge, ChallengeCustomMetric, ChallengeLog} from 'types';
+import {Challenge, ChallengeCustomMetric, ChallengeLog, Pax} from 'types';
 
 import {ChallengesService} from '../../services/challenges.service';
+import {PaxService} from '../../services/pax.service';
+import {UtilService} from '../../services/util.service';
+
+/** How many PAX to list under the "for" picker's search box. */
+const MAX_PAX_RESULTS = 8;
 
 /**
  * Post a check-in for one PAX on a challenge: reps to add to his totals, days
  * to check off, one-time things to tick, and an optional note. Or, given a
  * check-in to edit, change what it says: then the amounts replace its own.
+ * The challenge creator can also point it at any PAX, who joins the
+ * challenge if he isn't in it yet.
  */
 @Component({
   selector: 'app-log-progress-modal',
@@ -25,6 +32,17 @@ export class LogProgressModalComponent implements OnInit {
   @Input() logs: ChallengeLog[] = [];
   /** A check-in to change instead of a new one to post. */
   @Input() editing?: ChallengeLog;
+  /** The creator may pick who the check-in is for. */
+  @Input() canReassign = false;
+  /** Every check-in on the challenge, so a newly picked PAX has his totals. */
+  @Input() allLogs?: ChallengeLog[];
+
+  /** Who the check-in was for when the modal opened. */
+  private originalUserId = '';
+  pickingPax = false;
+  paxQuery = '';
+  paxResults: Pax[] = [];
+  private allPax: Pax[] = [];
 
   date = '';
   minDate = '';
@@ -43,6 +61,8 @@ export class LogProgressModalComponent implements OnInit {
       private readonly modalController: ModalController,
       private readonly toastController: ToastController,
       private readonly challengesService: ChallengesService,
+      private readonly paxService: PaxService,
+      readonly utilService: UtilService,
   ) {}
 
   get metrics(): ChallengeCustomMetric[] {
@@ -62,7 +82,18 @@ export class LogProgressModalComponent implements OnInit {
     return this.logs.filter(log => log.id !== this.editing?.id);
   }
 
+  /** The check-in now points at someone other than it did at first. */
+  get reassigned(): boolean {
+    return this.userId.toLowerCase() !== this.originalUserId.toLowerCase();
+  }
+
+  get forName(): string {
+    return this.paxName ? this.utilService.normalizeName(this.paxName) :
+                          this.userId;
+  }
+
   ngOnInit() {
+    this.originalUserId = this.userId;
     const today = moment().format('YYYY-MM-DD');
     this.minDate = this.challenge.startDate;
     this.maxDate =
@@ -76,11 +107,7 @@ export class LogProgressModalComponent implements OnInit {
       if (this.date < this.minDate) this.minDate = this.date;
       if (this.date > this.maxDate) this.maxDate = this.date;
     }
-    this.totals = this.challengesService
-                      .customMetricTotals(this.challenge, this.otherLogs)
-                      .get(this.userId.toLowerCase()) ??
-        {};
-    this.loadDay();
+    this.loadTotals();
     if (this.editing) {
       for (const metric of this.metrics) {
         const value = this.editing.values?.[metric.id] ?? 0;
@@ -91,6 +118,61 @@ export class LogProgressModalComponent implements OnInit {
         }
       }
     }
+  }
+
+  private loadTotals() {
+    this.totals = this.challengesService
+                      .customMetricTotals(this.challenge, this.otherLogs)
+                      .get(this.userId.toLowerCase()) ??
+        {};
+    this.loadDay();
+  }
+
+  async startPickingPax() {
+    this.pickingPax = true;
+    this.paxQuery = '';
+    this.paxResults = [];
+    if (this.allPax.length === 0) {
+      this.allPax = [...await this.paxService.getAllData()].sort(
+          (a, b) => a.name.localeCompare(b.name));
+    }
+  }
+
+  /** Reads the query off the event: ngModel is a keystroke behind ionInput. */
+  filterPax(event?: Event) {
+    if (event) {
+      const target = event.target as HTMLIonSearchbarElement|null;
+      this.paxQuery = target?.value ?? '';
+    }
+    const query = this.paxQuery.toLowerCase().trim();
+    if (!query) {
+      this.paxResults = [];
+      return;
+    }
+    const starts =
+        this.allPax.filter(pax => pax.name.toLowerCase().startsWith(query));
+    const contains = this.allPax.filter(
+        pax => !pax.name.toLowerCase().startsWith(query) &&
+            pax.name.toLowerCase().includes(query));
+    this.paxResults = [...starts, ...contains].slice(0, MAX_PAX_RESULTS);
+  }
+
+  /** Point the check-in at this PAX and show his numbers instead. */
+  choosePax(pax: Pax) {
+    // the same id the leaderboard and participants use for him
+    this.userId = pax.email || pax.name;
+    this.paxName = pax.name;
+    this.pickingPax = false;
+    const pool = this.allLogs ?? this.logs;
+    this.logs = pool.filter(
+        log => log.userId.toLowerCase() === this.userId.toLowerCase());
+    this.amounts = {};
+    this.done = {};
+    this.loadTotals();
+  }
+
+  cancelPickingPax() {
+    this.pickingPax = false;
   }
 
   /** Work out what the picked day already has checked in. */
@@ -149,9 +231,16 @@ export class LogProgressModalComponent implements OnInit {
 
     this.isSaving = true;
     try {
+      // a PAX the creator picked is in the challenge from here on
+      if (this.canReassign && this.reassigned) {
+        await this.challengesService.joinChallenge(
+            this.challenge.id!, this.userId, this.paxName);
+      }
       if (this.editing) {
         await this.challengesService.updateCheckIn(
-            this.editing.id!, this.date, values, this.note, this.updatedBy);
+            this.editing.id!, this.date, values, this.note, this.updatedBy,
+            this.reassigned ? {userId: this.userId, paxName: this.paxName} :
+                              undefined);
         await this.showToast('Check-in updated', 'success');
       } else {
         await this.challengesService.addCheckIn(

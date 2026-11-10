@@ -13,6 +13,81 @@
   }
 }
 
+.for-item {
+  --padding-start: 0;
+  margin-bottom: 4px;
+
+  .for-caption {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ion-color-medium);
+    margin-bottom: 2px;
+  }
+
+  h2 {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .you {
+    font-weight: 400;
+    color: var(--ion-color-medium);
+  }
+}
+
+.pax-picker {
+  margin-bottom: 8px;
+  padding: 8px 12px 4px;
+  border-radius: 10px;
+  background: rgba(var(--ion-color-primary-rgb), 0.06);
+
+  .pax-picker-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 600;
+
+    ion-button {
+      margin: 0;
+    }
+  }
+
+  ion-searchbar {
+    padding: 4px 0;
+    --box-shadow: none;
+    --background: var(--ion-background-color);
+  }
+
+  .pax-results {
+    padding: 0;
+    background: transparent;
+
+    ion-item {
+      --background: transparent;
+      --padding-start: 4px;
+      font-weight: 600;
+
+      app-pax-avatar {
+        margin: 4px 10px 4px 0;
+      }
+    }
+  }
+
+  .pax-empty {
+    margin: 4px 0 8px;
+    font-size: 14px;
+    color: var(--ion-color-medium);
+  }
+}
+
+.join-note {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--ion-color-primary);
+}
+
 .date-item {
   --border-color: transparent;
   --padding-start: 0;

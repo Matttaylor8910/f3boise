@@ -11,7 +11,41 @@
 
 <ion-content class="ion-padding">
   <div class="log-progress-content">
-    <p class="intro" *ngIf="isForSomeoneElse">{{ isEditing ? 'Editing a check-in for' : 'Checking in for' }} <strong>{{ paxName || userId }}</strong></p>
+    <p class="intro" *ngIf="isForSomeoneElse && !canReassign">{{ isEditing ? 'Editing a check-in for' : 'Checking in for' }} <strong>{{ forName }}</strong></p>
+
+    <!-- The creator picks who this is for -->
+    <ng-container *ngIf="canReassign">
+      <ion-item class="for-item" *ngIf="!pickingPax">
+        <ion-label>
+          <p class="for-caption">For</p>
+          <h2>{{ forName }}<span class="you" *ngIf="!isForSomeoneElse"> (you)</span></h2>
+        </ion-label>
+        <ion-button slot="end" fill="outline" size="small" (click)="startPickingPax()" [disabled]="isSaving">
+          Change
+        </ion-button>
+      </ion-item>
+      <div class="pax-picker" *ngIf="pickingPax">
+        <div class="pax-picker-head">
+          <span>Who is this check-in for?</span>
+          <ion-button fill="clear" size="small" (click)="cancelPickingPax()">Cancel</ion-button>
+        </div>
+        <ion-searchbar
+          placeholder="Search by F3 name"
+          [(ngModel)]="paxQuery"
+          (ionInput)="filterPax($event)"
+          [debounce]="0"
+          autocapitalize="off">
+        </ion-searchbar>
+        <ion-list class="pax-results" *ngIf="paxResults.length > 0">
+          <ion-item button *ngFor="let pax of paxResults" (click)="choosePax(pax)">
+            <app-pax-avatar slot="start" [name]="pax.name" [size]="32"></app-pax-avatar>
+            <ion-label>{{ utilService.normalizeName(pax.name) }}</ion-label>
+          </ion-item>
+        </ion-list>
+        <p class="pax-empty" *ngIf="paxQuery.trim() && paxResults.length === 0">No PAX by that name.</p>
+      </div>
+      <p class="join-note" *ngIf="reassigned">{{ forName }} will be added to the challenge.</p>
+    </ng-container>
 
     <ion-item class="date-item">
       <ion-label position="stacked">Day</ion-label>

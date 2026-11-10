@@ -912,6 +912,8 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
         editing: log,
         logs: this.logs.filter(
             l => l.userId.toLowerCase() === log.userId.toLowerCase()),
+        canReassign: this.isOwner(),
+        allLogs: this.logs,
       },
       cssClass: 'log-progress-modal',
     });
@@ -985,6 +987,8 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
         updatedBy: me,
         logs: this.logs.filter(
             log => log.userId.toLowerCase() === userId.toLowerCase()),
+        canReassign: this.isOwner(),
+        allLogs: this.logs,
       },
       cssClass: 'log-progress-modal',
     });
