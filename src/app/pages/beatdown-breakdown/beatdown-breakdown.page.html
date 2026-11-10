@@ -14,39 +14,14 @@
     </div>
 
     <!-- Intro slide (first slide, shown when within load window) -->
-    <div class="intro-slide-in-slides" [class.email-shown]="showEmailInput && !user" *ngIf="!showTooEarly" #introSlideElement>
+    <div class="intro-slide-in-slides" *ngIf="!showTooEarly" #introSlideElement>
       <div class="title-section">
         <p class="subtitle">Your {{year}}</p>
         <h1>Beatdown Breakdown</h1>
       </div>
 
-      <!-- Email input form (shown when user clicks "Let's Roll" and is not authenticated) -->
-      <div class="email-input-section" [class.visible]="showEmailInput && !user">
-        <p class="email-prompt">Enter your F3 email address</p>
-        <p class="slack-email-note">Please use the same email address you use for Slack.</p>
-        <ion-item class="email-input-item">
-          <ion-input
-            #emailInput
-            type="email"
-            [(ngModel)]="email"
-            placeholder="your.email@example.com"
-            [disabled]="isSendingEmail">
-          </ion-input>
-        </ion-item>
-        <ion-button
-          expand="block"
-          size="large"
-          (click)="sendLoginLink()"
-          [disabled]="isSendingEmail || !email"
-          class="send-link-button">
-          <ion-spinner *ngIf="isSendingEmail" name="crescent"></ion-spinner>
-          <span *ngIf="!isSendingEmail">Send Sign-In Link</span>
-        </ion-button>
-        <p class="help-text">You'll receive an email with a link to sign in. No password required!</p>
-      </div>
-
-      <!-- Let's Roll button (shown when email input is not visible) -->
-      <div class="action-section" [class.hidden]="showEmailInput && !user">
+      <!-- Let's Roll button -->
+      <div class="action-section">
         <ion-button
           expand="block"
           size="large"

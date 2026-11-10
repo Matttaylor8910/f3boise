@@ -9,7 +9,7 @@ import {Backblast, BBType, Challenge, ChallengeLeaderboardEntry, ChallengeLog, C
 import {AddParticipantModalComponent} from '../../../components/add-participant-modal/add-participant-modal.component';
 import {CreateChallengeModalComponent} from '../../../components/create-challenge-modal/create-challenge-modal.component';
 import {LogProgressModalComponent} from '../../../components/log-progress-modal/log-progress-modal.component';
-import {LoginModalComponent} from '../../../components/login-modal/login-modal.component';
+import {LoginModalComponent, LoginMode} from '../../../components/login-modal/login-modal.component';
 import {AuthService} from '../../../services/auth.service';
 import {BackblastService} from '../../../services/backblast.service';
 import {ChallengesService} from '../../../services/challenges.service';
@@ -67,12 +67,13 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   ngOnInit() {
     // Subscribe to auth state
     const authSub = this.authService.authState$.subscribe(user => {
-      const wasSignedOut = !this.user && user;
+      const becameVerified =
+          !this.user?.emailVerified && !!user?.emailVerified;
       this.user = user;
       this.checkParticipation();
 
-      // If user just signed in and there's a pending challenge join, auto-join
-      if (wasSignedOut && user) {
+      // Just signed in (or confirmed the email) with a join waiting: finish it
+      if (becameVerified) {
         this.handlePendingJoin();
       }
     });
@@ -512,11 +513,16 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
     return undefined;
   }
 
+  /** Signed in, but the confirmation link was never clicked. */
+  get unverified(): boolean {
+    return !!this.user && !this.user.emailVerified;
+  }
+
   async joinChallenge() {
-    if (!this.user) {
+    if (!this.user?.emailVerified) {
       // Save challenge ID to localStorage so we can auto-join after sign-in
       localStorage.setItem('pendingChallengeJoin', this.challengeId);
-      await this.openLoginModal();
+      await this.openLoginModal(this.user ? 'verify' : 'pick');
       return;
     }
 
@@ -814,9 +820,10 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
     });
   }
 
-  async openLoginModal() {
+  async openLoginModal(mode: LoginMode = 'pick') {
     const modal = await this.modalController.create({
       component: LoginModalComponent,
+      componentProps: {mode},
       cssClass: 'login-modal',
     });
     await modal.present();

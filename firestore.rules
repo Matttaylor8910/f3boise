@@ -2,15 +2,25 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    /**
+     * Accounts are made with the email the roster has on file, and those
+     * emails are public, so until its owner clicks the confirmation link an
+     * account proves nothing. Every write that acts as a PAX needs this.
+     */
+    function verified() {
+      return request.auth != null &&
+          request.auth.token.email_verified == true;
+    }
+
     /** Legacy app data — keep permissive reads for public pages */
     match /challenges/{challengeId} {
       allow read: if true;
-      allow create, update, delete: if request.auth != null;
+      allow create, update, delete: if verified();
     }
 
     match /challenge_participants/{participantId} {
       allow read: if true;
-      allow create, update, delete: if request.auth != null;
+      allow create, update, delete: if verified();
     }
 
     /**
@@ -31,11 +41,11 @@ service cloud.firestore {
 
     match /challenge_logs/{logId} {
       allow read: if true;
-      allow create, update: if request.auth != null &&
+      allow create, update: if verified() &&
           request.resource.data.values is map &&
           (isSelf(request.resource.data.userId) ||
            ownsChallenge(request.resource.data.challengeId));
-      allow delete: if request.auth != null &&
+      allow delete: if verified() &&
           (isSelf(resource.data.userId) ||
            ownsChallenge(resource.data.challengeId));
     }
@@ -45,14 +55,14 @@ service cloud.firestore {
     }
 
     function hasAdminRole(uid) {
-      return signedIn() &&
+      return verified() &&
           exists(/databases/$(database)/documents/userProfiles/$(uid)) &&
           get(/databases/$(database)/documents/userProfiles/$(uid)).data.roles is list &&
           'admin' in get(/databases/$(database)/documents/userProfiles/$(uid)).data.roles;
     }
 
     function isBootstrapSuperadmin() {
-      return signedIn() &&
+      return verified() &&
           request.auth.token.email == 'taylor.matt777@gmail.com';
     }
 
@@ -61,7 +71,7 @@ service cloud.firestore {
      * Checks the known region IDs — update if new regions are added.
      */
     function hasNantanRole(uid) {
-      return signedIn() &&
+      return verified() &&
           exists(/databases/$(database)/documents/userProfiles/$(uid)) &&
           get(/databases/$(database)/documents/userProfiles/$(uid)).data.roles is list &&
           get(/databases/$(database)/documents/userProfiles/$(uid)).data.roles.hasAny([

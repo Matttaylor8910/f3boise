@@ -14,14 +14,28 @@
     margin-bottom: 20px;
   }
 
-  ion-item {
-    margin-bottom: 20px;
-    --padding-start: 0;
-    --padding-end: 0;
+  a {
+    color: var(--ion-color-primary);
+    cursor: pointer;
+    font-weight: 600;
   }
 
-  ion-button {
-    margin-top: 20px;
+  ion-item {
+    margin-bottom: 12px;
+    --padding-start: 0;
+    --padding-end: 0;
+
+    .eye {
+      margin: 0;
+      align-self: flex-end;
+      --padding-start: 4px;
+      --padding-end: 4px;
+      --color: var(--ion-color-medium);
+    }
+  }
+
+  ion-button[expand="block"] {
+    margin-top: 16px;
   }
 
   .picker-search {
@@ -42,10 +56,16 @@
 
     ion-item {
       --padding-start: 8px;
+      margin-bottom: 0;
       font-weight: 600;
 
       app-pax-avatar {
         margin: 6px 12px 6px 0;
+      }
+
+      .chevron {
+        color: var(--ion-color-medium);
+        font-size: 18px;
       }
     }
   }
@@ -55,10 +75,109 @@
     font-size: 14px;
   }
 
-  .slack-email-note {
-    font-size: 16px;
-    font-weight: bold;
-    color: var(--ion-color-primary);
+  .picked-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    margin-bottom: 8px;
+    border-radius: 14px;
+    background: rgba(var(--ion-color-primary-rgb), 0.08);
+
+    h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .picked-who {
+      min-width: 0;
+    }
+
+    .picked-email {
+      margin: 2px 0 4px;
+      font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .not-you {
+      font-size: 13px;
+    }
+  }
+
+  .option-note {
+    margin: 8px 4px 4px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .field-hint {
+    margin: -4px 0 0;
+    font-size: 13px;
+    min-height: 18px;
+
+    &.problem {
+      color: var(--ion-color-danger);
+    }
+  }
+
+  .exists-note {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(var(--ion-color-primary-rgb), 0.08);
+    border-left: 4px solid var(--ion-color-primary);
+
+    ion-icon {
+      font-size: 24px;
+      color: var(--ion-color-primary);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    p {
+      margin: 0 0 4px;
+      font-size: 14px;
+      color: var(--ion-text-color);
+    }
+
+    .exists-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 8px;
+
+      ion-button {
+        margin: 0;
+      }
+    }
+  }
+
+  &.sent {
+    text-align: center;
+
+    .sent-icon {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 12px;
+
+      ion-icon {
+        font-size: 56px;
+        color: var(--ion-color-primary);
+      }
+    }
+
+    p strong {
+      color: var(--ion-text-color);
+      word-break: break-all;
+    }
+
+    .spam-folder-note {
+      text-align: left;
+    }
   }
 
   .help-text {

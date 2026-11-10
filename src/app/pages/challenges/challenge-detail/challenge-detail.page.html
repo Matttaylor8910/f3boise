@@ -70,7 +70,7 @@
         [disabled]="isLoading || isJoining">
         <ion-spinner *ngIf="isJoining" name="crescent"></ion-spinner>
         <ion-icon *ngIf="!isJoining" slot="start" name="person-add-outline"></ion-icon>
-        <span *ngIf="!isJoining">{{ user ? 'Join Challenge' : 'Sign in to Join Challenge' }}</span>
+        <span *ngIf="!isJoining">{{ !user ? 'Sign in to Join Challenge' : unverified ? 'Confirm Email to Join' : 'Join Challenge' }}</span>
         <span *ngIf="isJoining">Joining...</span>
       </ion-button>
     </div>

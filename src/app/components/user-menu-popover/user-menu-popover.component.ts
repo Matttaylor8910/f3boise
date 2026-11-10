@@ -1,6 +1,6 @@
 import {Component, Input} from '@angular/core';
 import {NavigationExtras, Router} from '@angular/router';
-import {ModalController, PopoverController} from '@ionic/angular';
+import {ModalController, PopoverController, ToastController} from '@ionic/angular';
 import {AuthService} from 'src/app/services/auth.service';
 import {CurrentPaxService} from 'src/app/services/current-pax.service';
 import {UserProfilesService} from 'src/app/services/user-profiles.service';
@@ -26,6 +26,7 @@ export class UserMenuPopoverComponent {
       private readonly currentPaxService: CurrentPaxService,
       private readonly modalController: ModalController,
       private readonly popoverController: PopoverController,
+      private readonly toastController: ToastController,
       private readonly router: Router,
       readonly userProfiles: UserProfilesService,
   ) {}
@@ -65,7 +66,28 @@ export class UserMenuPopoverComponent {
   /** A real sign-in, for the things a chosen PAX can't do. */
   async signIn() {
     await this.popoverController.dismiss();
-    await this.openLoginModal('email');
+    await this.openLoginModal('signin');
+  }
+
+  /** Signed in, but the confirmation link was never clicked. */
+  get unverified(): boolean {
+    return !!this.user && !this.user.emailVerified;
+  }
+
+  /** Back to the "check your email" screen, with a resend. */
+  async confirmEmail() {
+    await this.popoverController.dismiss();
+    if (await this.authService.refreshVerification()) {
+      const toast = await this.toastController.create({
+        message: 'Email confirmed. You\'re all set!',
+        duration: 3000,
+        color: 'success',
+        position: 'top',
+      });
+      await toast.present();
+      return;
+    }
+    await this.openLoginModal('verify');
   }
 
   async signOut() {

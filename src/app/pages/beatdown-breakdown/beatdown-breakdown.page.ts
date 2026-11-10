@@ -1,6 +1,7 @@
 import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, NavigationExtras, Router} from '@angular/router';
-import {ToastController} from '@ionic/angular';
+import {ModalController, ToastController} from '@ionic/angular';
+import {LoginModalComponent} from 'src/app/components/login-modal/login-modal.component';
 import {WrappedData} from 'src/app/interfaces/wrapped-data.interface';
 import {AuthService} from 'src/app/services/auth.service';
 import {PaxService} from 'src/app/services/pax.service';
@@ -19,7 +20,6 @@ type FirebaseUser = any;
 })
 export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   @ViewChild('slidesContainer', {static: false}) slidesContainer!: ElementRef;
-  @ViewChild('emailInput', {static: false}) emailInput!: any;
 
   year: string;
   userId: string|null = null;
@@ -27,9 +27,6 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
   paxName: string|undefined;
   wrappedData: WrappedData|null = null;
   currentSlideIndex = 0;
-  showEmailInput = false;
-  email = '';
-  isSendingEmail = false;
   bestiePhotoUrl: string|null = null;
   qCallouts: Array<{message: string; rank: number}> = [];
 
@@ -57,6 +54,7 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
       private readonly router: Router,
       private readonly wrappedService: WrappedService,
       private readonly toastController: ToastController,
+      private readonly modalController: ModalController,
   ) {
     this.year = this.route.snapshot.params['year'];
     // Validate year is a 4-digit number
@@ -83,13 +81,10 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
       this.user = user;
       if (user?.uid) {
         this.userId = user.email || user.uid;  // Prefer email, fallback to UID
-        this.showEmailInput =
-            false;  // Hide email input if user becomes authenticated
         // Load data in background
         this.loadWrappedData();
       } else {
         // User not logged in, show intro slide only
-        this.showEmailInput = false;
       }
     });
   }
@@ -181,67 +176,21 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
     });
   }
 
-  onLetsRoll() {
+  async onLetsRoll() {
     if (this.user?.uid) {
       // User is authenticated, scroll to the first content slide
       this.currentSlideIndex = 1;
       this.scrollToSlide(1);
-    } else {
-      // User is not authenticated, show email input
-      this.showEmailInput = true;
-      // Focus on email input after a short delay to allow animation
-      setTimeout(() => {
-        if (this.emailInput) {
-          const inputElement = this.emailInput.getInputElement();
-          if (inputElement) {
-            inputElement.then((el: HTMLInputElement) => {
-              el.focus();
-            });
-          }
-        }
-      }, 400);
-    }
-  }
-
-  async sendLoginLink() {
-    if (!this.email || !this.isValidEmail(this.email)) {
-      await this.showToast('Please enter a valid email address', 'danger');
       return;
     }
-
-    this.isSendingEmail = true;
-
-    try {
-      // Check if email is registered as a PAX
-      const pax = await this.paxService.getPaxByEmail(this.email);
-      if (!pax) {
-        await this.showToast(
-            'This email is not registered. Please contact an admin to register your email.',
-            'danger',
-        );
-        this.isSendingEmail = false;
-        return;
-      }
-
-      const actionCodeSettings = this.authService.createActionCodeSettings(
-          window.location.origin + `/${this.year}`,
-      );
-
-      await this.authService.sendSignInLinkToEmail(
-          this.email, actionCodeSettings);
-      await this.showToast(
-          'Check your email for a sign-in link!',
-          'success',
-      );
-      this.showEmailInput = false;
-    } catch (error: any) {
-      await this.showToast(
-          error.message || 'Failed to send login link. Please try again.',
-          'danger',
-      );
-    } finally {
-      this.isSendingEmail = false;
-    }
+    // Not signed in: find yourself, set a password if you like, come back
+    const modal = await this.modalController.create({
+      component: LoginModalComponent,
+      cssClass: 'login-modal',
+    });
+    await modal.present();
+    await modal.onDidDismiss();
+    if (this.user?.uid) this.onLetsRoll();
   }
 
   private async handleEmailLinkSignIn() {
@@ -271,11 +220,6 @@ export class BeatdownBreakdownPage implements OnInit, AfterViewInit {
         await toast.present();
       }
     }
-  }
-
-  private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
   }
 
   private async showToast(message: string, color: string) {

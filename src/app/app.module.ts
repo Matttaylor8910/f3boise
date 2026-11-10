@@ -5,6 +5,7 @@ import {AngularFireModule} from '@angular/fire/compat';
 import {AngularFireAnalyticsModule} from '@angular/fire/compat/analytics';
 import {AngularFireAuthModule} from '@angular/fire/compat/auth';
 import {AngularFirestoreModule} from '@angular/fire/compat/firestore';
+import {AngularFireFunctionsModule} from '@angular/fire/compat/functions';
 import {BrowserModule} from '@angular/platform-browser';
 import {RouteReuseStrategy} from '@angular/router';
 import {ServiceWorkerModule} from '@angular/service-worker';
@@ -29,6 +30,7 @@ import {ComponentsModule} from './components/components.module';
     AngularFireAnalyticsModule,
     AngularFireAuthModule,
     AngularFirestoreModule,
+    AngularFireFunctionsModule,
     ComponentsModule,
     // Register right away rather than waiting for Angular to report "stable":
     // Firestore's live listeners keep it from ever settling, so the default

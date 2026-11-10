@@ -1,27 +1,27 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>{{ mode === 'pick' ? 'Who are you?' : 'Sign In' }}</ion-title>
+    <ion-title>{{ title }}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="dismiss()">
         <ion-icon slot="icon-only" name="close"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
-  <ion-toolbar>
-    <ion-segment [(ngModel)]="mode">
+  <ion-toolbar *ngIf="mode !== 'verify'">
+    <ion-segment [value]="mode" (ionChange)="setMode($any($event).detail.value)">
       <ion-segment-button value="pick">
         <ion-label>I'm a PAX</ion-label>
       </ion-segment-button>
-      <ion-segment-button value="email">
-        <ion-label>Email link</ion-label>
+      <ion-segment-button value="signin">
+        <ion-label>Sign in</ion-label>
       </ion-segment-button>
     </ion-segment>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <!-- Pick yourself from the roster: no proof, personalization only -->
-  <div class="login-content" *ngIf="mode === 'pick'">
+  <!-- Find yourself in the roster -->
+  <div class="login-content" *ngIf="mode === 'pick' && step === 'search'">
     <h2>Find your name</h2>
     <p>Pick yourself to see your streak, your AOs and the Q slots you could fill.</p>
 
@@ -39,9 +39,10 @@
     </div>
 
     <ion-list class="picker-results" *ngIf="!pickerLoading && pickerResults.length > 0">
-      <ion-item button *ngFor="let pax of pickerResults" (click)="pick(pax)">
+      <ion-item button *ngFor="let pax of pickerResults" (click)="select(pax)">
         <app-pax-avatar slot="start" [name]="pax.name" [size]="36"></app-pax-avatar>
         <ion-label>{{ utilService.normalizeName(pax.name) }}</ion-label>
+        <ion-icon slot="end" name="chevron-forward" class="chevron"></ion-icon>
       </ion-item>
     </ion-list>
     <p class="picker-empty" *ngIf="!pickerLoading && pickerQuery.trim() && pickerResults.length === 0">
@@ -49,43 +50,173 @@
     </p>
 
     <p class="help-text">
-      This just personalizes the app on this device. Editing the map and
-      admin tools still need a real sign-in with your email.
+      Already set a password? <a (click)="setMode('signin')">Sign in</a>.
     </p>
   </div>
 
-  <!-- Real sign-in: a Firebase email link -->
-  <div class="login-content" *ngIf="mode === 'email'">
-    <h2>Sign in with email link</h2>
-    <p>Enter your email address and we'll send you a sign-in link.</p>
-    <p class="slack-email-note">Please use the same email address you use for Slack.</p>
+  <!-- Picked: keep it to this device, or make it an account -->
+  <div class="login-content" *ngIf="mode === 'pick' && (step === 'picked' || step === 'password') && picked">
+    <div class="picked-card">
+      <app-pax-avatar [name]="picked.name" [size]="56"></app-pax-avatar>
+      <div class="picked-who">
+        <h2>{{ pickedName }}</h2>
+        <p class="picked-email" *ngIf="picked.email">{{ maskedEmail }}</p>
+        <a class="not-you" (click)="backToSearch()">Not you?</a>
+      </div>
+    </div>
+
+    <ng-container *ngIf="step === 'picked'">
+      <ion-button expand="block" (click)="startPassword()" [disabled]="!picked.email">
+        <ion-icon slot="start" name="key-outline"></ion-icon>
+        Set a password
+      </ion-button>
+      <p class="option-note" *ngIf="picked.email">
+        Makes this an account so you can create and join challenges from any
+        device. We'll use the email we have on file for you and send a link to
+        confirm it's yours.
+      </p>
+      <p class="option-note" *ngIf="!picked.email">
+        We don't have an email on file for you yet, so a password can't be set.
+        Ask an admin to add yours.
+      </p>
+
+      <ion-button expand="block" fill="outline" (click)="useThisDevice()">
+        Just use this device
+      </ion-button>
+      <p class="option-note">
+        No password. Personalizes the app here, and nowhere else.
+      </p>
+
+      <p class="help-text" *ngIf="picked.email">
+        Already set a password? <a (click)="goSignIn()">Sign in</a>.
+      </p>
+    </ng-container>
+
+    <ng-container *ngIf="step === 'password'">
+      <ion-item>
+        <ion-label position="stacked">Password</ion-label>
+        <ion-input
+          [type]="showPassword ? 'text' : 'password'"
+          [(ngModel)]="password"
+          autocomplete="new-password"
+          [disabled]="isLoading"
+          (keyup.enter)="createAccount()">
+        </ion-input>
+        <ion-button slot="end" fill="clear" class="eye" (click)="showPassword = !showPassword">
+          <ion-icon slot="icon-only" [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+        </ion-button>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Confirm password</ion-label>
+        <ion-input
+          [type]="showPassword ? 'text' : 'password'"
+          [(ngModel)]="confirmPassword"
+          autocomplete="new-password"
+          [disabled]="isLoading"
+          (keyup.enter)="createAccount()">
+        </ion-input>
+      </ion-item>
+      <p class="field-hint" [class.problem]="password && passwordProblem">
+        {{ passwordProblem || 'Looks good.' }}
+      </p>
+
+      <ion-button expand="block" (click)="createAccount()" [disabled]="!canCreate">
+        <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+        <span *ngIf="!isLoading">Create my account</span>
+      </ion-button>
+      <p class="option-note">
+        We'll email {{ maskedEmail }} a link to confirm it's you.
+      </p>
+
+      <div class="exists-note" *ngIf="accountExists">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <div>
+          <p><strong>That email already has an account.</strong></p>
+          <p>Sign in with your password, or get a reset link if you never set one.</p>
+          <div class="exists-actions">
+            <ion-button size="small" (click)="goSignIn()">Sign in</ion-button>
+            <ion-button size="small" fill="outline" (click)="sendPasswordReset()" [disabled]="isLoading">
+              Email me a reset link
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- Sign in to an existing account -->
+  <div class="login-content" *ngIf="mode === 'signin'">
+    <h2>Welcome back</h2>
+    <p>Sign in with the email we have on file for you.</p>
 
     <ion-item>
       <ion-label position="stacked">Email</ion-label>
       <ion-input
         type="email"
         [(ngModel)]="email"
-        placeholder="your.email@example.com"
+        autocomplete="username"
+        inputmode="email"
+        placeholder="you@example.com"
         [disabled]="isLoading">
       </ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Password</ion-label>
+      <ion-input
+        [type]="showSignInPassword ? 'text' : 'password'"
+        [(ngModel)]="signInPassword"
+        autocomplete="current-password"
+        [disabled]="isLoading"
+        (keyup.enter)="signIn()">
+      </ion-input>
+      <ion-button slot="end" fill="clear" class="eye" (click)="showSignInPassword = !showSignInPassword">
+        <ion-icon slot="icon-only" [name]="showSignInPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+      </ion-button>
     </ion-item>
 
     <ion-button
       expand="block"
-      (click)="sendLoginLink()"
-      [disabled]="isLoading || !email">
+      (click)="signIn()"
+      [disabled]="isLoading || !email.trim() || !signInPassword">
       <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
-      <span *ngIf="!isLoading">Send Sign-In Link</span>
+      <span *ngIf="!isLoading">Sign in</span>
     </ion-button>
 
     <p class="help-text">
-      You'll receive an email with a link to sign in. No password required!
-      The link opens in your browser, not the installed app.
+      <a (click)="sendPasswordReset()">Forgot your password?</a>
+      We'll email you a link to set a new one.
+    </p>
+    <p class="help-text">
+      No account yet? <a (click)="setMode('pick')">Find your name</a> to make one.
+    </p>
+  </div>
+
+  <!-- Confirmation email sent -->
+  <div class="login-content sent" *ngIf="mode === 'verify' || step === 'sent'">
+    <div class="sent-icon">
+      <ion-icon name="mail-unread-outline"></ion-icon>
+    </div>
+    <h2>One more step</h2>
+    <p>
+      We sent a confirmation link to <strong>{{ sentTo }}</strong>. Tap it,
+      then come back here. We'll notice on our own, or tap below.
     </p>
 
+    <ion-button expand="block" (click)="checkVerified()" [disabled]="isLoading">
+      <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+      <span *ngIf="!isLoading">I've confirmed my email</span>
+    </ion-button>
+    <ion-button expand="block" fill="clear" (click)="resendVerification()" [disabled]="isLoading">
+      Send it again
+    </ion-button>
+
     <div class="spam-folder-note">
-      <ion-icon name="mail-unread-outline"></ion-icon>
-      <p><strong>Can't find the email?</strong> Check your spam or junk folder.</p>
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p><strong>Can't find it?</strong> Check your spam or junk folder. It comes from noreply&#64;f3-boise.firebaseapp.com.</p>
     </div>
+
+    <p class="help-text">
+      Until then you can still browse, and the app is personalized on this device.
+    </p>
   </div>
 </ion-content>

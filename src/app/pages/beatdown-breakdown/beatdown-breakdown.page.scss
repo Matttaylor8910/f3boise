@@ -142,12 +142,6 @@
     }
   }
 
-  // When email input is shown, move title section up
-  &.email-shown .title-section {
-    transform: translateY(-40px);
-    margin-bottom: 1rem;
-  }
-
   .action-section {
     width: 100%;
     max-width: 300px;
@@ -158,14 +152,6 @@
     transform: translateY(0);
     transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0s 0s;
     margin: 0 auto;
-
-    &.hidden {
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(10px);
-      pointer-events: none;
-      transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0s 0.3s;
-    }
 
     .lets-roll-button {
       --background: #d32f2f;
@@ -182,78 +168,6 @@
     }
   }
 
-  .email-input-section {
-    width: 100%;
-    max-width: 400px;
-    position: relative;
-    z-index: 2;
-    padding: 0 2rem;
-    margin: 0 auto;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(20px);
-    transition: opacity 0.5s ease-out 0.2s, transform 0.5s ease-out 0.2s, visibility 0s 0.5s;
-    pointer-events: none;
-
-    &.visible {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-      transition: opacity 0.5s ease-out 0.2s, transform 0.5s ease-out 0.2s, visibility 0s 0s;
-      pointer-events: auto;
-    }
-
-    .email-prompt {
-      font-size: 1.6rem;
-      color: #ffffff;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    }
-
-    .slack-email-note {
-      font-size: 1rem;
-      color: #ffffff;
-      margin-bottom: 1.5rem;
-      opacity: 0.9;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-    }
-
-    .email-input-item {
-      --background: rgba(255, 255, 255, 0.95);
-      --border-radius: 8px;
-      margin-bottom: 1rem;
-      border-radius: 8px;
-
-      ion-input {
-        --color: #333;
-        --placeholder-color: #999;
-      }
-    }
-
-    .send-link-button {
-      --background: #d32f2f;
-      --background-hover: #b71c1c;
-      --color: white;
-      font-size: 1.2rem;
-      font-weight: 700;
-      height: 56px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-      border: 2px solid #ffffff;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-      margin-bottom: 1rem;
-    }
-
-    .help-text {
-      font-size: 0.9rem;
-      color: #ffffff;
-      opacity: 0.85;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-      margin-top: 1rem;
-    }
-  }
 }
 
 

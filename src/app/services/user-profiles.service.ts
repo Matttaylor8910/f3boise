@@ -1,4 +1,5 @@
 import {Injectable, OnDestroy} from '@angular/core';
+import {AngularFireFunctions} from '@angular/fire/compat/functions';
 import {AngularFirestore} from '@angular/fire/compat/firestore';
 import firebase from 'firebase/compat/app';
 import {Observable, of, Subscription} from 'rxjs';
@@ -51,12 +52,34 @@ export class UserProfilesService implements OnDestroy {
   constructor(
       private readonly auth: AuthService,
       private readonly firestore: AngularFirestore,
+      private readonly functions: AngularFireFunctions,
   ) {
     this.subs.add(
         this.auth.authState$.subscribe(u => {
           void this.touchCurrentUserProfile(u);
+          void this.claimPendingRoles(u);
         }),
     );
+  }
+
+  /** Users whose pending roles this session already asked for. */
+  private readonly claimedFor = new Set<string>();
+
+  /**
+   * Roles assigned to an email before its owner had an account wait in
+   * `pendingRoleAssignments`. Once he has confirmed the email is his, ask
+   * the Cloud Function to move them onto his profile. Idempotent, so once
+   * per user per session is plenty.
+   */
+  private async claimPendingRoles(u: firebase.User|null): Promise<void> {
+    if (!u?.emailVerified || this.claimedFor.has(u.uid)) return;
+    this.claimedFor.add(u.uid);
+    try {
+      await this.functions.httpsCallable('claimPendingRoles')({}).toPromise();
+    } catch (e) {
+      // Nothing pending, or offline: the next sign-in tries again
+      this.claimedFor.delete(u.uid);
+    }
   }
 
   ngOnDestroy(): void {
@@ -214,8 +237,11 @@ export class UserProfilesService implements OnDestroy {
   readonly canAccessAdminPage$: Observable<boolean> =
       this.auth.authState$.pipe(
           filter((u): u is firebase.User => !!u?.uid),
-          distinctUntilChanged((a, b) => a.uid === b.uid),
+          distinctUntilChanged(
+              (a, b) => a.uid === b.uid && a.emailVerified === b.emailVerified),
           switchMap(user => {
+            // Emails are public, so an unconfirmed account proves nothing
+            if (!user.emailVerified) return of(false);
             if (emailIsAdminBootstrap(user.email ?? undefined)) {
               return of(true);
             }

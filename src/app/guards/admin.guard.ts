@@ -20,7 +20,8 @@ export class AdminGuard implements CanActivate {
     return this.auth.authState$.pipe(
         take(1),
         switchMap(user => {
-          if (!user?.uid) return of(false);
+          // Emails are public, so an unconfirmed account proves nothing
+          if (!user?.uid || !user.emailVerified) return of(false);
           if (emailIsAdminBootstrap(user.email ?? undefined)) return of(true);
           return this.profiles.getProfileTakeOne$(user.uid).pipe(
               map(profile => rolesGrantAdminAccess(profile?.roles ?? [])),

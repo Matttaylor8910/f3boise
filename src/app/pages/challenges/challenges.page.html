@@ -25,6 +25,9 @@
       <p *ngIf="!user" class="sign-in-prompt">
         <a (click)="openLoginModal()">Sign in</a> to create and participate in challenges.
       </p>
+      <p *ngIf="unverified" class="sign-in-prompt">
+        <a (click)="openLoginModal('verify')">Confirm your email</a> to create and join challenges.
+      </p>
     </div>
 
     <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
@@ -33,7 +36,8 @@
       <ion-icon name="trophy-outline"></ion-icon>
       <h3 *ngIf="!showPastChallenges">No challenges yet</h3>
       <h3 *ngIf="showPastChallenges">No past challenges</h3>
-      <p *ngIf="!showPastChallenges && user">Be the first to create a challenge!</p>
+      <p *ngIf="!showPastChallenges && user && !unverified">Be the first to create a challenge!</p>
+      <p *ngIf="!showPastChallenges && unverified">Confirm your email to create the first challenge.</p>
       <p *ngIf="!showPastChallenges && !user">Sign in to create the first challenge.</p>
       <p *ngIf="showPastChallenges">There are no past challenges to display.</p>
     </div>

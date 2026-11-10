@@ -6,7 +6,7 @@ import {Subscription} from 'rxjs';
 import {Challenge} from 'types';
 
 import {CreateChallengeModalComponent} from '../../components/create-challenge-modal/create-challenge-modal.component';
-import {LoginModalComponent} from '../../components/login-modal/login-modal.component';
+import {LoginModalComponent, LoginMode} from '../../components/login-modal/login-modal.component';
 import {AuthService} from '../../services/auth.service';
 import {ChallengesService} from '../../services/challenges.service';
 
@@ -97,9 +97,18 @@ export class ChallengesPage implements OnInit, OnDestroy {
     return this.participantCounts.get(challengeId) || 0;
   }
 
+  /** Signed in, but the confirmation link was never clicked. */
+  get unverified(): boolean {
+    return !!this.user && !this.user.emailVerified;
+  }
+
   async createChallenge() {
     if (!this.user) {
       await this.openLoginModal();
+      return;
+    }
+    if (!this.user.emailVerified) {
+      await this.openLoginModal('verify');
       return;
     }
 
@@ -119,9 +128,10 @@ export class ChallengesPage implements OnInit, OnDestroy {
     }
   }
 
-  async openLoginModal() {
+  async openLoginModal(mode: LoginMode = 'pick') {
     const modal = await this.modalController.create({
       component: LoginModalComponent,
+      componentProps: {mode},
       cssClass: 'login-modal',
     });
     await modal.present();

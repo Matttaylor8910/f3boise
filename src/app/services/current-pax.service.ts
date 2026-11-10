@@ -21,7 +21,7 @@ export interface MyAo {
 
 /** Where the current PAX came from. */
 export type PaxSource =
-    /** Matched by the signed-in Firebase user's email: real auth. */
+    /** Matched by the signed-in, email-confirmed Firebase user: real auth. */
     'auth'|
     /** The user told us who they are, with no proof: personalization only. */
     'chosen';
@@ -68,7 +68,10 @@ export class CurrentPaxService {
   ) {
     const authPax$ = this.authService.authState$.pipe(
         switchMap(user => {
-          const email: string|undefined = user?.email;
+          // Emails are public, so until his is confirmed a user is only as
+          // trusted as a PAX he picked from the roster
+          const email: string|undefined =
+              user?.emailVerified ? user.email : undefined;
           return email ? from(this.paxService.getPaxByEmail(email)) :
                          of(undefined);
         }),
