@@ -24,3 +24,13 @@ jobs:
           firebaseToolsVersion: 15.34.0
           channelId: live
           projectId: f3-boise
+      # The Hosting action only ships the site. Firestore rules go out here,
+      # after it, so a rules failure never holds back a site deploy. The
+      # service account needs the "Firebase Rules Admin" role for this step.
+      - name: Deploy Firestore rules
+        env:
+          FIREBASE_SERVICE_ACCOUNT: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_F3_BOISE }}'
+        run: |
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-sa.json"
+          npx --yes firebase-tools@15.34.0 deploy --only firestore:rules --project f3-boise --non-interactive
