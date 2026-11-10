@@ -270,9 +270,27 @@
   </div>
 
   <!-- Recent check-ins -->
-  <div class="challenge-detail-container check-ins-section" *ngIf="challenge && checkIns.length > 0">
-    <h2>Recent Check-ins</h2>
-    <ion-list class="check-ins-list">
+  <div class="challenge-detail-container check-ins-section" *ngIf="challenge && hasCheckIns">
+    <div class="check-ins-header">
+      <h2>{{ checkInsMine ? 'Your Check-ins' : 'Recent Check-ins' }}</h2>
+      <ion-segment
+        *ngIf="canFilterMine"
+        class="check-ins-filter"
+        mode="ios"
+        [value]="checkInsMine ? 'mine' : 'all'"
+        (ionChange)="setCheckInsMine($any($event).detail.value === 'mine')">
+        <ion-segment-button value="all">
+          <ion-label>Everyone</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="mine">
+          <ion-label>Just me</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+    <p class="check-ins-empty" *ngIf="checkIns.length === 0">
+      Nothing checked in under your name yet.
+    </p>
+    <ion-list class="check-ins-list" *ngIf="checkIns.length > 0">
       <ion-item *ngFor="let checkIn of checkIns; trackBy: trackByCheckIn" lines="full">
         <app-pax-avatar *ngIf="checkIn.paxName" slot="start" [name]="checkIn.paxName" [size]="32" [clickable]="true"></app-pax-avatar>
         <ion-label class="ion-text-wrap">
@@ -303,6 +321,12 @@
         </ion-button>
       </ion-item>
     </ion-list>
+    <div class="check-ins-footer" *ngIf="hiddenCheckIns > 0 || showAllCheckIns">
+      <ion-button fill="clear" size="small" (click)="toggleAllCheckIns()">
+        <ng-container *ngIf="!showAllCheckIns">Show all {{ checkInsMatching }} check-ins</ng-container>
+        <ng-container *ngIf="showAllCheckIns">Show fewer</ng-container>
+      </ion-button>
+    </div>
   </div>
 
   <div *ngIf="challengeLoading" class="loading-state">

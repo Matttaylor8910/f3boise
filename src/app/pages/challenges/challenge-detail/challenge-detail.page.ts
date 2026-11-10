@@ -13,7 +13,20 @@ import {LoginModalComponent, LoginMode} from '../../../components/login-modal/lo
 import {AuthService} from '../../../services/auth.service';
 import {BackblastService} from '../../../services/backblast.service';
 import {ChallengesService} from '../../../services/challenges.service';
+import {CurrentPaxService} from '../../../services/current-pax.service';
 import {PaxService} from '../../../services/pax.service';
+
+/** How many check-ins the feed shows before "Show all". */
+const CHECK_INS_PREVIEW = 25;
+
+interface CheckInRow {
+  id: string;
+  userId: string;
+  paxName?: string;
+  summary: string;
+  note?: string;
+  dateLabel: string;
+}
 
 @Component({
   selector: 'app-challenge-detail',
@@ -33,10 +46,18 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   columns: Array<{key: string; label: string; goal?: number; custom: boolean}> =
       [];
   /** The latest check-ins, newest first, worded for the feed. */
-  checkIns: Array<{
-    id: string; userId: string; paxName?: string; summary: string;
-    note?: string; dateLabel: string;
-  }> = [];
+  /** Every check-in, newest first, worded for the feed. */
+  private allCheckIns: CheckInRow[] = [];
+  /** The ones on screen: filtered to the viewer's own, and trimmed. */
+  checkIns: CheckInRow[] = [];
+  /** Only the viewer's own check-ins. */
+  checkInsMine = false;
+  /** Past the first CHECK_INS_PREVIEW. */
+  showAllCheckIns = false;
+  /** How many the filter leaves, before trimming. */
+  checkInsMatching = 0;
+  /** Ids the viewer's check-ins may be filed under: email, uid, PAX name. */
+  private myIds = new Set<string>();
   deletingCheckIn: string|null = null;
   isLoading = false;
   isJoining = false;
@@ -60,6 +81,7 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
       private readonly modalController: ModalController,
       private readonly toastController: ToastController,
       private readonly alertController: AlertController,
+      private readonly currentPaxService: CurrentPaxService,
   ) {
     this.challengeId = this.route.snapshot.params['id'];
   }
@@ -71,6 +93,7 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
           !this.user?.emailVerified && !!user?.emailVerified;
       this.user = user;
       this.checkParticipation();
+      this.rememberMyIds();
 
       // Just signed in (or confirmed the email) with a join waiting: finish it
       if (becameVerified) {
@@ -78,6 +101,12 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
       }
     });
     this.subscriptions.push(authSub);
+
+    // A PAX picked from the roster can spot-check his own too
+    this.subscriptions.push(this.currentPaxService.pax$.subscribe(pax => {
+      this.myPax = pax;
+      this.rememberMyIds();
+    }));
 
     // Load challenge
     const challengeSub =
@@ -865,7 +894,7 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
     const metrics = this.challenge?.customMetrics ?? [];
     const millis = (log: ChallengeLog) =>
         log.createdAt?.toMillis ? log.createdAt.toMillis() : Date.now();
-    this.checkIns =
+    this.allCheckIns =
         [...this.logs]
             .sort(
                 (a, b) => b.date.localeCompare(a.date) || millis(b) - millis(a))
@@ -883,8 +912,58 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
                    note: log.note,
                    dateLabel: moment(log.date).format('ddd, MMM D'),
                  }))
-            .filter(checkIn => !!checkIn.summary)
-            .slice(0, 25);
+            .filter(checkIn => !!checkIn.summary);
+    this.applyCheckInFilter();
+  }
+
+  get hasCheckIns(): boolean {
+    return this.allCheckIns.length > 0;
+  }
+
+  /** The viewer is someone whose check-ins we could pick out. */
+  get canFilterMine(): boolean {
+    return this.myIds.size > 0;
+  }
+
+  /** How many the trimmed list leaves off. */
+  get hiddenCheckIns(): number {
+    return Math.max(0, this.checkInsMatching - this.checkIns.length);
+  }
+
+  setCheckInsMine(mine: boolean) {
+    this.checkInsMine = mine;
+    this.applyCheckInFilter();
+  }
+
+  toggleAllCheckIns() {
+    this.showAllCheckIns = !this.showAllCheckIns;
+    this.applyCheckInFilter();
+  }
+
+  private applyCheckInFilter() {
+    const matching = this.checkInsMine ?
+        this.allCheckIns.filter(
+            checkIn => this.myIds.has(checkIn.userId.toLowerCase())) :
+        this.allCheckIns;
+    this.checkInsMatching = matching.length;
+    this.checkIns = this.showAllCheckIns ?
+        matching :
+        matching.slice(0, CHECK_INS_PREVIEW);
+  }
+
+  private myPax?: {name: string; email?: string};
+
+  private rememberMyIds() {
+    const ids = [
+      this.user?.email,
+      this.user?.uid,
+      this.myPax?.email,
+      this.myPax?.name,
+    ];
+    this.myIds = new Set(
+        ids.filter((id): id is string => !!id).map(id => id.toLowerCase()));
+    if (this.myIds.size === 0) this.checkInsMine = false;
+    this.applyCheckInFilter();
   }
 
   /** The PAX who posted it, or the challenge creator, may change or remove it. */
