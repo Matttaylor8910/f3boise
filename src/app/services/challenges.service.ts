@@ -278,8 +278,8 @@ export class ChallengesService {
   /**
    * Each PAX's score on every custom metric: the sum of what he checked in
    * for a 'total' metric, the number of distinct days he checked in for a
-   * 'days' metric. Days outside the challenge and metrics since removed are
-   * ignored.
+   * 'days' metric, 1 for a 'done' metric he has checked in at all. Days
+   * outside the challenge and metrics since removed are ignored.
    * @returns Lowercased user id to (metric id to score)
    */
   customMetricTotals(challenge: Challenge, logs: ChallengeLog[]):
@@ -298,7 +298,9 @@ export class ChallengesService {
         if (!(value > 0)) continue;
         const scores = totals.get(user) ?? {};
         totals.set(user, scores);
-        if (metric.type === 'days') {
+        if (metric.type === 'done') {
+          scores[metric.id] = 1;
+        } else if (metric.type === 'days') {
           const day = `${user}|${metric.id}|${log.date}`;
           if (daysSeen.has(day)) continue;
           daysSeen.add(day);
@@ -335,7 +337,8 @@ export class ChallengesService {
       columns.push({
         key: metric.id,
         label: metric.name,
-        goal: metric.goal,
+        // a yes/no is complete the moment it's done
+        goal: metric.type === 'done' ? 1 : metric.goal,
         custom: true,
       });
     }

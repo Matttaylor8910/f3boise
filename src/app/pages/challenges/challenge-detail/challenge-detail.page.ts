@@ -432,8 +432,15 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   /** Short enough to sit inside the progress ring. */
   formatValue(entry: ChallengeLeaderboardEntry, key: string): string {
     const value = this.getValue(entry, key);
+    if (this.isDoneMetric(key)) return value > 0 ? '\u2713' : '\u2013';
     if (value >= 10000) return `${Math.round(value / 100) / 10}k`;
     return String(Math.round(value * 10) / 10);
+  }
+
+  /** A one-time yes/no metric: shown as a tick, not a number. */
+  isDoneMetric(key: string): boolean {
+    return this.challenge?.customMetrics?.find(m => m.id === key)?.type ===
+        'done';
   }
 
   trackByColumn(index: number, column: {key: string}): string {
@@ -869,9 +876,9 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
                    summary:
                        metrics.filter(m => log.values?.[m.id] > 0)
                            .map(
-                               m => m.type === 'days' ?
-                                   m.name :
-                                   `${log.values[m.id]} ${m.name}`)
+                               m => m.type === 'total' ?
+                                   `${log.values[m.id]} ${m.name}` :
+                                   m.name)
                            .join(', '),
                    note: log.note,
                    dateLabel: moment(log.date).format('ddd, MMM D'),

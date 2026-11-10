@@ -7,7 +7,7 @@ import {ChallengesService} from '../../services/challenges.service';
 
 /**
  * Post a check-in for one PAX on a challenge: reps to add to his totals, days
- * to check off, and an optional note.
+ * to check off, one-time things to tick, and an optional note.
  */
 @Component({
   selector: 'app-log-progress-modal',
@@ -29,7 +29,7 @@ export class LogProgressModalComponent implements OnInit {
   note = '';
   /** Amount to add per 'total' metric; null while left empty. */
   amounts: {[metricId: string]: number|null} = {};
-  /** Whether to check the picked day off, per 'days' metric. */
+  /** Whether to check the picked day off ('days') or tick it ('done'). */
   done: {[metricId: string]: boolean} = {};
   /** What the picked day already has, per metric. */
   dayTotals: {[metricId: string]: number} = {};
@@ -73,6 +73,9 @@ export class LogProgressModalComponent implements OnInit {
         // one metric, not done yet: checking in is the whole point
         this.done[metric.id] =
             this.metrics.length === 1 && !this.dayTotals[metric.id];
+      } else if (metric.type === 'done') {
+        this.done[metric.id] =
+            this.metrics.length === 1 && !this.totals[metric.id];
       }
     }
   }
@@ -87,6 +90,13 @@ export class LogProgressModalComponent implements OnInit {
     for (const metric of this.metrics) {
       if (metric.type === 'days') {
         if (this.done[metric.id] && !this.dayTotals[metric.id]) {
+          values[metric.id] = 1;
+        }
+        continue;
+      }
+      if (metric.type === 'done') {
+        // once is all it takes; a second tick would just be noise
+        if (this.done[metric.id] && !this.totals[metric.id]) {
           values[metric.id] = 1;
         }
         continue;

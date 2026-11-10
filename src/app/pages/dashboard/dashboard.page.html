@@ -132,7 +132,8 @@
                     <div class="progress-track" *ngIf="s.goal">
                       <div class="progress-fill" [style.width.%]="s.pct"></div>
                     </div>
-                    <p>
+                    <p *ngIf="s.done">{{ s.metricLabel }}</p>
+                    <p *ngIf="!s.done">
                       {{ s.value }} {{ s.metricLabel }}<ng-container *ngIf="s.goal"> of {{ s.goal }}</ng-container>
                     </p>
                   </ng-container>

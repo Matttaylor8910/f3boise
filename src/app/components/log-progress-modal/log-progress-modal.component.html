@@ -28,11 +28,23 @@
     <ion-item *ngFor="let metric of metrics" class="metric-item">
       <ion-label class="metric-label ion-text-wrap">
         <h2>{{ metric.name }}</h2>
-        <p>
+        <p *ngIf="metric.type === 'done'">
+          {{ totals[metric.id] ? 'Done' : 'Not yet. Flip the switch once you have.' }}
+        </p>
+        <p *ngIf="metric.type !== 'done'">
           {{ totals[metric.id] || 0 }}<ng-container *ngIf="metric.goal"> of {{ metric.goal }}</ng-container>
           {{ metric.type === 'days' ? 'days' : 'total' }} so far<ng-container *ngIf="metric.type !== 'days' && dayTotals[metric.id]">, {{ dayTotals[metric.id] }} this day</ng-container>
         </p>
       </ion-label>
+      <ng-container *ngIf="metric.type === 'done'">
+        <ion-icon *ngIf="totals[metric.id]" slot="end" name="checkmark-circle" color="success" class="done-icon"></ion-icon>
+        <ion-toggle
+          *ngIf="!totals[metric.id]"
+          [(ngModel)]="done[metric.id]"
+          [disabled]="isSaving"
+          slot="end">
+        </ion-toggle>
+      </ng-container>
       <ng-container *ngIf="metric.type === 'days'">
         <ion-note *ngIf="dayTotals[metric.id]" slot="end" color="success">Done</ion-note>
         <ion-toggle
@@ -43,7 +55,7 @@
         </ion-toggle>
       </ng-container>
       <ion-input
-        *ngIf="metric.type !== 'days'"
+        *ngIf="metric.type === 'total'"
         type="number"
         inputmode="decimal"
         [(ngModel)]="amounts[metric.id]"

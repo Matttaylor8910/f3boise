@@ -58,6 +58,8 @@ interface ChallengeStanding {
   metricLabel: string;
   value: number;
   goal?: number;
+  /** A yes/no metric: the label already says done or not. */
+  done?: boolean;
   pct: number;
   rank: number;
   total: number;
@@ -498,6 +500,22 @@ export class DashboardPage implements OnInit, OnDestroy {
     const goalKey = String(metric) as keyof NonNullable<Challenge['goals']>;
     const goal = custom ? custom.goal :
                           challenge.goals ? challenge.goals[goalKey] : undefined;
+
+    // a yes/no reads as done or not, never as "1 of 1"
+    if (custom?.type === 'done') {
+      return {
+        id: challenge.id,
+        name: challenge.name,
+        metricLabel: `${custom.name}: ${value > 0 ? 'done' : 'not yet'}`,
+        value,
+        goal: 1,
+        pct: value > 0 ? 100 : 0,
+        rank,
+        total: ranked.length,
+        joined,
+        done: true,
+      };
+    }
 
     return {
       id: challenge.id,

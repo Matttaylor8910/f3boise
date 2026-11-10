@@ -134,14 +134,15 @@ export interface Challenge {
 }
 
 // 'total' adds up the amounts logged (reps, miles); 'days' counts the days
-// that were checked off
-export type ChallengeCustomMetricType = 'total'|'days';
+// that were checked off; 'done' is a one-time yes/no (picked a book), scored
+// 1 once any check-in has it and never more
+export type ChallengeCustomMetricType = 'total'|'days'|'done';
 
 export interface ChallengeCustomMetric {
   id: string;  // Stable key, never one of the ChallengeMetric values
   name: string;
   type: ChallengeCustomMetricType;
-  goal?: number;
+  goal?: number;  // Never set for 'done': its goal is always 1
 }
 
 // One check-in: what a PAX did on a day, for one or more custom metrics. A
@@ -152,7 +153,7 @@ export interface ChallengeLog {
   userId: string;  // Same id as the ChallengeParticipant
   paxName?: string;
   date: string;    // YYYY-MM-DD format, the day the work was done
-  // Metric id to amount; 1 for a 'days' metric
+  // Metric id to amount; 1 for a 'days' or 'done' metric
   values: {[metricId: string]: number};
   note?: string;
   createdBy: string;  // Who posted it: the PAX, or the challenge creator

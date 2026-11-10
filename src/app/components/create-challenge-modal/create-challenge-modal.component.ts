@@ -254,9 +254,10 @@ export class CreateChallengeModalComponent implements OnInit {
     return this.customMetrics.map(m => {
       const metric: ChallengeCustomMetric =
           {id: m.id, name: m.name.trim(), type: m.type};
-      // Firestore rejects undefined, so only carry a goal that was set
+      // Firestore rejects undefined, so only carry a goal that was set.
+      // A yes/no has no goal to set: it is done or it isn't.
       const goal = Number(m.goal);
-      if (goal > 0) metric.goal = goal;
+      if (m.type !== 'done' && goal > 0) metric.goal = goal;
       return metric;
     });
   }

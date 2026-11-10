@@ -181,7 +181,7 @@
 
     <div class="metrics-section custom-metrics-section">
       <h3>Custom Metrics</h3>
-      <p class="section-description">Track anything backblasts can't see: reps, miles, days done. PAX check in on the challenge page to add their numbers, and you can check in for them.</p>
+      <p class="section-description">Track anything backblasts can't see: reps, miles, days done, a box to tick once. PAX check in on the challenge page to add their numbers, and you can check in for them.</p>
 
       <div class="custom-metric" *ngFor="let metric of customMetrics; let i = index; trackBy: trackByMetricId">
         <div class="custom-metric-row">
@@ -211,8 +211,10 @@
             [disabled]="isLoading">
             <ion-select-option value="total">Running total (reps, miles)</ion-select-option>
             <ion-select-option value="days">Days completed</ion-select-option>
+            <ion-select-option value="done">Done once (yes/no)</ion-select-option>
           </ion-select>
           <ion-input
+            *ngIf="metric.type !== 'done'"
             type="number"
             [(ngModel)]="metric.goal"
             placeholder="Goal"
