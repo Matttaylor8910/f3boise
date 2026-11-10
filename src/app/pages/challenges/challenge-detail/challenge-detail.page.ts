@@ -35,7 +35,7 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   /** The latest check-ins, newest first, worded for the feed. */
   checkIns: Array<{
     id: string; userId: string; paxName?: string; summary: string;
-    note?: string; dateLabel: string; edited: boolean;
+    note?: string; dateLabel: string;
   }> = [];
   deletingCheckIn: string|null = null;
   isLoading = false;
@@ -882,7 +882,6 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
                            .join(', '),
                    note: log.note,
                    dateLabel: moment(log.date).format('ddd, MMM D'),
-                   edited: !!log.updatedAt,
                  }))
             .filter(checkIn => !!checkIn.summary)
             .slice(0, 25);

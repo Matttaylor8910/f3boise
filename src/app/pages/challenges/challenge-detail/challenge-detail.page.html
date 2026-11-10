@@ -278,7 +278,7 @@
         <ion-label class="ion-text-wrap">
           <h3><strong>{{ checkIn.paxName || checkIn.userId }}</strong> · {{ checkIn.summary }}</h3>
           <p *ngIf="checkIn.note" class="check-in-note">{{ checkIn.note }}</p>
-          <p>{{ checkIn.dateLabel }}<ng-container *ngIf="checkIn.edited"> · edited</ng-container></p>
+          <p>{{ checkIn.dateLabel }}</p>
         </ion-label>
         <ion-button
           *ngIf="canManageCheckIn(checkIn)"
