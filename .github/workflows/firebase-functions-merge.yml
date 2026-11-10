@@ -1,13 +1,14 @@
 # Deploys Cloud Functions whenever functions/ changes on main, or on demand
 # from the Actions tab. firebase.json's predeploy hooks lint and build first.
 # The deploy service account needs these project roles:
-#   - Cloud Functions Developer   (roles/cloudfunctions.developer)
+#   - Cloud Functions Admin       (roles/cloudfunctions.admin)
 #   - Service Account User        (roles/iam.serviceAccountUser)
 #   - Service Usage Consumer      (roles/serviceusage.serviceUsageConsumer)
-#   - Artifact Registry Writer    (roles/artifactregistry.writer)
-# Service Account User lets it deploy functions that run as the App Engine
-# default account; Artifact Registry Writer lets the CLI clean up old build
-# images instead of warning about them.
+#   - Artifact Registry Repo Admin (roles/artifactregistry.repoAdmin)
+# Admin rather than Developer because a callable function is made publicly
+# invokable by setting its IAM policy. Service Account User lets it deploy
+# functions that run as the App Engine default account; Repo Admin lets the
+# CLI set a cleanup policy on build images instead of warning about them.
 
 name: Deploy Cloud Functions on merge
 'on':

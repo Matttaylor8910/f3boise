@@ -14,9 +14,10 @@ SA="serviceAccount:github-action-566584330@${PROJECT}.iam.gserviceaccount.com"
 ROLES=(
   roles/firebaserules.admin                # firebase-firestore-rules.yml: upload rules
   roles/serviceusage.serviceUsageConsumer  # rules + functions: CLI checks APIs are enabled
-  roles/cloudfunctions.developer           # firebase-functions-merge.yml: create/update functions
+  roles/cloudfunctions.admin               # firebase-functions-merge.yml: create/update functions
+                                           # and make callables publicly invokable (setIamPolicy)
   roles/iam.serviceAccountUser             # functions run as the App Engine default account
-  roles/artifactregistry.writer            # CLI cleans up old function build images
+  roles/artifactregistry.repoAdmin         # CLI sets a cleanup policy on function build images
 )
 
 # The CLI refuses to deploy functions unless this API is on, and the deploy
