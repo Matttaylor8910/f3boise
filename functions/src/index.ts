@@ -103,5 +103,8 @@ export const claimPendingRoles = functionsV1.https.onCall(
         "failed-precondition", "Confirm your email first.");
     }
     const roles = await mergePendingRolesInto(auth.uid, email);
+    if (!roles) {
+      functionsV1.logger.debug(`No pending roles for ${email}`);
+    }
     return {roles: roles ?? []};
   });
