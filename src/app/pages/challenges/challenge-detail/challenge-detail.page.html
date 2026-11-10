@@ -75,11 +75,11 @@
       </ion-button>
     </div>
 
-    <!-- Log self-reported progress -->
+    <!-- Post a check-in for the custom metrics -->
     <div class="join-section" *ngIf="canLogProgress()">
       <ion-button expand="block" (click)="openLogModal()">
         <ion-icon slot="start" name="add-circle-outline"></ion-icon>
-        Log Progress
+        Check In
       </ion-button>
     </div>
 
@@ -161,7 +161,7 @@
                     *ngIf="isOwner() && hasCustomMetrics()"
                     fill="clear"
                     size="small"
-                    title="Log progress for this PAX"
+                    title="Check in for this PAX"
                     (click)="openLogModal(entry)">
                     <ion-icon slot="icon-only" name="create-outline"></ion-icon>
                   </ion-button>
@@ -267,6 +267,32 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Recent check-ins -->
+  <div class="challenge-detail-container check-ins-section" *ngIf="challenge && checkIns.length > 0">
+    <h2>Recent Check-ins</h2>
+    <ion-list class="check-ins-list">
+      <ion-item *ngFor="let checkIn of checkIns; trackBy: trackByCheckIn" lines="full">
+        <app-pax-avatar *ngIf="checkIn.paxName" slot="start" [name]="checkIn.paxName" [size]="32" [clickable]="true"></app-pax-avatar>
+        <ion-label class="ion-text-wrap">
+          <h3><strong>{{ checkIn.paxName || checkIn.userId }}</strong> · {{ checkIn.summary }}</h3>
+          <p *ngIf="checkIn.note" class="check-in-note">{{ checkIn.note }}</p>
+          <p>{{ checkIn.dateLabel }}</p>
+        </ion-label>
+        <ion-button
+          *ngIf="canDeleteCheckIn(checkIn)"
+          slot="end"
+          fill="clear"
+          size="small"
+          color="medium"
+          title="Remove this check-in"
+          (click)="deleteCheckIn(checkIn)"
+          [disabled]="deletingCheckIn === checkIn.id">
+          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+        </ion-button>
+      </ion-item>
+    </ion-list>
   </div>
 
   <div *ngIf="challengeLoading" class="loading-state">

@@ -314,3 +314,24 @@ ion-spinner {
 .challenge-detail-container .leaderboard-table .progress-value.long-value {
   font-size: 11px;
 }
+
+.check-ins-section {
+  padding-top: 0;
+
+  h2 {
+    margin: 12px 0 16px;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .check-ins-list {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 0;
+
+    .check-in-note {
+      color: var(--ion-text-color);
+      white-space: pre-line;
+    }
+  }
+}

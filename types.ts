@@ -144,17 +144,19 @@ export interface ChallengeCustomMetric {
   goal?: number;
 }
 
-// One PAX's amount for one custom metric on one day
+// One check-in: what a PAX did on a day, for one or more custom metrics. A
+// PAX can check in several times a day; amounts add up.
 export interface ChallengeLog {
   id?: string;
   challengeId: string;
-  metricId: string;
-  userId: string;     // Same id as the ChallengeParticipant
+  userId: string;  // Same id as the ChallengeParticipant
   paxName?: string;
-  date: string;       // YYYY-MM-DD format
-  value: number;      // The day's total; 1 for a 'days' metric
-  updatedBy: string;  // Who wrote it: the PAX, or the challenge creator
-  updatedAt: any;     // Firestore timestamp
+  date: string;    // YYYY-MM-DD format, the day the work was done
+  // Metric id to amount; 1 for a 'days' metric
+  values: {[metricId: string]: number};
+  note?: string;
+  createdBy: string;  // Who posted it: the PAX, or the challenge creator
+  createdAt: any;     // Firestore timestamp
 }
 
 export interface ChallengeParticipant {

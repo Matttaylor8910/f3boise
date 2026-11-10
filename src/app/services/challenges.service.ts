@@ -230,7 +230,7 @@ export class ChallengesService {
   }
 
   /**
-   * Everything PAX have logged against a challenge's custom metrics
+   * Every check-in PAX have posted against a challenge's custom metrics
    * @param challengeId The challenge ID
    * @returns Observable of all log entries
    */
@@ -243,65 +243,72 @@ export class ChallengesService {
   }
 
   /**
-   * Save one PAX's amounts for one day, one per custom metric. There is one
-   * doc per PAX, metric and day, so saving a day again replaces it; a zero
-   * clears it.
-   * @param values Metric id to that day's amount
-   * @param updatedBy Who is saving: the PAX himself or the challenge creator
+   * Post a check-in: what one PAX did on a day. Amounts add to anything he
+   * already checked in for that day.
+   * @param values Metric id to amount; zero and empty amounts are dropped
+   * @param createdBy Who is posting: the PAX himself or the challenge creator
    */
-  async saveLogs(
+  async addCheckIn(
       challengeId: string, userId: string, paxName: string|undefined,
-      date: string, values: {[metricId: string]: number},
-      updatedBy: string): Promise<void> {
-    const batch = this.firestore.firestore.batch();
+      date: string, values: {[metricId: string]: number}, note: string,
+      createdBy: string): Promise<void> {
+    const kept: {[metricId: string]: number} = {};
     for (const metricId of Object.keys(values)) {
-      const ref = this.firestore.firestore.collection(this.LOGS_COLLECTION)
-                      .doc(`${challengeId}__${metricId}__${date}__${userId}`);
-      const value = values[metricId];
-      if (!(value > 0)) {
-        batch.delete(ref);
-        continue;
-      }
-      const log: Omit<ChallengeLog, 'id'> = {
-        challengeId,
-        metricId,
-        userId,
-        date,
-        value,
-        updatedBy,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      };
-      if (paxName) log.paxName = paxName;
-      batch.set(ref, log);
+      if (values[metricId] > 0) kept[metricId] = values[metricId];
     }
-    await batch.commit();
+    const log: Omit<ChallengeLog, 'id'> = {
+      challengeId,
+      userId,
+      date,
+      values: kept,
+      createdBy,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    };
+    // Firestore rejects undefined, so only carry what was given
+    if (paxName) log.paxName = paxName;
+    if (note.trim()) log.note = note.trim();
+    await this.firestore.collection(this.LOGS_COLLECTION).add(log);
+  }
+
+  /** Remove a check-in posted by mistake. */
+  async deleteCheckIn(id: string): Promise<void> {
+    await this.firestore.collection(this.LOGS_COLLECTION).doc(id).delete();
   }
 
   /**
-   * Each PAX's score on every custom metric: the sum of what he logged for a
-   * 'total' metric, the number of days he logged for a 'days' metric. Days
-   * outside the challenge and metrics since removed are ignored.
+   * Each PAX's score on every custom metric: the sum of what he checked in
+   * for a 'total' metric, the number of distinct days he checked in for a
+   * 'days' metric. Days outside the challenge and metrics since removed are
+   * ignored.
    * @returns Lowercased user id to (metric id to score)
    */
   customMetricTotals(challenge: Challenge, logs: ChallengeLog[]):
       Map<string, {[metricId: string]: number}> {
-    const metrics = new Map<string, ChallengeCustomMetric>();
-    (challenge.customMetrics ?? []).forEach(m => metrics.set(m.id, m));
-
+    const metrics: ChallengeCustomMetric[] = challenge.customMetrics ?? [];
     const totals = new Map<string, {[metricId: string]: number}>();
+    const daysSeen = new Set<string>();
+
     for (const log of logs) {
-      const metric = metrics.get(log.metricId);
-      if (!metric || !(log.value > 0)) continue;
       if (log.date < challenge.startDate || log.date > challenge.endDate) {
         continue;
       }
-      const key = log.userId.toLowerCase();
-      const scores = totals.get(key) ?? {};
-      totals.set(key, scores);
-      const amount = metric.type === 'days' ? 1 : log.value;
-      // keep float sums like 3.1 + 3.1 from showing as 6.199999
-      scores[metric.id] =
-          Math.round(((scores[metric.id] ?? 0) + amount) * 100) / 100;
+      const user = log.userId.toLowerCase();
+      for (const metric of metrics) {
+        const value = log.values?.[metric.id];
+        if (!(value > 0)) continue;
+        const scores = totals.get(user) ?? {};
+        totals.set(user, scores);
+        if (metric.type === 'days') {
+          const day = `${user}|${metric.id}|${log.date}`;
+          if (daysSeen.has(day)) continue;
+          daysSeen.add(day);
+          scores[metric.id] = (scores[metric.id] ?? 0) + 1;
+        } else {
+          // keep float sums like 3.1 + 3.1 from showing as 6.199999
+          scores[metric.id] =
+              Math.round(((scores[metric.id] ?? 0) + value) * 100) / 100;
+        }
+      }
     }
     return totals;
   }

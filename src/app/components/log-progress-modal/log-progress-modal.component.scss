@@ -53,3 +53,8 @@
   border: 1px solid var(--ion-color-medium);
   border-radius: 4px;
 }
+
+.note-item {
+  --padding-start: 0;
+  margin-top: 8px;
+}

@@ -6,8 +6,8 @@ import {Challenge, ChallengeCustomMetric, ChallengeLog} from 'types';
 import {ChallengesService} from '../../services/challenges.service';
 
 /**
- * Log one PAX's custom-metric numbers for a day of a challenge. Picking a day
- * that already has numbers loads them, so the same sheet edits past days.
+ * Post a check-in for one PAX on a challenge: reps to add to his totals, days
+ * to check off, and an optional note.
  */
 @Component({
   selector: 'app-log-progress-modal',
@@ -26,10 +26,13 @@ export class LogProgressModalComponent implements OnInit {
   date = '';
   minDate = '';
   maxDate = '';
-  /** The picked day's amount per 'total' metric; null while left empty. */
+  note = '';
+  /** Amount to add per 'total' metric; null while left empty. */
   amounts: {[metricId: string]: number|null} = {};
-  /** Whether the picked day is checked off, per 'days' metric. */
+  /** Whether to check the picked day off, per 'days' metric. */
   done: {[metricId: string]: boolean} = {};
+  /** What the picked day already has, per metric. */
+  dayTotals: {[metricId: string]: number} = {};
   totals: {[metricId: string]: number} = {};
   isSaving = false;
 
@@ -60,16 +63,16 @@ export class LogProgressModalComponent implements OnInit {
     this.loadDay();
   }
 
-  /** Fill the form with whatever is already logged for the picked day. */
+  /** Work out what the picked day already has checked in. */
   loadDay() {
     for (const metric of this.metrics) {
-      const logged = this.logs.find(
-          log => log.metricId === metric.id && log.date === this.date);
-      const value = logged?.value ?? 0;
+      this.dayTotals[metric.id] =
+          this.logs.filter(log => log.date === this.date)
+              .reduce((sum, log) => sum + (log.values?.[metric.id] || 0), 0);
       if (metric.type === 'days') {
-        this.done[metric.id] = value > 0;
-      } else {
-        this.amounts[metric.id] = value > 0 ? value : null;
+        // one metric, not done yet: checking in is the whole point
+        this.done[metric.id] =
+            this.metrics.length === 1 && !this.dayTotals[metric.id];
       }
     }
   }
@@ -83,7 +86,9 @@ export class LogProgressModalComponent implements OnInit {
     const values: {[metricId: string]: number} = {};
     for (const metric of this.metrics) {
       if (metric.type === 'days') {
-        values[metric.id] = this.done[metric.id] ? 1 : 0;
+        if (this.done[metric.id] && !this.dayTotals[metric.id]) {
+          values[metric.id] = 1;
+        }
         continue;
       }
       const amount = Number(this.amounts[metric.id] ?? 0);
@@ -92,21 +97,24 @@ export class LogProgressModalComponent implements OnInit {
             `${metric.name} can't be a negative number`, 'danger');
         return;
       }
-      values[metric.id] = amount;
+      if (amount > 0) values[metric.id] = amount;
+    }
+    if (Object.keys(values).length === 0) {
+      await this.showToast('Enter something to check in', 'danger');
+      return;
     }
 
     this.isSaving = true;
     try {
-      await this.challengesService.saveLogs(
+      await this.challengesService.addCheckIn(
           this.challenge.id!, this.userId, this.paxName, this.date, values,
-          this.updatedBy);
-      await this.showToast('Progress saved', 'success');
+          this.note, this.updatedBy);
+      await this.showToast('Checked in!', 'success');
       await this.modalController.dismiss({saved: true});
     } catch (error: any) {
-      console.error('Error saving challenge progress:', error);
+      console.error('Error posting challenge check-in:', error);
       await this.showToast(
-          error.message || 'Failed to save progress. Please try again.',
-          'danger');
+          error.message || 'Failed to check in. Please try again.', 'danger');
     } finally {
       this.isSaving = false;
     }

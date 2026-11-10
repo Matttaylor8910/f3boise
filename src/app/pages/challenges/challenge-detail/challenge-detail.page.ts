@@ -32,6 +32,12 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   /** One leaderboard column per tracked metric, built-in then custom. */
   columns: Array<{key: string; label: string; goal?: number; custom: boolean}> =
       [];
+  /** The latest check-ins, newest first, worded for the feed. */
+  checkIns: Array<{
+    id: string; userId: string; paxName?: string; summary: string;
+    note?: string; dateLabel: string;
+  }> = [];
+  deletingCheckIn: string|null = null;
   isLoading = false;
   isJoining = false;
   isWithdrawing = false;
@@ -81,6 +87,7 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
                 this.challengesService.metricColumns(challenge) :
                 [];
             this.challengeLoading = false;
+            this.buildCheckIns();
             if (challenge) {
               this.loadLeaderboard();
             }
@@ -125,6 +132,7 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
         this.challengesService.getLogs(this.challengeId).subscribe({
           next: logs => {
             this.logs = logs;
+            this.buildCheckIns();
             if (this.challenge) {
               this.loadLeaderboard();
             }
@@ -838,11 +846,64 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
         this.challenge.sortBy;
   }
 
+  /** Word the newest check-ins for the feed under the leaderboard. */
+  private buildCheckIns() {
+    const metrics = this.challenge?.customMetrics ?? [];
+    const millis = (log: ChallengeLog) =>
+        log.createdAt?.toMillis ? log.createdAt.toMillis() : Date.now();
+    this.checkIns =
+        [...this.logs]
+            .sort(
+                (a, b) => b.date.localeCompare(a.date) || millis(b) - millis(a))
+            .map(log => ({
+                   id: log.id!,
+                   userId: log.userId,
+                   paxName: log.paxName,
+                   summary:
+                       metrics.filter(m => log.values?.[m.id] > 0)
+                           .map(
+                               m => m.type === 'days' ?
+                                   m.name :
+                                   `${log.values[m.id]} ${m.name}`)
+                           .join(', '),
+                   note: log.note,
+                   dateLabel: moment(log.date).format('ddd, MMM D'),
+                 }))
+            .filter(checkIn => !!checkIn.summary)
+            .slice(0, 25);
+  }
+
+  canDeleteCheckIn(checkIn: {userId: string}): boolean {
+    if (!this.user) return false;
+    const me = (this.user.email || this.user.uid || '').toLowerCase();
+    return this.isOwner() || checkIn.userId.toLowerCase() === me;
+  }
+
+  async deleteCheckIn(checkIn: {id: string; userId: string}) {
+    if (!this.canDeleteCheckIn(checkIn) || this.deletingCheckIn) return;
+    this.deletingCheckIn = checkIn.id;
+    try {
+      await this.challengesService.deleteCheckIn(checkIn.id);
+      await this.showToast('Check-in removed', 'success');
+    } catch (error: any) {
+      console.error('Error removing check-in:', error);
+      await this.showToast(
+          error.message || 'Failed to remove check-in. Please try again.',
+          'danger');
+    } finally {
+      this.deletingCheckIn = null;
+    }
+  }
+
+  trackByCheckIn(index: number, checkIn: {id: string}): string {
+    return checkIn.id;
+  }
+
   hasCustomMetrics(): boolean {
     return (this.challenge?.customMetrics?.length ?? 0) > 0;
   }
 
-  /** Whether the signed-in PAX can log his own numbers right now. */
+  /** Whether the signed-in PAX can check in for himself right now. */
   canLogProgress(): boolean {
     if (!this.user || !this.challenge || !this.hasCustomMetrics()) return false;
     if (moment().format('YYYY-MM-DD') < this.challenge.startDate) return false;
@@ -850,8 +911,8 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   }
 
   /**
-   * Log custom-metric progress: for the signed-in PAX, or, when the creator
-   * taps a leaderboard row, for that PAX.
+   * Post a check-in: for the signed-in PAX, or, when the creator taps a
+   * leaderboard row, for that PAX.
    */
   async openLogModal(entry?: ChallengeLeaderboardEntry) {
     if (!this.user || !this.challenge || !this.hasCustomMetrics()) return;

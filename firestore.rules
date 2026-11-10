@@ -14,7 +14,7 @@ service cloud.firestore {
     }
 
     /**
-     * Self-reported challenge progress. A PAX writes his own days; the
+     * Self-reported challenge check-ins. A PAX writes his own; the
      * challenge's creator may write anyone's (he tallies for PAX who don't
      * use the app).
      */
@@ -32,8 +32,7 @@ service cloud.firestore {
     match /challenge_logs/{logId} {
       allow read: if true;
       allow create, update: if request.auth != null &&
-          request.resource.data.value is number &&
-          request.resource.data.value >= 0 &&
+          request.resource.data.values is map &&
           (isSelf(request.resource.data.userId) ||
            ownsChallenge(request.resource.data.challengeId));
       allow delete: if request.auth != null &&
