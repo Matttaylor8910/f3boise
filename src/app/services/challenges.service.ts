@@ -270,6 +270,27 @@ export class ChallengesService {
     await this.firestore.collection(this.LOGS_COLLECTION).add(log);
   }
 
+  /**
+   * Change a check-in: the day, the amounts (which replace, not add), the
+   * note. The PAX himself or the challenge creator may do this.
+   */
+  async updateCheckIn(
+      id: string, date: string, values: {[metricId: string]: number},
+      note: string, updatedBy: string): Promise<void> {
+    const kept: {[metricId: string]: number} = {};
+    for (const metricId of Object.keys(values)) {
+      if (values[metricId] > 0) kept[metricId] = values[metricId];
+    }
+    await this.firestore.collection(this.LOGS_COLLECTION).doc(id).update({
+      date,
+      values: kept,
+      note: note.trim() ? note.trim() :
+                          firebase.firestore.FieldValue.delete(),
+      updatedBy,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+  }
+
   /** Remove a check-in posted by mistake. */
   async deleteCheckIn(id: string): Promise<void> {
     await this.firestore.collection(this.LOGS_COLLECTION).doc(id).delete();

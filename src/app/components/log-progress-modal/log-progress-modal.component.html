@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Check In</ion-title>
+    <ion-title>{{ isEditing ? 'Edit Check-in' : 'Check In' }}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="dismiss()">
         <ion-icon slot="icon-only" name="close"></ion-icon>
@@ -11,7 +11,7 @@
 
 <ion-content class="ion-padding">
   <div class="log-progress-content">
-    <p class="intro" *ngIf="isForSomeoneElse">Checking in for <strong>{{ paxName || userId }}</strong></p>
+    <p class="intro" *ngIf="isForSomeoneElse">{{ isEditing ? 'Editing a check-in for' : 'Checking in for' }} <strong>{{ paxName || userId }}</strong></p>
 
     <ion-item class="date-item">
       <ion-label position="stacked">Day</ion-label>
@@ -33,7 +33,7 @@
         </p>
         <p *ngIf="metric.type !== 'done'">
           {{ totals[metric.id] || 0 }}<ng-container *ngIf="metric.goal"> of {{ metric.goal }}</ng-container>
-          {{ metric.type === 'days' ? 'days' : 'total' }} so far<ng-container *ngIf="metric.type !== 'days' && dayTotals[metric.id]">, {{ dayTotals[metric.id] }} this day</ng-container>
+          {{ metric.type === 'days' ? 'days' : 'total' }} {{ isEditing ? 'from other check-ins' : 'so far' }}<ng-container *ngIf="metric.type !== 'days' && dayTotals[metric.id]">, {{ dayTotals[metric.id] }} this day</ng-container>
         </p>
       </ion-label>
       <ng-container *ngIf="metric.type === 'done'">
@@ -59,7 +59,7 @@
         type="number"
         inputmode="decimal"
         [(ngModel)]="amounts[metric.id]"
-        placeholder="Add"
+        [placeholder]="isEditing ? 'Amount' : 'Add'"
         min="0"
         class="amount-input"
         [disabled]="isSaving"
@@ -79,11 +79,12 @@
       </ion-textarea>
     </ion-item>
 
-    <p class="hint">Numbers add to what's already checked in. Pick an earlier day to catch up.</p>
+    <p class="hint" *ngIf="!isEditing">Numbers add to what's already checked in. Pick an earlier day to catch up.</p>
+    <p class="hint" *ngIf="isEditing">Numbers replace what this check-in had. Other check-ins aren't touched.</p>
 
     <ion-button expand="block" (click)="save()" [disabled]="isSaving">
       <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
-      <span *ngIf="!isSaving">Check In</span>
+      <span *ngIf="!isSaving">{{ isEditing ? 'Save Changes' : 'Check In' }}</span>
     </ion-button>
   </div>
 </ion-content>

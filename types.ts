@@ -158,6 +158,8 @@ export interface ChallengeLog {
   note?: string;
   createdBy: string;  // Who posted it: the PAX, or the challenge creator
   createdAt: any;     // Firestore timestamp
+  updatedBy?: string;  // Who last edited it, when anyone has
+  updatedAt?: any;     // Firestore timestamp
 }
 
 export interface ChallengeParticipant {

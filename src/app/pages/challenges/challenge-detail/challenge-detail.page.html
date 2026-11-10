@@ -278,10 +278,20 @@
         <ion-label class="ion-text-wrap">
           <h3><strong>{{ checkIn.paxName || checkIn.userId }}</strong> · {{ checkIn.summary }}</h3>
           <p *ngIf="checkIn.note" class="check-in-note">{{ checkIn.note }}</p>
-          <p>{{ checkIn.dateLabel }}</p>
+          <p>{{ checkIn.dateLabel }}<ng-container *ngIf="checkIn.edited"> · edited</ng-container></p>
         </ion-label>
         <ion-button
-          *ngIf="canDeleteCheckIn(checkIn)"
+          *ngIf="canManageCheckIn(checkIn)"
+          slot="end"
+          fill="clear"
+          size="small"
+          color="medium"
+          title="Edit this check-in"
+          (click)="editCheckIn(checkIn)">
+          <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+        </ion-button>
+        <ion-button
+          *ngIf="canManageCheckIn(checkIn)"
           slot="end"
           fill="clear"
           size="small"

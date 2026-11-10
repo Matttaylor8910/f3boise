@@ -35,7 +35,7 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   /** The latest check-ins, newest first, worded for the feed. */
   checkIns: Array<{
     id: string; userId: string; paxName?: string; summary: string;
-    note?: string; dateLabel: string;
+    note?: string; dateLabel: string; edited: boolean;
   }> = [];
   deletingCheckIn: string|null = null;
   isLoading = false;
@@ -882,19 +882,45 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
                            .join(', '),
                    note: log.note,
                    dateLabel: moment(log.date).format('ddd, MMM D'),
+                   edited: !!log.updatedAt,
                  }))
             .filter(checkIn => !!checkIn.summary)
             .slice(0, 25);
   }
 
-  canDeleteCheckIn(checkIn: {userId: string}): boolean {
-    if (!this.user) return false;
+  /** The PAX who posted it, or the challenge creator, may change or remove it. */
+  canManageCheckIn(checkIn: {userId: string}): boolean {
+    if (!this.user?.emailVerified) return false;
     const me = (this.user.email || this.user.uid || '').toLowerCase();
     return this.isOwner() || checkIn.userId.toLowerCase() === me;
   }
 
+  /** Reopen a check-in to change its day, amounts or note. */
+  async editCheckIn(checkIn: {id: string; userId: string}) {
+    const log = this.logs.find(l => l.id === checkIn.id);
+    if (!log || !this.challenge || !this.canManageCheckIn(checkIn)) return;
+    const me = this.user?.email || this.user?.uid;
+    if (!me) return;
+
+    const modal = await this.modalController.create({
+      component: LogProgressModalComponent,
+      componentProps: {
+        challenge: this.challenge,
+        userId: log.userId,
+        paxName: log.paxName,
+        updatedBy: me,
+        editing: log,
+        logs: this.logs.filter(
+            l => l.userId.toLowerCase() === log.userId.toLowerCase()),
+      },
+      cssClass: 'log-progress-modal',
+    });
+    await modal.present();
+    // The feed and leaderboard update on their own through the logs subscription
+  }
+
   async deleteCheckIn(checkIn: {id: string; userId: string}) {
-    if (!this.canDeleteCheckIn(checkIn) || this.deletingCheckIn) return;
+    if (!this.canManageCheckIn(checkIn) || this.deletingCheckIn) return;
     this.deletingCheckIn = checkIn.id;
     try {
       await this.challengesService.deleteCheckIn(checkIn.id);
