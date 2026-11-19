@@ -26,6 +26,8 @@ const AO_CHANNELS = new Map<string, string>([
   [AO.GEM, 'C03UBFXVBGD'],
   [AO.GOOSE_DYNASTY, 'C06DP3D5VTK'],
   [AO.INTERCEPTOR, 'C077KEU5RQF'],
+  // Cynthia Mann: the same channel under its old OTB name and its AO name
+  [AO.IRON_MANN, 'C09Q3HXVC1M'],
   [AO.IRON_MOUNTAIN, 'C03TZTTHDPZ'],
   [AO.LIBERTY, 'C07LQPM4X37'],
   // the Nampa site: the same channel under its old OTB name and its AO name

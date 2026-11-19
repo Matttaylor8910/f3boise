@@ -32,6 +32,8 @@ export function aoColor(ao: string): string {
       return '#A8AAAF';
     case AO.INTERCEPTOR:
       return '#720374';
+    case AO.IRON_MANN:
+      return '#8B1A1A';
     case AO.IRON_MOUNTAIN:
       return '#002F4D';
     case AO.LIBERTY_PARK:

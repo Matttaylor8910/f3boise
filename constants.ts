@@ -13,6 +13,7 @@ export enum AO {
   // city of trees
   BLEACH = 'bleach',
   CAMELS_BACK = 'camel\'s back',
+  IRON_MANN = 'iron mann',
   LIBERTY = 'liberty',
   OTB_CYNTHIA_MANN = 'otb cynthia mann',
   RISE = 'rise',
@@ -58,6 +59,7 @@ export enum AO {
 export const CITY_OF_TREES_AOS = new Set<string>([
   AO.BLEACH,
   AO.CAMELS_BACK,
+  AO.IRON_MANN,
   AO.LIBERTY,
   AO.OTB_CYNTHIA_MANN,
   AO.RISE,
