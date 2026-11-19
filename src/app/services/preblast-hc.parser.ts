@@ -32,7 +32,8 @@ const RULE = '--------------------';
  * Preblast AO names that differ from the backblast AO names the app keys on.
  */
 const PREBLAST_AO_ALIASES = new Map<string, string>([
-  ['cynthia mann', 'otb cynthia mann'],
+  ['cynthia mann', 'iron mann'],
+  ['otb cynthia mann', 'iron mann'],
   ['gordon harris park', 'otb gordon harris park'],
   ['ruckership canyon', 'otb ruckership canyon'],
   ['warhorse', 'war horse'],

@@ -33,15 +33,13 @@ export function aoColor(ao: string): string {
     case AO.INTERCEPTOR:
       return '#720374';
     case AO.IRON_MANN:
-      return '#8B1A1A';
+      return '#C2185B';
     case AO.IRON_MOUNTAIN:
       return '#002F4D';
     case AO.LIBERTY_PARK:
       return '#DC143C';
     case AO.OLD_GLORY:
       return '#9B59B6';
-    case AO.OTB_CYNTHIA_MANN:
-      return '#C2185B';
     case AO.OTB_GORDON_HARRIS_PARK:
       return '#8D6E63';
     case AO.OTB_LIBERTY_PARK:

@@ -29,7 +29,7 @@ export class WorkoutService {
   ) {}
 
   /**
-   * The backblast AO name (lowercase, e.g. "otb cynthia mann") for a workout
+   * The backblast AO name (lowercase, e.g. "otb gordon harris park") for a workout
    * from the scraper, so a workout can be matched to its region and linked to
    * its AO page even when the scraper names it differently.
    */

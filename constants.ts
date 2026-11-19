@@ -15,7 +15,6 @@ export enum AO {
   CAMELS_BACK = 'camel\'s back',
   IRON_MANN = 'iron mann',
   LIBERTY = 'liberty',
-  OTB_CYNTHIA_MANN = 'otb cynthia mann',
   RISE = 'rise',
 
   // high desert
@@ -61,7 +60,6 @@ export const CITY_OF_TREES_AOS = new Set<string>([
   AO.CAMELS_BACK,
   AO.IRON_MANN,
   AO.LIBERTY,
-  AO.OTB_CYNTHIA_MANN,
   AO.RISE,
 
   // include in all
@@ -126,7 +124,9 @@ export const DISCONTINUED_AOS = new Set<string>([
 // lowercased, values are the backblast AO name.
 export const WORKOUT_AO_ALIASES = new Map<string, string>([
   ['camels back', AO.CAMELS_BACK],
-  ['cynthia mann', AO.OTB_CYNTHIA_MANN],
+  // Iron Mann before it planted its flag
+  ['cynthia mann', AO.IRON_MANN],
+  ['otb cynthia mann', AO.IRON_MANN],
   ['gordon harris park', AO.OTB_GORDON_HARRIS_PARK],
   ['ruckership canyon', AO.OTB_RUCKERSHIP_CANYON],
   ['warhorse', AO.WAR_HORSE],
