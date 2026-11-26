@@ -38,8 +38,6 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   challenge?: Challenge;
   participants: ChallengeParticipant[] = [];
   leaderboard: ChallengeLeaderboardEntry[] = [];
-  nonJoinedLeaderboard: ChallengeLeaderboardEntry[] =
-      [];  // For PAX that qualify but haven't joined
   /** What PAX have logged against the challenge's custom metrics. */
   logs: ChallengeLog[] = [];
   /** One leaderboard column per tracked metric, built-in then custom. */
@@ -63,8 +61,6 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   isJoining = false;
   isWithdrawing = false;
   removingParticipant: string|null = null;
-  addingParticipant: string|null = null;
-  isAddingAll = false;
   isDeleting = false;
   challengeLoading = true;
   user: any = null;
@@ -190,14 +186,12 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   async loadLeaderboard() {
     if (!this.challenge) {
       this.leaderboard = [];
-      this.nonJoinedLeaderboard = [];
       return;
     }
 
     // If requireJoining is true, need at least one participant
     if (this.challenge.requireJoining !== false && !this.participants.length) {
       this.leaderboard = [];
-      this.nonJoinedLeaderboard = [];
       return;
     }
 
@@ -372,40 +366,14 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
       // Convert to array
       let leaderboard = Array.from(leaderboardMap.values());
 
-      // If requireJoining is false, separate into two leaderboards
+      // Without joining, everyone with a score is on the board
       if (this.challenge.requireJoining === false) {
-        // Get set of participant user IDs (normalized for comparison)
-        const participantUserIds = new Set<string>();
-        this.participants.forEach(participant => {
-          participantUserIds.add(participant.userId.toLowerCase());
-        });
-
-        // Filter to only include PAX with at least one metric > 0
-        const qualifyingEntries = leaderboard.filter(
-            entry => this.columns.some(
-                col => this.getValue(entry, col.key) > 0));
-
-        // Split into joined and non-joined
-        const joinedEntries: ChallengeLeaderboardEntry[] = [];
-        const nonJoinedEntries: ChallengeLeaderboardEntry[] = [];
-
-        qualifyingEntries.forEach(entry => {
-          if (participantUserIds.has(entry.userId.toLowerCase())) {
-            joinedEntries.push(entry);
-          } else {
-            nonJoinedEntries.push(entry);
-          }
-        });
-
-        this.leaderboard = joinedEntries;
-        this.nonJoinedLeaderboard = nonJoinedEntries;
-        this.sortLeaderboard();
-        this.sortNonJoinedLeaderboard();
-      } else {
-        this.leaderboard = leaderboard;
-        this.nonJoinedLeaderboard = [];
-        this.sortLeaderboard();
+        leaderboard = leaderboard.filter(
+            entry =>
+                this.columns.some(col => this.getValue(entry, col.key) > 0));
       }
+      this.leaderboard = leaderboard;
+      this.sortLeaderboard();
     } catch (error) {
       console.error('Error loading leaderboard:', error);
       await this.showToast('Failed to load leaderboard', 'danger');
@@ -414,13 +382,15 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
     }
   }
 
+  /** False when everyone with a score is on the board automatically. */
+  get joinRequired(): boolean {
+    return this.challenge?.requireJoining !== false;
+  }
+
   sortLeaderboard() {
     this.leaderboard.sort((a, b) => this.compareEntries(a, b));
   }
 
-  sortNonJoinedLeaderboard() {
-    this.nonJoinedLeaderboard.sort((a, b) => this.compareEntries(a, b));
-  }
 
   /** Leaderboard order: goal completion first when there are goals. */
   private compareEntries(
@@ -630,85 +600,6 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
       );
     } finally {
       this.isWithdrawing = false;
-    }
-  }
-
-  async addParticipantFromLeaderboard(entry: ChallengeLeaderboardEntry) {
-    if (!this.user || !this.challenge || !this.isOwner()) {
-      return;
-    }
-
-    if (this.addingParticipant === entry.userId) return;
-
-    this.addingParticipant = entry.userId;
-
-    try {
-      await this.challengesService.joinChallenge(
-          this.challengeId, entry.userId, entry.paxName);
-      await this.showToast(
-          `${entry.paxName || entry.userId} added to challenge successfully`,
-          'success');
-      // The participant list will update automatically via subscription,
-      // which will trigger loadLeaderboard() to refresh both leaderboards
-    } catch (error: any) {
-      console.error('Error adding participant:', error);
-      await this.showToast(
-          error.message || 'Failed to add participant. Please try again.',
-          'danger',
-      );
-    } finally {
-      this.addingParticipant = null;
-    }
-  }
-
-  async addAllNonJoinedParticipants() {
-    if (!this.user || !this.challenge || !this.isOwner()) {
-      return;
-    }
-
-    if (this.isAddingAll || this.nonJoinedLeaderboard.length === 0) {
-      return;
-    }
-
-    this.isAddingAll = true;
-
-    try {
-      let successCount = 0;
-      let failureCount = 0;
-
-      for (const entry of this.nonJoinedLeaderboard) {
-        try {
-          await this.challengesService.joinChallenge(
-              this.challengeId, entry.userId, entry.paxName);
-          successCount++;
-        } catch (error: any) {
-          console.error(
-              `Error adding ${entry.paxName || entry.userId}:`, error);
-          failureCount++;
-        }
-      }
-
-      if (successCount > 0) {
-        await this.showToast(
-            `Successfully added ${successCount} participant${
-                successCount !== 1 ?
-                    's' :
-                    ''}${failureCount > 0 ? ` (${failureCount} failed)` : ''}`,
-            failureCount > 0 ? 'warning' : 'success');
-      } else {
-        await this.showToast(
-            'Failed to add participants. Please try again.', 'danger');
-      }
-      // The participant list will update automatically via subscription,
-      // which will trigger loadLeaderboard() to refresh both leaderboards
-    } catch (error: any) {
-      console.error('Error adding all participants:', error);
-      await this.showToast(
-          'Failed to add all participants. Please try again.',
-          'danger',
-      );
-    } finally {
-      this.isAddingAll = false;
     }
   }
 
