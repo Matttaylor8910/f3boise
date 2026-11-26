@@ -1,63 +1,129 @@
-.participants-chip {
-  margin: 0 8px 0 0;
-  --background: var(--ion-color-light);
-  --color: var(--ion-text-color);
-
-  ion-icon {
-    font-size: 16px;
-    margin-right: 4px;
-  }
-}
-
 .challenge-detail-container {
+  --gold: #e0a100;
+  --silver: #8a94a3;
+  --bronze: #c0763a;
+
   padding: 20px;
   max-width: 1000px;
   margin: 0 auto;
 
   .details-card {
-    margin: 0 0 24px;
+    margin: 0 0 20px;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 
-    .card-header-row {
+    ion-card-header {
+      padding-bottom: 12px;
+    }
+
+    ion-card-title {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    ion-card-subtitle {
+      margin-top: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .badge-row {
       display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      width: 100%;
-      position: relative;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
 
-      .card-title-section {
-        flex: 1;
+    .status-pill,
+    .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 26px;
+      padding: 0 10px;
+      border-radius: 13px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
 
-        .title-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
-          margin-bottom: 4px;
+    .meta-pill {
+      background: var(--ion-color-light);
+      color: var(--ion-color-medium-shade);
 
-          .private-chip {
-            margin: 0;
-            font-size: 12px;
-            height: 24px;
+      ion-icon {
+        font-size: 14px;
+      }
+    }
 
-            ion-icon {
-              font-size: 14px;
-              margin-right: 4px;
-            }
-          }
+    .status-pill {
+      text-transform: uppercase;
+
+      .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      &.active {
+        background: rgba(var(--ion-color-success-rgb), 0.14);
+        color: var(--ion-color-success-shade);
+      }
+
+      &.upcoming {
+        background: rgba(var(--ion-color-primary-rgb), 0.12);
+        color: var(--ion-color-primary);
+      }
+
+      &.ended {
+        background: var(--ion-color-light);
+        color: var(--ion-color-medium-shade);
+      }
+    }
+
+    .timeline {
+      margin-bottom: 16px;
+
+      .timeline-bar {
+        height: 6px;
+        border-radius: 3px;
+        background: var(--ion-color-light);
+        overflow: hidden;
+      }
+
+      .timeline-fill {
+        height: 100%;
+        min-width: 6px;
+        border-radius: 3px;
+        background: var(--ion-color-success);
+
+        &.upcoming {
+          min-width: 0;
         }
 
-        .participants-chip {
-          position: absolute;
-          top: 0;
-          right: 0;
-          margin: 0;
+        &.ended {
+          background: var(--ion-color-medium);
         }
+      }
+
+      .timeline-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--ion-color-medium-shade);
       }
     }
 
     .description {
-      margin: 0 0 16px 0;
+      margin: 0 0 16px;
       color: var(--ion-text-color);
+      font-size: 15px;
       line-height: 1.5;
       white-space: pre-line;
     }
@@ -66,29 +132,61 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-      padding-top: 12px;
+      padding-top: 16px;
       border-top: 1px solid var(--ion-color-light);
 
       .detail-item {
         display: flex;
-        align-items: center;
-        gap: 8px;
-        color: var(--ion-color-medium);
+        align-items: baseline;
+        gap: 12px;
         font-size: 14px;
+      }
 
-        ion-icon {
-          font-size: 18px;
-        }
+      .detail-label {
+        flex: 0 0 82px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ion-color-medium);
+      }
 
-        strong {
-          color: var(--ion-text-color);
+      .detail-value {
+        color: var(--ion-text-color);
+      }
+
+      .metric-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .metric-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 10px;
+        border-radius: 12px;
+        background: rgba(var(--ion-color-primary-rgb), 0.1);
+        color: var(--ion-color-primary);
+        font-weight: 600;
+        font-size: 13px;
+
+        .metric-goal {
+          font-weight: 500;
+          opacity: 0.8;
+
+          &::before {
+            content: '\00b7';
+            margin-right: 6px;
+          }
         }
       }
     }
   }
 
   .join-section {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
 
   .leaderboard-section {
@@ -96,12 +194,24 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin: 32px 0 16px;
+      margin: 28px 0 12px;
+
+      .leaderboard-title {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+      }
 
       h2 {
         margin: 0;
-        font-size: 24px;
-        font-weight: 600;
+        font-size: 22px;
+        font-weight: 700;
+      }
+
+      .leaderboard-count {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--ion-color-medium);
       }
 
       ion-button {
@@ -112,160 +222,233 @@
     .empty-leaderboard {
       text-align: center;
       padding: 40px 20px;
+      border: 1px dashed var(--ion-color-medium-tint);
+      border-radius: 16px;
       color: var(--ion-color-medium);
+
+      ion-icon {
+        font-size: 40px;
+        opacity: 0.6;
+      }
+
+      h3 {
+        margin: 8px 0 4px;
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--ion-text-color);
+      }
+
+      p {
+        margin: 0;
+        font-size: 14px;
+      }
     }
   }
 
   .leaderboard-table {
     overflow-x: auto;
     background: var(--ion-card-background);
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 
     table {
       width: 100%;
       border-collapse: collapse;
+    }
 
-      thead {
-        background: var(--ion-color-light);
+    th {
+      padding: 12px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      color: var(--ion-color-medium);
+      border-bottom: 1px solid var(--ion-color-light);
 
-        th {
-          padding: 12px 16px;
-          text-align: left;
-          font-weight: 600;
-          font-size: 14px;
-          white-space: nowrap;
-          color: var(--ion-text-color);
-          border-bottom: 2px solid var(--ion-color-medium);
+      &.rank-column {
+        width: 64px;
+        padding-left: 16px;
+        text-align: center;
+      }
 
-          &:not(:first-child):not(:nth-child(2)) {
-            text-align: center;
-          }
+      &.metric-column {
+        text-align: center;
+      }
 
-          &.actions-column {
-            text-align: center;
-            width: 80px;
+      &.actions-column {
+        width: 80px;
+      }
+
+      .goal-hint {
+        text-transform: none;
+        letter-spacing: 0;
+        font-weight: 500;
+        opacity: 0.8;
+      }
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--ion-color-light);
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &.current-user {
+        background-color: rgba(var(--ion-color-primary-rgb), 0.08);
+      }
+    }
+
+    td {
+      padding: 10px 12px;
+      font-size: 15px;
+      color: var(--ion-text-color);
+
+      &.rank {
+        padding-left: 16px;
+        text-align: center;
+      }
+
+      &.name {
+        font-weight: 600;
+      }
+
+      &.metric {
+        text-align: center;
+      }
+
+      &.actions {
+        text-align: center;
+        padding: 8px;
+        white-space: nowrap;
+
+        ion-button {
+          --padding-start: 4px;
+          --padding-end: 4px;
+          margin: 0;
+        }
+      }
+    }
+
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      height: 32px;
+      padding: 0 6px;
+      border-radius: 16px;
+      font-size: 14px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--ion-color-medium-shade);
+
+      &.rank-1 {
+        background: rgba(224, 161, 0, 0.16);
+        color: var(--gold);
+      }
+
+      &.rank-2 {
+        background: rgba(138, 148, 163, 0.18);
+        color: var(--silver);
+      }
+
+      &.rank-3 {
+        background: rgba(192, 118, 58, 0.16);
+        color: var(--bronze);
+      }
+    }
+
+    .pax-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      app-pax-avatar {
+        flex-shrink: 0;
+      }
+
+      .you-tag {
+        padding: 1px 7px;
+        border-radius: 9px;
+        background: var(--ion-color-primary);
+        color: var(--ion-color-primary-contrast);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+    }
+
+    .plain-value {
+      font-size: 18px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--ion-text-color);
+
+      &.zero {
+        font-weight: 500;
+        color: var(--ion-color-medium-tint);
+      }
+    }
+
+    .progress-cell {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      vertical-align: middle;
+
+      .circular-progress {
+        display: block;
+
+        .progress-ring-background {
+          stroke: var(--ion-color-light-shade);
+        }
+
+        .progress-ring {
+          stroke: var(--ion-color-primary);
+          stroke-linecap: round;
+          transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
+
+          &.goal-met-stroke {
+            stroke: var(--ion-color-success);
           }
         }
       }
 
-      tbody {
-        tr {
-          border-bottom: 1px solid var(--ion-color-light);
-          transition: background-color 0.2s;
+      .progress-value {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-weight: 700;
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+        color: var(--ion-text-color);
+        pointer-events: none;
 
-          &:hover {
-            background-color: var(--ion-color-light);
-          }
-
-          &.current-user {
-            background-color: rgba(var(--ion-color-primary-rgb), 0.1);
-            font-weight: 500;
-          }
-
-          &:last-child {
-            border-bottom: none;
-          }
-        }
-
-        td {
-          padding: 12px 16px;
-          font-size: 14px;
-          color: var(--ion-text-color);
-
-          &.rank {
-            font-weight: 600;
-            color: var(--ion-color-primary);
-            width: 60px;
-          }
-
-          &.name {
-            font-weight: 500;
-
-            .pax-cell {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-
-              app-pax-avatar {
-                flex-shrink: 0;
-              }
-
-              app-pax-name {
-                flex: 1;
-              }
-            }
-          }
-
-          &.metric {
-            text-align: center;
-            font-weight: 600;
-            color: var(--ion-color-primary);
-            padding: 6px 16px;
-
-            .progress-cell {
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              position: relative;
-
-              .circular-progress {
-                position: relative;
-                width: 48px;
-                height: 48px;
-
-                .progress-ring-background {
-                  stroke: var(--ion-color-light);
-                  transition: stroke 0.3s ease;
-                }
-
-                .progress-ring {
-                  stroke: var(--ion-color-primary);
-                  transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
-                  stroke-linecap: round;
-
-                  &.goal-met-stroke {
-                    stroke: var(--ion-color-success);
-                  }
-                }
-
-                &.goal-met {
-                  .progress-ring-background {
-                    stroke: var(--ion-color-success);
-                  }
-                }
-              }
-
-              .progress-value {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                font-weight: 600;
-                font-size: 14px;
-                color: var(--ion-color-primary);
-                pointer-events: none;
-                z-index: 1;
-
-                &.goal-met-text {
-                  color: var(--ion-color-success);
-                }
-              }
-            }
-          }
-
-          &.actions {
-            text-align: center;
-            padding: 8px;
-
-            ion-button {
-              --padding-start: 4px;
-              --padding-end: 4px;
-              margin: 0;
-            }
-          }
+        &.goal-met-text {
+          color: var(--ion-color-success);
         }
       }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .challenge-detail-container {
+    padding: 12px;
+
+    .details-card .challenge-details .detail-item {
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .details-card .challenge-details .detail-label {
+      flex: none;
     }
   }
 }

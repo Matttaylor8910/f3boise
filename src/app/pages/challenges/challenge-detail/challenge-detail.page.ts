@@ -38,6 +38,13 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
   challenge?: Challenge;
   participants: ChallengeParticipant[] = [];
   leaderboard: ChallengeLeaderboardEntry[] = [];
+  /** Each leaderboard row's rank; level PAX share one. */
+  ranks: number[] = [];
+  timeline?: {
+    state: 'upcoming'|'active'|'ended'; label: string; detail: string;
+    remaining: string;
+    percent: number;
+  };
   /** What PAX have logged against the challenge's custom metrics. */
   logs: ChallengeLog[] = [];
   /** One leaderboard column per tracked metric, built-in then custom. */
@@ -113,6 +120,7 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
                 this.challengesService.metricColumns(challenge) :
                 [];
             this.challengeLoading = false;
+            this.buildTimeline();
             this.buildCheckIns();
             if (challenge) {
               this.loadLeaderboard();
@@ -389,6 +397,67 @@ export class ChallengeDetailPage implements OnInit, OnDestroy {
 
   sortLeaderboard() {
     this.leaderboard.sort((a, b) => this.compareEntries(a, b));
+    // PAX who are level share a rank
+    this.ranks = [];
+    this.leaderboard.forEach((entry, i) => {
+      const level = i > 0 &&
+          this.compareEntries(this.leaderboard[i - 1], entry) === 0;
+      this.ranks.push(level ? this.ranks[i - 1] : i + 1);
+    });
+  }
+
+  /** Whether the PAX in this row shares their rank with a neighbor. */
+  isTied(index: number): boolean {
+    return this.ranks[index] === this.ranks[index - 1] ||
+        this.ranks[index] === this.ranks[index + 1];
+  }
+
+  isCurrentUser(entry: ChallengeLeaderboardEntry): boolean {
+    return !!this.user &&
+        (entry.userId === this.user.email || entry.userId === this.user.uid);
+  }
+
+  /** Where today falls in the challenge's run. */
+  private buildTimeline() {
+    if (!this.challenge) {
+      this.timeline = undefined;
+      return;
+    }
+    const start = moment(this.challenge.startDate).startOf('day');
+    const end = moment(this.challenge.endDate).startOf('day');
+    const today = moment().startOf('day');
+    const totalDays = end.diff(start, 'days') + 1;
+
+    if (today.isBefore(start)) {
+      const days = start.diff(today, 'days');
+      this.timeline = {
+        state: 'upcoming',
+        label: 'Upcoming',
+        detail: days === 1 ? 'Starts tomorrow' : `Starts in ${days} days`,
+        remaining: `${totalDays} days long`,
+        percent: 0,
+      };
+    } else if (today.isAfter(end)) {
+      this.timeline = {
+        state: 'ended',
+        label: 'Ended',
+        detail: `Ended ${end.format('MMM D')}`,
+        remaining: '',
+        percent: 100,
+      };
+    } else {
+      const day = today.diff(start, 'days') + 1;
+      const left = end.diff(today, 'days');
+      this.timeline = {
+        state: 'active',
+        label: 'Live',
+        detail: `Day ${day} of ${totalDays}`,
+        remaining: left === 0 ? 'Last day' :
+            left === 1         ? '1 day left' :
+                                 `${left} days left`,
+        percent: Math.round((day / totalDays) * 100),
+      };
+    }
   }
 
 

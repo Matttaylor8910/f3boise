@@ -30,33 +30,51 @@
     <!-- Challenge Details -->
     <ion-card class="details-card">
       <ion-card-header>
-        <div class="card-header-row">
-          <div class="card-title-section">
-            <div class="title-row">
-              <ion-card-title>{{ challenge.name }}</ion-card-title>
-              <ion-chip *ngIf="challenge.isPrivate" color="medium" class="private-chip">
-                <ion-icon name="lock-closed-outline"></ion-icon>
-                <ion-label>Private</ion-label>
-              </ion-chip>
-            </div>
-            <ion-card-subtitle>{{ getDateRange() }}</ion-card-subtitle>
-          </div>
-          <ion-chip *ngIf="participants.length > 0" class="participants-chip">
-            <ion-icon name="people-outline"></ion-icon>
-            <ion-label>{{ participants.length }}</ion-label>
-          </ion-chip>
+        <div class="badge-row">
+          <span class="status-pill" *ngIf="timeline as t" [ngClass]="t.state">
+            <span class="status-dot"></span>{{ t.label }}
+          </span>
+          <span class="meta-pill" *ngIf="challenge.isPrivate">
+            <ion-icon name="lock-closed-outline"></ion-icon>Private
+          </span>
+          <span class="meta-pill" *ngIf="joinRequired && participants.length > 0">
+            <ion-icon name="people-outline"></ion-icon>{{ participants.length }} joined
+          </span>
         </div>
+        <ion-card-title>{{ challenge.name }}</ion-card-title>
+        <ion-card-subtitle>{{ getDateRange() }}</ion-card-subtitle>
       </ion-card-header>
       <ion-card-content>
-        <p class="description">{{ challenge.description }}</p>
+        <div class="timeline" *ngIf="timeline as t">
+          <div class="timeline-bar">
+            <div class="timeline-fill" [ngClass]="t.state" [style.width.%]="t.percent"></div>
+          </div>
+          <div class="timeline-labels">
+            <span>{{ t.detail }}</span>
+            <span *ngIf="t.remaining">{{ t.remaining }}</span>
+          </div>
+        </div>
+
+        <p class="description" *ngIf="challenge.description">{{ challenge.description }}</p>
+
         <div class="challenge-details">
           <div class="detail-item">
-            <ion-icon name="stats-chart-outline"></ion-icon>
-            <span><strong>Tracking:</strong> {{ getMetricsList() }}</span>
+            <span class="detail-label">Tracking</span>
+            <div class="metric-chips">
+              <span class="metric-chip" *ngFor="let col of columns; trackBy: trackByColumn">
+                {{ col.label }}
+                <span class="metric-goal" *ngIf="hasGoal(col.key) && !isDoneMetric(col.key)">Goal {{ getGoal(col.key) }}</span>
+              </span>
+            </div>
+          </div>
+          <div class="detail-item" *ngIf="columns.length > 1">
+            <span class="detail-label">Ranked by</span>
+            <span class="detail-value">{{ getSortByLabel() }}</span>
           </div>
           <div class="detail-item">
-            <ion-icon name="swap-vertical-outline"></ion-icon>
-            <span><strong>Sort by:</strong> {{ getSortByLabel() }}</span>
+            <span class="detail-label">Who's in</span>
+            <span class="detail-value" *ngIf="joinRequired">PAX who join the challenge</span>
+            <span class="detail-value" *ngIf="!joinRequired">Everyone who posts &ndash; no need to join</span>
           </div>
         </div>
       </ion-card-content>
@@ -85,100 +103,112 @@
 
     <!-- Leaderboard -->
     <div class="leaderboard-section">
-      <div class="leaderboard-subsection">
-        <div class="leaderboard-header">
-          <h2>{{ joinRequired ? 'Participants' : 'Leaderboard' }}</h2>
-          <ion-button
-            *ngIf="isOwner() && challenge?.requireJoining !== false"
-            fill="clear"
-            size="small"
-            (click)="openAddParticipantModal()">
-            <ion-icon slot="start" name="person-add-outline"></ion-icon>
-            Add PAX
-          </ion-button>
+      <div class="leaderboard-header">
+        <div class="leaderboard-title">
+          <h2>Leaderboard</h2>
+          <span class="leaderboard-count" *ngIf="!isLoading && leaderboard.length > 0">{{ leaderboard.length }} PAX</span>
         </div>
-        <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+        <ion-button
+          *ngIf="isOwner() && joinRequired"
+          fill="clear"
+          size="small"
+          (click)="openAddParticipantModal()">
+          <ion-icon slot="start" name="person-add-outline"></ion-icon>
+          Add PAX
+        </ion-button>
+      </div>
+      <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
 
-        <div *ngIf="!isLoading && leaderboard.length === 0" class="empty-leaderboard">
-          <p *ngIf="challenge?.requireJoining !== false">No participants yet. Be the first to join!</p>
-          <p *ngIf="challenge?.requireJoining === false">No one is on the board yet.</p>
-        </div>
+      <div *ngIf="!isLoading && leaderboard.length === 0" class="empty-leaderboard">
+        <ion-icon name="trophy-outline"></ion-icon>
+        <ng-container *ngIf="joinRequired">
+          <h3>No participants yet</h3>
+          <p>Be the first to join!</p>
+        </ng-container>
+        <ng-container *ngIf="!joinRequired">
+          <h3>No one is on the board yet</h3>
+          <p>PAX show up here automatically as soon as they post.</p>
+        </ng-container>
+      </div>
 
-        <div *ngIf="!isLoading && leaderboard.length > 0" class="leaderboard-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Rank</th>
-                <th>Name</th>
-                <th *ngFor="let col of columns; trackBy: trackByColumn">{{ col.label }}</th>
-                <th *ngIf="joinRequired ? (isOwner() || (user && isParticipant)) : (isOwner() && hasCustomMetrics())" class="actions-column">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let entry of leaderboard; let i = index; trackBy: trackByLeaderboardEntry"
-                  [class.current-user]="user && (entry.userId === user.email || entry.userId === user.uid)">
-                <td class="rank">{{ i + 1 }}</td>
-                <td class="name">
-                  <div class="pax-cell" *ngIf="entry.paxName; else userIdDisplay">
-                    <app-pax-avatar [name]="entry.paxName" [size]="32" [clickable]="true"></app-pax-avatar>
+      <div *ngIf="!isLoading && leaderboard.length > 0" class="leaderboard-table">
+        <table>
+          <thead>
+            <tr>
+              <th class="rank-column">Rank</th>
+              <th>PAX</th>
+              <th *ngFor="let col of columns; trackBy: trackByColumn" class="metric-column">
+                {{ col.label }}
+                <span class="goal-hint" *ngIf="hasGoal(col.key) && !isDoneMetric(col.key)">of {{ getGoal(col.key) }}</span>
+              </th>
+              <th *ngIf="joinRequired ? (isOwner() || (user && isParticipant)) : (isOwner() && hasCustomMetrics())" class="actions-column"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let entry of leaderboard; let i = index; trackBy: trackByLeaderboardEntry"
+                [class.current-user]="isCurrentUser(entry)">
+              <td class="rank">
+                <span class="rank-badge" [ngClass]="'rank-' + ranks[i]" [class.tied]="isTied(i)">{{ isTied(i) ? 'T' : '' }}{{ ranks[i] }}</span>
+              </td>
+              <td class="name">
+                <div class="pax-cell">
+                  <ng-container *ngIf="entry.paxName; else userIdDisplay">
+                    <app-pax-avatar [name]="entry.paxName" [size]="36" [clickable]="true"></app-pax-avatar>
                     <app-pax-name [name]="entry.paxName"></app-pax-name>
-                  </div>
+                  </ng-container>
                   <ng-template #userIdDisplay>
-                    {{ entry.userId }}
+                    <span>{{ entry.userId }}</span>
                   </ng-template>
-                </td>
-                <td *ngFor="let col of columns; trackBy: trackByColumn" class="metric">
-                  <div class="progress-cell">
-                    <svg class="circular-progress" width="48" height="48" [class.goal-met]="hasGoal(col.key) && hasMetGoal(entry, col.key)">
-                      <circle
-                        class="progress-ring-background"
-                        cx="24"
-                        cy="24"
-                        r="20"
-                        fill="none"
-                        stroke="var(--ion-color-light)"
-                        stroke-width="3"/>
-                      <circle
-                        *ngIf="hasGoal(col.key)"
-                        class="progress-ring"
-                        [class.goal-met-stroke]="hasMetGoal(entry, col.key)"
-                        cx="24"
-                        cy="24"
-                        r="20"
-                        fill="none"
-                        stroke="var(--ion-color-primary)"
-                        stroke-width="3"
-                        [attr.stroke-dasharray]="getStrokeDashArray(20)"
-                        [attr.stroke-dashoffset]="getStrokeDashOffset(entry, col.key, 20)"
-                        transform="rotate(-90 24 24)"/>
-                    </svg>
-                    <span class="progress-value" [class.long-value]="formatValue(entry, col.key).length > 4" [class.goal-met-text]="hasGoal(col.key) && hasMetGoal(entry, col.key)">{{ formatValue(entry, col.key) }}</span>
-                  </div>
-                </td>
-                <td *ngIf="joinRequired ? (isOwner() || (user && (entry.userId === user.email || entry.userId === user.uid))) : (isOwner() && hasCustomMetrics())" class="actions">
-                  <ion-button
-                    *ngIf="isOwner() && hasCustomMetrics()"
-                    fill="clear"
-                    size="small"
-                    title="Check in for this PAX"
-                    (click)="openLogModal(entry)">
-                    <ion-icon slot="icon-only" name="create-outline"></ion-icon>
-                  </ion-button>
-                  <ion-button
-                    *ngIf="joinRequired"
-                    fill="clear"
-                    size="small"
-                    color="danger"
-                    (click)="removeParticipant(entry.userId)"
-                    [disabled]="removingParticipant === entry.userId">
-                    <ion-spinner *ngIf="removingParticipant === entry.userId" name="crescent"></ion-spinner>
-                    <ion-icon *ngIf="removingParticipant !== entry.userId" slot="icon-only" name="close-circle-outline"></ion-icon>
-                  </ion-button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                  <span class="you-tag" *ngIf="isCurrentUser(entry)">You</span>
+                </div>
+              </td>
+              <td *ngFor="let col of columns; trackBy: trackByColumn" class="metric">
+                <!-- A ring only means something when there's a goal to fill it -->
+                <div class="progress-cell" *ngIf="hasGoal(col.key); else plainValue">
+                  <svg class="circular-progress" width="44" height="44" viewBox="0 0 48 48" [class.goal-met]="hasMetGoal(entry, col.key)">
+                    <circle class="progress-ring-background" cx="24" cy="24" r="20" fill="none" stroke-width="4"/>
+                    <circle
+                      class="progress-ring"
+                      [class.goal-met-stroke]="hasMetGoal(entry, col.key)"
+                      cx="24"
+                      cy="24"
+                      r="20"
+                      fill="none"
+                      stroke-width="4"
+                      [attr.stroke-dasharray]="getStrokeDashArray(20)"
+                      [attr.stroke-dashoffset]="getStrokeDashOffset(entry, col.key, 20)"
+                      transform="rotate(-90 24 24)"/>
+                  </svg>
+                  <span class="progress-value" [class.long-value]="formatValue(entry, col.key).length > 4" [class.goal-met-text]="hasMetGoal(entry, col.key)">{{ formatValue(entry, col.key) }}</span>
+                </div>
+                <ng-template #plainValue>
+                  <span class="plain-value" [class.zero]="getValue(entry, col.key) === 0">{{ formatValue(entry, col.key) }}</span>
+                </ng-template>
+              </td>
+              <td *ngIf="joinRequired ? (isOwner() || isCurrentUser(entry)) : (isOwner() && hasCustomMetrics())" class="actions">
+                <ion-button
+                  *ngIf="isOwner() && hasCustomMetrics()"
+                  fill="clear"
+                  size="small"
+                  title="Check in for this PAX"
+                  (click)="openLogModal(entry)">
+                  <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+                </ion-button>
+                <ion-button
+                  *ngIf="joinRequired"
+                  fill="clear"
+                  size="small"
+                  color="medium"
+                  title="Remove from challenge"
+                  (click)="removeParticipant(entry.userId)"
+                  [disabled]="removingParticipant === entry.userId">
+                  <ion-spinner *ngIf="removingParticipant === entry.userId" name="crescent"></ion-spinner>
+                  <ion-icon *ngIf="removingParticipant !== entry.userId" slot="icon-only" name="close-circle-outline"></ion-icon>
+                </ion-button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
